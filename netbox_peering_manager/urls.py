@@ -19,7 +19,7 @@ urlpatterns = [
     path("community/import/", views.CommunityBulkImportView.as_view(), name="bgpcommunity_import"),
     path("community/edit/", views.CommunityBulkEditView.as_view(), name="bgpcommunity_bulk_edit"),
     path("community/delete/", views.CommunityBulkDeleteView.as_view(), name="bgpcommunity_bulk_delete"),
-    path("community/<int:pk>/", views.CommunityView.as_view(), name="community"),
+    path("community/<int:pk>/", views.CommunityView.as_view(), name="bgpcommunity"),
     path("community/<int:pk>/edit/", views.CommunityEditView.as_view(), name="bgpcommunity_edit"),
     path("community/<int:pk>/delete/", views.CommunityDeleteView.as_view(), name="bgpcommunity_delete"),
     path(

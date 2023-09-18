@@ -30,7 +30,7 @@ class BaseTestCase(TestCase):
 class CommunityTestCase(BaseTestCase):
     def setUp(self):
         super().setUp()
-        self.base_url_lookup = "plugins-api:netbox_peering_manager-api:community"
+        self.base_url_lookup = "plugins-api:netbox_peering_manager-api:bgpcommunity"
         self.community1 = BGPCommunity.objects.create(value="65000:65000", description="test_community")
 
     def test_list_community(self):

@@ -77,7 +77,7 @@ class BGPCommunity(BGPBase):
         return CommunityStatusChoices.colors.get(self.status)
 
     def get_absolute_url(self):
-        return reverse("plugins:netbox_peering_manager:bgp_community", args=[self.pk])
+        return reverse("plugins:netbox_peering_manager:bgpcommunity", args=[self.pk])
 
 
 class BGPSession(NetBoxModel):
