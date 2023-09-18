@@ -6,13 +6,21 @@ from django.utils.text import slugify
 from netbox.views import generic
 from ipam.models import ASN
 
-from .models import Community, BGPSession, RoutingPolicy, BGPPeerGroup, RoutingPolicyRule, PrefixList, PrefixListRule
+from .models import (
+    BGPCommunity,
+    BGPSession,
+    RoutingPolicy,
+    BGPPeerGroup,
+    RoutingPolicyRule,
+    PrefixList,
+    PrefixListRule,
+)
 
 from . import forms, tables, filters
 
 
 class CommunityListView(generic.ObjectListView):
-    queryset = Community.objects.all()
+    queryset = BGPCommunity.objects.all()
     filterset = filters.CommunityFilterSet
     filterset_form = forms.CommunityFilterForm
     table = tables.CommunityTable
@@ -20,34 +28,34 @@ class CommunityListView(generic.ObjectListView):
 
 
 class CommunityView(generic.ObjectView):
-    queryset = Community.objects.all()
+    queryset = BGPCommunity.objects.all()
     template_name = "netbox_peering_manager/community.html"
 
 
 class CommunityEditView(generic.ObjectEditView):
-    queryset = Community.objects.all()
+    queryset = BGPCommunity.objects.all()
     form = forms.CommunityForm
 
 
 class CommunityBulkDeleteView(generic.BulkDeleteView):
-    queryset = Community.objects.all()
+    queryset = BGPCommunity.objects.all()
     table = tables.CommunityTable
 
 
 class CommunityBulkEditView(generic.BulkEditView):
-    queryset = Community.objects.all()
+    queryset = BGPCommunity.objects.all()
     filterset = filters.CommunityFilterSet
     table = tables.CommunityTable
     form = forms.CommunityBulkEditForm
 
 
 class CommunityDeleteView(generic.ObjectDeleteView):
-    queryset = Community.objects.all()
+    queryset = BGPCommunity.objects.all()
     default_return_url = "plugins:netbox_peering_manager:community_list"
 
 
 class CommunityBulkImportView(generic.BulkImportView):
-    queryset = Community.objects.all()
+    queryset = BGPCommunity.objects.all()
     model_form = forms.CommunityImportForm
 
 

@@ -14,7 +14,7 @@ from tenancy.models import Tenant
 from dcim.models import Site, DeviceRole, DeviceType, Manufacturer, Device, Interface
 from ipam.models import IPAddress, ASN, RIR
 
-from netbox_peering_manager.models import Community, BGPPeerGroup, BGPSession
+from netbox_peering_manager.models import BGPCommunity, BGPPeerGroup, BGPSession
 
 
 class BaseTestCase(TestCase):
@@ -31,7 +31,7 @@ class CommunityTestCase(BaseTestCase):
     def setUp(self):
         super().setUp()
         self.base_url_lookup = "plugins-api:netbox_peering_manager-api:community"
-        self.community1 = Community.objects.create(value="65000:65000", description="test_community")
+        self.community1 = BGPCommunity.objects.create(value="65000:65000", description="test_community")
 
     def test_list_community(self):
         url = reverse(f"{self.base_url_lookup}-list")
@@ -51,8 +51,8 @@ class CommunityTestCase(BaseTestCase):
         data = {"value": "65001:65001", "description": "test_community1"}
         response = self.client.post(url, data, format="json")
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(Community.objects.get(pk=response.data["id"]).value, "65001:65001")
-        self.assertEqual(Community.objects.get(pk=response.data["id"]).description, "test_community1")
+        self.assertEqual(BGPCommunity.objects.get(pk=response.data["id"]).value, "65001:65001")
+        self.assertEqual(BGPCommunity.objects.get(pk=response.data["id"]).description, "test_community1")
 
     def test_update_community(self):
         pass

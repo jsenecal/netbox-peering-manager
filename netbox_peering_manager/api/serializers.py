@@ -14,7 +14,7 @@ from netbox_peering_manager.models import (
     BGPSession,
     RoutingPolicy,
     BGPPeerGroup,
-    Community,
+    BGPCommunity,
     RoutingPolicyRule,
     PrefixList,
     PrefixListRule,
@@ -156,7 +156,7 @@ class CommunitySerializer(NetBoxModelSerializer):
     tenant = NestedTenantSerializer(required=False, allow_null=True)
 
     class Meta:
-        model = Community
+        model = BGPCommunity
         fields = [
             "id",
             "tags",

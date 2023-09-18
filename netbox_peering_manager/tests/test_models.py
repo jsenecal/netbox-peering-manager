@@ -6,7 +6,7 @@ from tenancy.models import Tenant
 from dcim.models import Site, Device, Manufacturer, DeviceRole, DeviceType
 from ipam.models import IPAddress, ASN, RIR
 
-from netbox_peering_manager.models import BGPSession, Community, RoutingPolicy, BGPPeerGroup
+from netbox_peering_manager.models import BGPSession, BGPCommunity, RoutingPolicy, BGPPeerGroup
 
 
 class RoutingPolicyTestCase(TestCase):
@@ -61,14 +61,14 @@ class BGPPeerGroupTestCase(TestCase):
 
 class CommunityTestCase(TestCase):
     def setUp(self):
-        self.community = Community.objects.create(value="65001:65001", description="test_community")
+        self.community = BGPCommunity.objects.create(value="65001:65001", description="test_community")
 
     def test_create_community(self):
-        self.assertTrue(isinstance(self.community, Community))
+        self.assertTrue(isinstance(self.community, BGPCommunity))
         self.assertEqual(self.community.__str__(), self.community.value)
 
     def test_invalid_community(self):
-        community = Community(value=0)
+        community = BGPCommunity(value=0)
         self.assertRaises(ValidationError, community.full_clean)
 
 

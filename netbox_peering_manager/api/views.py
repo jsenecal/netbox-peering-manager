@@ -13,7 +13,7 @@ from netbox_peering_manager.models import (
     BGPSession,
     RoutingPolicy,
     BGPPeerGroup,
-    Community,
+    BGPCommunity,
     PrefixList,
     PrefixListRule,
     RoutingPolicyRule,
@@ -54,7 +54,7 @@ class BGPPeerGroupViewSet(ModelViewSet):
 
 
 class CommunityViewSet(ModelViewSet):
-    queryset = Community.objects.all()
+    queryset = BGPCommunity.objects.all()
     serializer_class = CommunitySerializer
     filterset_class = CommunityFilterSet
 

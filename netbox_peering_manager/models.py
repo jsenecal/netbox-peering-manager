@@ -62,13 +62,13 @@ class BGPBase(NetBoxModel):
         abstract = True
 
 
-class Community(BGPBase):
+class BGPCommunity(BGPBase):
     """ """
 
     value = models.CharField(max_length=64, validators=[RegexValidator(r"\d+:\d+")])
 
     class Meta:
-        verbose_name_plural = "Communities"
+        verbose_name_plural = "BGP Communities"
 
     def __str__(self):
         return self.value
@@ -81,7 +81,7 @@ class Community(BGPBase):
 
 
 class BGPSession(NetBoxModel):
-    name = models.CharField(max_length=64, blank=True, null=True)
+    name = models.CharField(max_length=100, blank=True, null=True)
     site = models.ForeignKey(to="dcim.Site", on_delete=models.SET_NULL, blank=True, null=True)
     tenant = models.ForeignKey(to="tenancy.Tenant", on_delete=models.PROTECT, blank=True, null=True)
     device = models.ForeignKey(
@@ -191,7 +191,7 @@ class RoutingPolicyRule(NetBoxModel):
     action = models.CharField(max_length=30, choices=ActionChoices)
     description = models.CharField(max_length=500, blank=True)
     continue_entry = models.PositiveIntegerField(blank=True, null=True)
-    match_community = models.ManyToManyField(to=Community, blank=True, related_name="+")
+    match_community = models.ManyToManyField(to=BGPCommunity, blank=True, related_name="+")
     match_ip_address = models.ManyToManyField(
         to=PrefixList,
         blank=True,
