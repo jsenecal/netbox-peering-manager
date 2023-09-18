@@ -15,9 +15,10 @@ This plugin provide following Models:
 
 ## Compatibility
 
-|-------------|----------|
-| NetBox 3.5  | >= 0.0.1 |
-| NetBox 3.6  | >= 0.0.1 |
+| Netbox Version | Plugin Version |
+|----------------|----------------|
+| NetBox 3.5     | >= 0.0.1       |
+| NetBox 3.6     | >= 0.0.1       |
 
 ## Installation
 
