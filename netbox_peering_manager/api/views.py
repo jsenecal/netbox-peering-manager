@@ -4,7 +4,7 @@ from .serializers import (
     BGPSessionSerializer,
     RoutingPolicySerializer,
     BGPPeerGroupSerializer,
-    CommunitySerializer,
+    BGPCommunitySerializer,
     PrefixListSerializer,
     PrefixListRuleSerializer,
     RoutingPolicyRuleSerializer,
@@ -55,7 +55,7 @@ class BGPPeerGroupViewSet(ModelViewSet):
 
 class CommunityViewSet(ModelViewSet):
     queryset = BGPCommunity.objects.all()
-    serializer_class = CommunitySerializer
+    serializer_class = BGPCommunitySerializer
     filterset_class = CommunityFilterSet
 
 

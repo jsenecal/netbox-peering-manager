@@ -29,7 +29,7 @@ class CommunityListView(generic.ObjectListView):
 
 class CommunityView(generic.ObjectView):
     queryset = BGPCommunity.objects.all()
-    template_name = "netbox_peering_manager/community.html"
+    template_name = "netbox_peering_manager/bgpcommunity.html"
 
 
 class CommunityEditView(generic.ObjectEditView):
@@ -137,8 +137,8 @@ class RoutingPolicyView(generic.ObjectView):
         sess = BGPSession.objects.filter(
             Q(import_policies=instance)
             | Q(export_policies=instance)
-            | Q(peer_group__in=instance.group_import_policies.all())
-            | Q(peer_group__in=instance.group_export_policies.all())
+            | Q(peer_group__in=instance.groups_as_import_policies.all())
+            | Q(peer_group__in=instance.groups_as_export_policies.all())
         )
         sess = sess.distinct()
         sess_table = tables.BGPSessionTable(sess)

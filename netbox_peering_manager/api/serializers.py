@@ -151,7 +151,7 @@ class NestedBGPSessionSerializer(WritableNestedSerializer):
         validators = []
 
 
-class CommunitySerializer(NetBoxModelSerializer):
+class BGPCommunitySerializer(NetBoxModelSerializer):
     status = ChoiceField(choices=CommunityStatusChoices, required=False)
     tenant = NestedTenantSerializer(required=False, allow_null=True)
 
