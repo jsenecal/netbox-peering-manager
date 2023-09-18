@@ -90,7 +90,7 @@ if get_plugin_config("netbox_peering_manager", "top_level_menu"):
             ("BGP", _bgp_menu_items),
             ("Routing", _routing_menu_items),
         ),
-        icon_class="mdi mdi-bootstrap",
+        icon_class="mdi mdi-lan",
     )
 else:
     menu_items = _bgp_menu_items + _routing_menu_items
