@@ -1,5 +1,10 @@
-# NetBox BGP Plugin
-[Netbox](https://github.com/netbox-community/netbox) plugin for BGP related objects documentation.
+# netbox-peering-manager
+
+[NetBox Peering Manager](https://github.com/jsenecal/netbox-peering-manager) is a BGP session management plugin for [NetBox](https://github.com/netbox-community/netbox). Meant as a way to document Internet Exchanges points and peering sessions, it also provides a source of truth and configuration management for external BGP sessions of all kind (transit, customers, peering, etc).
+
+This project gets its name from the [original *Peering Manager* project](https://github.com/peering-manager/peering-manager), and most functionality is inspired by that project. I needed a tighter intergration and the existing models within NetBox allowed to do much more rather than copy/pasting/api glueing information between the two tools (even though they both have a lot in comon).
+
+Currently the codebase is mostly a fork of the original [NetBox BGP Plugin](https://github.com/k01ek/netbox-bgp) by [Jonathan Senecal](https://github.com/k01ek) but over time the two will diverge significantly as I work on the plugin.
 
 ## Features
 This plugin provide following Models:
@@ -12,27 +17,20 @@ This plugin provide following Models:
 
 |             |       |
 |-------------|-------|
-| NetBox 2.10 | 0.3.9 |
-| NetBox 2.11 | 0.3.9 |
-| NetBox 3.0  | 0.4.3 |
-| NetBox 3.1  | 0.5.0 |
-| NetBox 3.2  | >= 0.6.0 |
-| NetBox 3.3  | >= 0.8.1 |
-| NetBox 3.4  | >= 0.9.0 |
-| NetBox 3.5  | >= 0.10.0 |
+| NetBox 3.5  | >= 0.0.1 |
 
 ## Installation
 
-The plugin is available as a Python package in pypi and can be installed with pip  
+The plugin can be installed with pip:
 
 ```
-pip install netbox-bgp
+pip install git+https://github.com/jsenecal/netbox-peering-manager.git
 ```
 Enable the plugin in /opt/netbox/netbox/netbox/configuration.py:
 ```
-PLUGINS = ['netbox_bgp']
+PLUGINS = ['netbox_peering_manager']
 ```
-Restart NetBox and add `netbox-bgp` to your local_requirements.txt
+Restart NetBox and add `netbox-peering-manager` to your local_requirements.txt
 
 See [NetBox Documentation](https://docs.netbox.dev/en/stable/plugins/#installing-plugins) for details
 
@@ -41,7 +39,7 @@ See [NetBox Documentation](https://docs.netbox.dev/en/stable/plugins/#installing
 The following options are available:
 * `device_ext_page`: String (default right) Device related BGP sessions table position. The following values are available:  
 left, right, full_width. Set empty value for disable.
-* `top_level_menu`: Bool (default False) Enable top level section navigation menu for the plugin. 
+* `top_level_menu`: Bool (default True) Enable top level section navigation menu for the plugin. 
 
 ## Screenshots
 

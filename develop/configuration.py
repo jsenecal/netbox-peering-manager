@@ -151,7 +151,7 @@ NAPALM_ARGS = {
 PAGINATE_COUNT = os.environ.get("PAGINATE_COUNT", 50)
 
 # Enable installed plugins. Add the name of each plugin to the list.
-PLUGINS = ["netbox_bgp"]
+PLUGINS = ["netbox_peering_manager"]
 
 # Plugins configuration settings. These settings are used by various plugins that the user may have installed.
 # Each key in the dictionary is the name of an installed plugin and its value is a dictionary of settings.
@@ -163,7 +163,7 @@ PREFER_IPV4 = os.environ.get("PREFER_IPV4", False)
 
 # Remote authentication support
 REMOTE_AUTH_ENABLED = False
-REMOTE_AUTH_BACKEND = 'netbox.authentication.RemoteUserBackend'
+REMOTE_AUTH_BACKEND = "netbox.authentication.RemoteUserBackend"
 REMOTE_AUTH_HEADER = "HTTP_REMOTE_USER"
 REMOTE_AUTH_AUTO_CREATE_USER = True
 REMOTE_AUTH_DEFAULT_GROUPS = []

@@ -1,11 +1,11 @@
-PYTHON_VER?=3.8
+PYTHON_VER?=3.9
 NETBOX_VER?=v3.5.1
 
-NAME=netbox-bgp
+NAME=netbox-peering-manager
 
 COMPOSE_FILE=./develop/docker-compose.yml
-BUILD_NAME=netbox_bgp
-VERFILE=./netbox_bgp/version.py
+BUILD_NAME=netbox_peering_manager
+VERFILE=./netbox_peering_manager/version.py
 
 
 cbuild:
@@ -27,7 +27,7 @@ stop:
 
 destroy:
 	docker-compose -f ${COMPOSE_FILE} -p ${BUILD_NAME} down
-	docker volume rm -f ${BUILD_NAME}_pgdata_netbox_bgp
+	docker volume rm -f ${BUILD_NAME}_pgdata_netbox_peering_manager
 
 nbshell:
 	docker-compose -f ${COMPOSE_FILE} -p ${BUILD_NAME} run netbox python manage.py nbshell

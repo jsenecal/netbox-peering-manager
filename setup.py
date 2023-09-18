@@ -9,14 +9,14 @@ with open("README.md", "r") as fh:
 
 
 def read(rel_path):
-    here = os.path.abspath(os.path.dirname(__file__))
-    with codecs.open(os.path.join(here, rel_path), 'r') as fp:
+    path = os.path.abspath(os.path.dirname(__file__))
+    with codecs.open(os.path.join(path, rel_path), "r") as fp:
         return fp.read()
 
 
 def get_version(rel_path):
     for line in read(rel_path).splitlines():
-        if line.startswith('__version__'):
+        if line.startswith("__version__"):
             delim = '"' if '"' in line else "'"
             return line.split(delim)[1]
     else:
@@ -24,21 +24,21 @@ def get_version(rel_path):
 
 
 setup(
-    name='netbox-bgp',
-    version=get_version('netbox_bgp/version.py'),
-    description='BGP related stuff',
+    name="netbox-peering-manager",
+    version=get_version("netbox_peering_manager/version.py"),
+    description='Peering Manager for NetBox and related things',
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url='https://github.com/k01ek/netbox-bgp',
-    author='Nikolay Yuzefovich',
-    author_email='mgk.kolek@gmail.com',
+    url="https://github.com/jsenecal/netbox-peering-manager",
+    author="Jonathan Senecal",
+    author_email="contact@jonathansenecal.com",
     install_requires=[],
     packages=find_packages(),
     include_package_data=True,
     classifiers=[
-        'Development Status :: 2 - Pre-Alpha',
-        'License :: OSI Approved :: Apache Software License',
-        'Framework :: Django',
-        'Programming Language :: Python :: 3',
-    ]
+        "Development Status :: 2 - Pre-Alpha",
+        "License :: OSI Approved :: Apache Software License",
+        "Framework :: Django",
+        "Programming Language :: Python :: 3",
+    ],
 )
