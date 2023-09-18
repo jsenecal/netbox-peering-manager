@@ -4,7 +4,7 @@
 
 This project gets its name from the [original *Peering Manager* project](https://github.com/peering-manager/peering-manager), and most functionality is inspired by that project. I needed a tighter intergration and the existing models within NetBox allowed to do much more rather than copy/pasting/api glueing information between the two tools (even though they both have a lot in comon).
 
-Currently the codebase is mostly a fork of the original [NetBox BGP Plugin](https://github.com/k01ek/netbox-bgp) by [Jonathan Senecal](https://github.com/k01ek) but over time the two will diverge significantly as I work on the plugin.
+Currently the codebase is mostly a fork of the original [NetBox BGP Plugin](https://github.com/k01ek/netbox-bgp) by [Nikolay Yuzefovich](https://github.com/k01ek) but over time the two will diverge significantly as I work on the plugin.
 
 ## Features
 This plugin provide following Models:
