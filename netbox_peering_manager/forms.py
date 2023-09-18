@@ -4,6 +4,7 @@ from django.core.exceptions import MultipleObjectsReturned, ObjectDoesNotExist, 
 from django.utils.translation import gettext as _
 
 from extras.models import Tag
+from tenancy.forms.forms import TenancyForm
 from tenancy.models import Tenant
 from dcim.models import Device, Site
 from ipam.models import IPAddress, Prefix, ASN
@@ -31,7 +32,7 @@ from .models import (
 from .choices import SessionStatusChoices, CommunityStatusChoices
 
 
-class CommunityForm(NetBoxModelForm):
+class CommunityForm(TenancyForm, NetBoxModelForm):
     tags = DynamicModelMultipleChoiceField(queryset=Tag.objects.all(), required=False)
     status = forms.ChoiceField(
         required=False,
@@ -39,12 +40,18 @@ class CommunityForm(NetBoxModelForm):
     )
     tenant = DynamicModelChoiceField(queryset=Tenant.objects.all(), required=False)
 
+    fieldsets = (
+        (_("Community"), ("value", "description", "status", "tags")),
+        (_("Tenancy"), ("tenant_group", "tenant")),
+    )
+
     class Meta:
         model = BGPCommunity
         fields = [
             "value",
             "description",
             "status",
+            "tenant_group",
             "tenant",
             "tags",
         ]
