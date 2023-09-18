@@ -26,8 +26,9 @@
 <ul class="nav nav-tabs px-3">
     {% block tab_items %}
     <li class="nav-item" role="presentation">
-        <a class="nav-link{% if not active_tab %} active{% endif %}" href="{{ object.get_absolute_url }}">{{
-            object|meta:"verbose_name"|bettertitle }}</a>
+        <a class="nav-link{% if not active_tab %} active{% endif %}" href="{{ object.get_absolute_url }}">
+            {{ object|meta:"verbose_name"|bettertitle }}
+        </a>
     </li>
     {% endblock tab_items %}
     {% if perms.extras.view_objectchange %}
@@ -65,8 +66,9 @@
                     <tr>
                         <td>Status</td>
                         <td>
-                            <span class="label label-{{ object.get_status_class }}">{{ object.get_status_display
-                                }}</span>
+                            <span class="label label-{{ object.get_status_class }}">
+                                {{ object.get_status_display }}
+                            </span>
                         </td>
                     </tr>
                     <tr>
