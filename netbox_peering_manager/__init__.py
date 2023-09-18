@@ -11,7 +11,7 @@ class PeeringManagerConfig(PluginConfig):
     author_email = "contact@jonathansenecal.com"
     base_url = "bgp"
     required_settings = []
-    min_version = "3.5.0"
+    min_version = "3.4.0"
     max_version = "3.6.99"
     default_settings = {
         "device_ext_page": "right",
