@@ -1,12 +1,18 @@
-from django.urls import reverse
-from django.db import models
-from django.core.validators import MaxValueValidator, MinValueValidator, RegexValidator
 from django.core.exceptions import ValidationError
-
-from netbox.models import NetBoxModel
+from django.core.validators import MaxValueValidator, MinValueValidator, RegexValidator
+from django.db import models
+from django.urls import reverse
+from django.utils.translation import gettext_lazy as _
 from ipam.fields import IPNetworkField
 
-from .choices import IPAddressFamilyChoices, SessionStatusChoices, ActionChoices, CommunityStatusChoices
+from netbox.models import NetBoxModel
+
+from .choices import (
+    ActionChoices,
+    CommunityStatusChoices,
+    IPAddressFamilyChoices,
+    SessionStatusChoices,
+)
 
 
 class RoutingPolicy(NetBoxModel):
@@ -68,7 +74,8 @@ class BGPCommunity(BGPBase):
     value = models.CharField(max_length=64, validators=[RegexValidator(r"\d+:\d+")])
 
     class Meta:
-        verbose_name_plural = "BGP Communities"
+        verbose_name_plural = _("BGP Communities")
+        verbose_name = _("BGP Community")
 
     def __str__(self):
         return self.value
