@@ -51,7 +51,7 @@ class CommunityBulkEditView(generic.BulkEditView):
 
 class CommunityDeleteView(generic.ObjectDeleteView):
     queryset = BGPCommunity.objects.all()
-    default_return_url = "plugins:netbox_peering_manager:community_list"
+    default_return_url = "plugins:netbox_peering_manager:bgpcommunity_list"
 
 
 class CommunityBulkImportView(generic.BulkImportView):

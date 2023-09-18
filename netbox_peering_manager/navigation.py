@@ -10,12 +10,12 @@ except ImportError:
 
 _bgp_menu_items = (
     PluginMenuItem(
-        link="plugins:netbox_peering_manager:community_list",
+        link="plugins:netbox_peering_manager:bgpcommunity_list",
         link_text="Communities",
         permissions=["netbox_peering_manager.view_community"],
         buttons=(
             PluginMenuButton(
-                link="plugins:netbox_peering_manager:community_add",
+                link="plugins:netbox_peering_manager:bgpcommunity_add",
                 title="Communities",
                 icon_class="mdi mdi-plus-thick",
                 color=ButtonColorChoices.GREEN,

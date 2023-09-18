@@ -37,7 +37,7 @@ class CommunityTable(NetBoxTable):
     value = tables.LinkColumn()
     status = ChoiceFieldColumn(default=AVAILABLE_LABEL)
     tenant = tables.TemplateColumn(template_code=COL_TENANT)
-    tags = TagColumn(url_name="plugins:netbox_peering_manager:community_list")
+    tags = TagColumn(url_name="plugins:netbox_peering_manager:bgpcommunity_list")
 
     class Meta(NetBoxTable.Meta):
         model = BGPCommunity

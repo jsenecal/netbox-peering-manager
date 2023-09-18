@@ -14,18 +14,18 @@ from . import views
 
 urlpatterns = [
     # Community
-    path("community/", views.CommunityListView.as_view(), name="community_list"),
-    path("community/add/", views.CommunityEditView.as_view(), name="community_add"),
-    path("community/import/", views.CommunityBulkImportView.as_view(), name="community_import"),
-    path("community/edit/", views.CommunityBulkEditView.as_view(), name="community_bulk_edit"),
-    path("community/delete/", views.CommunityBulkDeleteView.as_view(), name="community_bulk_delete"),
+    path("community/", views.CommunityListView.as_view(), name="bgpcommunity_list"),
+    path("community/add/", views.CommunityEditView.as_view(), name="bgpcommunity_add"),
+    path("community/import/", views.CommunityBulkImportView.as_view(), name="bgpcommunity_import"),
+    path("community/edit/", views.CommunityBulkEditView.as_view(), name="bgpcommunity_bulk_edit"),
+    path("community/delete/", views.CommunityBulkDeleteView.as_view(), name="bgpcommunity_bulk_delete"),
     path("community/<int:pk>/", views.CommunityView.as_view(), name="community"),
-    path("community/<int:pk>/edit/", views.CommunityEditView.as_view(), name="community_edit"),
-    path("community/<int:pk>/delete/", views.CommunityDeleteView.as_view(), name="community_delete"),
+    path("community/<int:pk>/edit/", views.CommunityEditView.as_view(), name="bgpcommunity_edit"),
+    path("community/<int:pk>/delete/", views.CommunityDeleteView.as_view(), name="bgpcommunity_delete"),
     path(
         "community/<int:pk>/changelog/",
         ObjectChangeLogView.as_view(),
-        name="community_changelog",
+        name="bgpcommunity_changelog",
         kwargs={"model": BGPCommunity},
     ),
     # Sessions
