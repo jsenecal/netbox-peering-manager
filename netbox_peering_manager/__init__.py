@@ -20,3 +20,5 @@ class PeeringManagerConfig(PluginConfig):
 
 
 config = PeeringManagerConfig  # noqa
+
+print("netbox_peering_manager plugin loaded.")
