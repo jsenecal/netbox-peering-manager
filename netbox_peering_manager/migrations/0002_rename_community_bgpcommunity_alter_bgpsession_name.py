@@ -6,10 +6,10 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('ipam', '0067_ipaddress_index_host'),
-        ('tenancy', '0011_contactassignment_tags'),
-        ('extras', '0098_webhook_custom_field_data_webhook_tags'),
-        ('dcim', '0181_rename_device_role_device_role'),
+        ("ipam", "0064_clear_search_cache"),
+        ("tenancy", "0009_standardize_description_comments"),
+        ("extras", "0084_staging"),
+        ("dcim", "0167_module_status"),
         ('netbox_peering_manager', '0001_initial'),
     ]
 
