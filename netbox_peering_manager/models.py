@@ -71,11 +71,21 @@ class BGPBase(NetBoxModel):
 class BGPCommunity(BGPBase):
     """ """
 
-    value = models.CharField(max_length=64, validators=[RegexValidator(r"\d+:\d+")])
+    value = models.CharField(max_length=64, validators=[RegexValidator(r"\d+:\d+L?")])
+    status = models.CharField(
+        max_length=50, choices=CommunityStatusChoices, default=CommunityStatusChoices.STATUS_ACTIVE
+    )
+    clone_fields = ("value", "site", "tenant", "status", "description")
 
     class Meta:
         verbose_name_plural = _("BGP Communities")
         verbose_name = _("BGP Community")
+        unique_together = [
+            [
+                "value",
+                "tenant",
+            ],
+        ]
 
     def __str__(self):
         return self.value
