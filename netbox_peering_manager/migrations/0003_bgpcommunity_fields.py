@@ -6,8 +6,8 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("tenancy", "0011_contactassignment_tags"),
         ("ipam", "0064_clear_search_cache"),
+        ("tenancy", "0009_standardize_description_comments"),
         ("netbox_peering_manager", "0002_rename_community_bgpcommunity_alter_bgpsession_name"),
     ]
 
