@@ -45,8 +45,20 @@ class RoutingPolicy(BaseModel):
 class BGPPeerGroup(BaseModel):
     """BGP Peer Group model"""
 
-    import_policies = models.ManyToManyField(RoutingPolicy, blank=True, related_name="group_import_policies")
-    export_policies = models.ManyToManyField(RoutingPolicy, blank=True, related_name="group_export_policies")
+    name = models.CharField(max_length=100)
+    description = models.CharField(max_length=200, blank=True)
+    import_policies = models.ManyToManyField(RoutingPolicy, blank=True, related_name="groups_import_policies_set")
+    export_policies = models.ManyToManyField(RoutingPolicy, blank=True, related_name="groups_export_policies_set")
+    local_address = models.ForeignKey(
+        to="ipam.IPAddress", on_delete=models.PROTECT, blank=True, null=True, related_name="bgp_group_local_address_set"
+    )
+    local_as = models.ForeignKey(
+        to="ipam.ASN", on_delete=models.PROTECT, blank=True, null=True, related_name="local_bgp_peer_groups_set"
+    )
+    remote_as = models.ForeignKey(
+        to="ipam.ASN", on_delete=models.PROTECT, blank=True, null=True, related_name="remote_bgp_peer_groups_set"
+    )
+    status = models.CharField(max_length=50, choices=SessionStatusChoices, blank=True, null=True, default=None)
 
     class Meta:
         verbose_name_plural = "Peer Groups"
@@ -131,14 +143,14 @@ class BGPSession(BGPBase):
         null=True,
         blank=True,
     )
-    local_address = models.ForeignKey(to="ipam.IPAddress", on_delete=models.PROTECT, related_name="local_address")
-    remote_address = models.ForeignKey(to="ipam.IPAddress", on_delete=models.PROTECT, related_name="remote_address")
-    local_as = models.ForeignKey(to="ipam.ASN", on_delete=models.PROTECT, related_name="local_as")
-    remote_as = models.ForeignKey(to="ipam.ASN", on_delete=models.PROTECT, related_name="remote_as")
+    local_address = models.ForeignKey(to="ipam.IPAddress", on_delete=models.PROTECT, related_name="local_address_session_set")
+    remote_address = models.ForeignKey(to="ipam.IPAddress", on_delete=models.PROTECT, related_name="remote_address_session_set")
+    local_as = models.ForeignKey(to="ipam.ASN", on_delete=models.PROTECT, related_name="local_as_bgp_session_set")
+    remote_as = models.ForeignKey(to="ipam.ASN", on_delete=models.PROTECT, related_name="remote_as_bgp_session_set")
     status = models.CharField(max_length=50, choices=SessionStatusChoices, default=SessionStatusChoices.STATUS_ACTIVE)
     peer_group = models.ForeignKey(BGPPeerGroup, on_delete=models.SET_NULL, blank=True, null=True)
-    import_policies = models.ManyToManyField(RoutingPolicy, blank=True, related_name="session_import_policies")
-    export_policies = models.ManyToManyField(RoutingPolicy, blank=True, related_name="session_export_policies")
+    import_policies = models.ManyToManyField(RoutingPolicy, blank=True, related_name="sessions_import_policies_set")
+    export_policies = models.ManyToManyField(RoutingPolicy, blank=True, related_name="sessions_export_policies_set")
 
     afi_safi = None  # for future use
 

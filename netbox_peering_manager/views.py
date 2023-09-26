@@ -1,8 +1,4 @@
 from django.db.models import Q
-from django.contrib import messages
-from django.shortcuts import get_object_or_404, redirect, render, reverse
-from django.utils.text import slugify
-
 from netbox.views import generic
 from ipam.models import ASN
 
@@ -90,12 +86,12 @@ class BGPSessionView(generic.ObjectView):
     template_name = "netbox_peering_manager/bgpsession.html"
 
     def get_extra_context(self, request, instance):
-        import_policies_qs = instance.import_policies.all()
+        import_policies_qs = instance.sessions_import_policies_set.all()
         if not import_policies_qs and instance.peer_group:
-            import_policies_qs = instance.peer_group.import_policies.all()
-        export_policies_qs = instance.export_policies.all()
+            import_policies_qs = instance.peer_group.groups_import_policies_set.all()
+        export_policies_qs = instance.sessions_export_policies_set.all()
         if not export_policies_qs and instance.peer_group:
-            export_policies_qs = instance.peer_group.export_policies.all()
+            export_policies_qs = instance.peer_group.groups_export_policies_set.all()
 
         import_policies_table = tables.RoutingPolicyTable(import_policies_qs, orderable=False)
         export_policies_table = tables.RoutingPolicyTable(export_policies_qs, orderable=False)
@@ -137,8 +133,8 @@ class RoutingPolicyView(generic.ObjectView):
         sess = BGPSession.objects.filter(
             Q(import_policies=instance)
             | Q(export_policies=instance)
-            | Q(peer_group__in=instance.groups_as_import_policies.all())
-            | Q(peer_group__in=instance.groups_as_export_policies.all())
+            | Q(peer_group__in=instance.groups_import_policies_set.all())
+            | Q(peer_group__in=instance.groups_export_policies_set.all())
         )
         sess = sess.distinct()
         sess_table = tables.BGPSessionTable(sess)
@@ -178,8 +174,8 @@ class BGPPeerGroupView(generic.ObjectView):
     template_name = "netbox_peering_manager/bgppeergroup.html"
 
     def get_extra_context(self, request, instance):
-        import_policies_table = tables.RoutingPolicyTable(instance.import_policies.all(), orderable=False)
-        export_policies_table = tables.RoutingPolicyTable(instance.export_policies.all(), orderable=False)
+        import_policies_table = tables.RoutingPolicyTable(instance.groups_import_policies_set.all(), orderable=False)
+        export_policies_table = tables.RoutingPolicyTable(instance.groups_export_policies_set.all(), orderable=False)
 
         sess = BGPSession.objects.filter(peer_group=instance)
         sess = sess.distinct()
