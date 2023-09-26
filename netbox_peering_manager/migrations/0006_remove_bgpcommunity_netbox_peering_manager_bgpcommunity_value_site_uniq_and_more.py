@@ -5,49 +5,67 @@ import django.db.models.deletion
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('dcim', '0181_rename_device_role_device_role'),
-        ('netbox_peering_manager', '0005_remove_bgpcommunity_unique_value_tenant_site_and_more'),
+        ("dcim", "0167_module_status"),
+        ("netbox_peering_manager", "0005_remove_bgpcommunity_unique_value_tenant_site_and_more"),
     ]
 
     operations = [
         migrations.RemoveConstraint(
-            model_name='bgpcommunity',
-            name='netbox_peering_manager_bgpcommunity_value_site_uniq',
+            model_name="bgpcommunity",
+            name="netbox_peering_manager_bgpcommunity_value_site_uniq",
         ),
         migrations.RemoveConstraint(
-            model_name='bgpcommunity',
-            name='netbox_peering_manager_bgpcommunity_value_tenant_uniq',
+            model_name="bgpcommunity",
+            name="netbox_peering_manager_bgpcommunity_value_tenant_uniq",
         ),
         migrations.RemoveConstraint(
-            model_name='bgpcommunity',
-            name='netbox_peering_manager_bgpcommunity__value_uniq',
+            model_name="bgpcommunity",
+            name="netbox_peering_manager_bgpcommunity__value_uniq",
         ),
         migrations.RemoveField(
-            model_name='bgpcommunity',
-            name='role',
+            model_name="bgpcommunity",
+            name="role",
         ),
         migrations.AlterField(
-            model_name='bgpcommunity',
-            name='site',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.PROTECT, to='dcim.site'),
+            model_name="bgpcommunity",
+            name="site",
+            field=models.ForeignKey(
+                blank=True, null=True, on_delete=django.db.models.deletion.PROTECT, to="dcim.site"
+            ),
         ),
         migrations.AlterField(
-            model_name='bgpsession',
-            name='site',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.PROTECT, to='dcim.site'),
+            model_name="bgpsession",
+            name="site",
+            field=models.ForeignKey(
+                blank=True, null=True, on_delete=django.db.models.deletion.PROTECT, to="dcim.site"
+            ),
         ),
         migrations.AddConstraint(
-            model_name='bgpcommunity',
-            constraint=models.UniqueConstraint(condition=models.Q(('tenant__isnull', True)), fields=('value', 'site'), name='netbox_peering_manager_bgpcommunity_value_site_uniq', violation_error_message='BGP Community with this Value and Site already exists.'),
+            model_name="bgpcommunity",
+            constraint=models.UniqueConstraint(
+                condition=models.Q(("tenant__isnull", True)),
+                fields=("value", "site"),
+                name="netbox_peering_manager_bgpcommunity_value_site_uniq",
+                violation_error_message="BGP Community with this Value and Site already exists.",
+            ),
         ),
         migrations.AddConstraint(
-            model_name='bgpcommunity',
-            constraint=models.UniqueConstraint(condition=models.Q(('site__isnull', True)), fields=('value', 'tenant'), name='netbox_peering_manager_bgpcommunity_value_tenant_uniq', violation_error_message='BGP Community with this Value and Tenant already exists.'),
+            model_name="bgpcommunity",
+            constraint=models.UniqueConstraint(
+                condition=models.Q(("site__isnull", True)),
+                fields=("value", "tenant"),
+                name="netbox_peering_manager_bgpcommunity_value_tenant_uniq",
+                violation_error_message="BGP Community with this Value and Tenant already exists.",
+            ),
         ),
         migrations.AddConstraint(
-            model_name='bgpcommunity',
-            constraint=models.UniqueConstraint(condition=models.Q(('tenant__isnull', True), ('site__isnull', True)), fields=('value',), name='netbox_peering_manager_bgpcommunity_value_uniq', violation_error_message='BGP Community with this Value already exists.'),
+            model_name="bgpcommunity",
+            constraint=models.UniqueConstraint(
+                condition=models.Q(("tenant__isnull", True), ("site__isnull", True)),
+                fields=("value",),
+                name="netbox_peering_manager_bgpcommunity_value_uniq",
+                violation_error_message="BGP Community with this Value already exists.",
+            ),
         ),
     ]
