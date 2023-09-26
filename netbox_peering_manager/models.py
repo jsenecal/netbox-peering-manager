@@ -144,6 +144,7 @@ class BGPSession(BGPBase):
 
     class Meta:
         verbose_name_plural = "BGP Sessions"
+        verbose_name = "BGP Session"
         unique_together = ["device", "local_address", "local_as", "remote_address", "remote_as"]
 
     def __str__(self):

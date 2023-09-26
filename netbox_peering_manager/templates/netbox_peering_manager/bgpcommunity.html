@@ -4,41 +4,6 @@
 {% load helpers %}
 {% load plugins %}
 
-{% block breadcrumbs %}
-<li class="breadcrumb-item"><a href="{% url 'plugins:netbox_peering_manager:bgpcommunity_list' %}">Communities</a></li>
-{% endblock %}
-
-{% block controls %}
-<div class="pull-right noprint">
-    {% if perms.netbox_peering_manager.change_community %}
-    <a href="{% url 'plugins:netbox_peering_manager:bgpcommunity_edit' pk=object.pk %}" class="btn btn-warning">
-        <span class="mdi mdi-pencil" aria-hidden="true"></span> Edit
-    </a>
-    {% endif %}
-    {% if perms.netbox_peering_manager.delete_community %}
-    <a href="{% url 'plugins:netbox_peering_manager:bgpcommunity_delete' pk=object.pk %}" class="btn btn-danger">
-        <span class="mdi mdi-trash-can-outline" aria-hidden="true"></span> Delete
-    </a>
-    {% endif %}
-</div>
-{% endblock controls %}
-{% block tabs %}
-<ul class="nav nav-tabs px-3">
-    {% block tab_items %}
-    <li class="nav-item" role="presentation">
-        <a class="nav-link{% if not active_tab %} active{% endif %}" href="{{ object.get_absolute_url }}">
-            {{ object|meta:"verbose_name"|bettertitle }}
-        </a>
-    </li>
-    {% endblock tab_items %}
-    {% if perms.extras.view_objectchange %}
-    <li role="presentation" class="nav-item">
-        <a href="{% url 'plugins:netbox_peering_manager:bgpcommunity_changelog' pk=object.pk %}"
-            class="nav-link{% if active_tab == 'changelog'%} active{% endif %}">Change Log</a>
-    </li>
-    {% endif %}
-</ul>
-{% endblock tabs %}
 
 {% block content %}
 <div class="row mb-3">
