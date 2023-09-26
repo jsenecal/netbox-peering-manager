@@ -202,7 +202,7 @@ class PrefixListSerializer(NetBoxModelSerializer):
 
 
 class NestedCommunitySerializer(WritableNestedSerializer):
-    url = HyperlinkedIdentityField(view_name="plugins:netbox_bgp:community")
+    url = HyperlinkedIdentityField(view_name="plugins:netbox_peering_manager:bgpcommunity")
 
     class Meta:
         model = BGPCommunity
