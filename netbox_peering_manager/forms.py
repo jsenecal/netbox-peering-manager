@@ -43,7 +43,7 @@ class CommunityForm(TenancyForm, NetBoxModelForm):
     fieldsets = (
         (_("Community"), ("value", "description", "status", "tags")),
         (_("Tenancy"), ("tenant_group", "tenant")),
-        (_('Site Assignment'), ('site',))
+        (_("Site Assignment"), ("site",)),
     )
 
     class Meta:
@@ -303,7 +303,7 @@ class PrefixListForm(NetBoxModelForm):
 
     class Meta:
         model = PrefixList
-        fields = ["name", "description", "tags"]
+        fields = ["name", "description", "family", "tags"]
 
 
 class PrefixListRuleForm(NetBoxModelForm):

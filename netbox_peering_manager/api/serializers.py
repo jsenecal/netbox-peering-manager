@@ -1,26 +1,26 @@
-from rest_framework.serializers import HyperlinkedIdentityField, ValidationError
-from rest_framework.relations import PrimaryKeyRelatedField
-
-from netbox.api.fields import ChoiceField
-from netbox.api.serializers.nested import WritableNestedSerializer
-
-from netbox.api.serializers import NetBoxModelSerializer
-from dcim.api.nested_serializers import NestedSiteSerializer, NestedDeviceSerializer
-from tenancy.api.nested_serializers import NestedTenantSerializer
-from ipam.api.nested_serializers import NestedIPAddressSerializer, NestedASNSerializer
-
-
+from dcim.api.nested_serializers import NestedDeviceSerializer, NestedSiteSerializer
+from ipam.api.nested_serializers import (
+    NestedASNSerializer,
+    NestedIPAddressSerializer,
+    NestedPrefixSerializer,
+)
+from netbox_peering_manager.choices import CommunityStatusChoices, SessionStatusChoices
 from netbox_peering_manager.models import (
-    BGPSession,
-    RoutingPolicy,
-    BGPPeerGroup,
     BGPCommunity,
-    RoutingPolicyRule,
+    BGPPeerGroup,
+    BGPSession,
     PrefixList,
     PrefixListRule,
+    RoutingPolicy,
+    RoutingPolicyRule,
 )
+from rest_framework.relations import PrimaryKeyRelatedField
+from rest_framework.serializers import HyperlinkedIdentityField, ValidationError
+from tenancy.api.nested_serializers import NestedTenantSerializer
 
-from netbox_peering_manager.choices import CommunityStatusChoices, SessionStatusChoices
+from netbox.api.fields import ChoiceField
+from netbox.api.serializers import NetBoxModelSerializer
+from netbox.api.serializers.nested import WritableNestedSerializer
 
 
 class SerializedPKRelatedField(PrimaryKeyRelatedField):
@@ -44,7 +44,10 @@ class NestedRoutingPolicySerializer(WritableNestedSerializer):
 
     class Meta:
         model = RoutingPolicy
-        fields = ["id", "url", "name", "description"]
+        fields = ["id", "url", "name", "display", "description"]
+
+        # TODO: Why is this here?
+        # validators = []
 
 
 class BGPPeerGroupSerializer(NetBoxModelSerializer):
@@ -192,8 +195,45 @@ class NestedPrefixListSerializer(WritableNestedSerializer):
         fields = ["id", "url", "display", "name"]
 
 
+class PrefixListSerializer(NetBoxModelSerializer):
+    class Meta:
+        model = PrefixList
+        fields = "__all__"
+
+
+class NestedCommunitySerializer(WritableNestedSerializer):
+    url = HyperlinkedIdentityField(view_name="plugins:netbox_bgp:community")
+
+    class Meta:
+        model = BGPCommunity
+        fields = ["id", "url", "display", "value"]
+
+
+class RoutingPolicyRuleSerializer(NetBoxModelSerializer):
+    match_ip_address = SerializedPKRelatedField(
+        queryset=PrefixList.objects.all(),
+        serializer=NestedPrefixListSerializer,
+        required=False,
+        allow_null=True,
+        many=True,
+    )
+    routing_policy = NestedRoutingPolicySerializer()
+    match_community = SerializedPKRelatedField(
+        queryset=BGPCommunity.objects.all(),
+        serializer=NestedCommunitySerializer,
+        required=False,
+        allow_null=True,
+        many=True,
+    )
+
+    class Meta:
+        model = RoutingPolicyRule
+        fields = "__all__"
+
+
 class PrefixListRuleSerializer(NetBoxModelSerializer):
     prefix_list = NestedPrefixListSerializer()
+    prefix = NestedPrefixSerializer(required=False, allow_null=True)
 
     class Meta:
         model = PrefixListRule
