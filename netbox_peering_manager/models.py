@@ -1,6 +1,9 @@
+from collections.abc import Collection
+
 from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator, RegexValidator
 from django.db import models
+from django.db.models import Q
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 from ipam.fields import IPNetworkField
@@ -15,11 +18,18 @@ from .choices import (
 )
 
 
-class RoutingPolicy(NetBoxModel):
-    """ """
+class BaseModel(NetBoxModel):
+    """Basic name and description model based on NetBoxModel"""
 
     name = models.CharField(max_length=100)
     description = models.CharField(max_length=200, blank=True)
+
+    class Meta:
+        abstract = True
+
+
+class RoutingPolicy(BaseModel):
+    """Routing Policy model"""
 
     class Meta:
         verbose_name_plural = "Routing Policies"
@@ -32,11 +42,9 @@ class RoutingPolicy(NetBoxModel):
         return reverse("plugins:netbox_peering_manager:routingpolicy", args=[self.pk])
 
 
-class BGPPeerGroup(NetBoxModel):
-    """ """
+class BGPPeerGroup(BaseModel):
+    """BGP Peer Group model"""
 
-    name = models.CharField(max_length=100)
-    description = models.CharField(max_length=200, blank=True)
     import_policies = models.ManyToManyField(RoutingPolicy, blank=True, related_name="group_import_policies")
     export_policies = models.ManyToManyField(RoutingPolicy, blank=True, related_name="group_export_policies")
 
@@ -52,16 +60,10 @@ class BGPPeerGroup(NetBoxModel):
 
 
 class BGPBase(NetBoxModel):
-    """ """
+    """Base model for BGP Community and BGP Session"""
 
-    site = models.ForeignKey(
-        to="dcim.Site", on_delete=models.PROTECT, related_name="%(class)s_related", blank=True, null=True
-    )
+    site = models.ForeignKey(to="dcim.Site", on_delete=models.PROTECT, blank=True, null=True)
     tenant = models.ForeignKey(to="tenancy.Tenant", on_delete=models.PROTECT, blank=True, null=True)
-    status = models.CharField(
-        max_length=50, choices=CommunityStatusChoices, default=CommunityStatusChoices.STATUS_ACTIVE
-    )
-    role = models.ForeignKey(to="ipam.Role", on_delete=models.SET_NULL, blank=True, null=True)
     description = models.CharField(max_length=200, blank=True)
 
     class Meta:
@@ -69,7 +71,7 @@ class BGPBase(NetBoxModel):
 
 
 class BGPCommunity(BGPBase):
-    """ """
+    """BGP Community model"""
 
     value = models.CharField(max_length=64, validators=[RegexValidator(r"\d+:\d+L?")])
     status = models.CharField(
@@ -80,27 +82,49 @@ class BGPCommunity(BGPBase):
     class Meta:
         verbose_name_plural = _("BGP Communities")
         verbose_name = _("BGP Community")
-        unique_together = [
-            [
-                "value",
-                "tenant",
-            ],
+        constraints = [
+            models.UniqueConstraint(
+                fields=["value", "tenant", "site"], name="%(app_label)s_%(class)s_value_tenant_site_uniq"
+            ),
+            models.UniqueConstraint(
+                fields=["value", "site"],
+                name="%(app_label)s_%(class)s_value_site_uniq",
+                condition=Q(tenant__isnull=True),
+                violation_error_message=_("BGP Community with this Value and Site already exists."),
+            ),
+            models.UniqueConstraint(
+                fields=["value", "tenant"],
+                name="%(app_label)s_%(class)s_value_tenant_uniq",
+                condition=Q(site__isnull=True),
+                violation_error_message=_("BGP Community with this Value and Tenant already exists."),
+            ),
+            models.UniqueConstraint(
+                fields=[
+                    "value",
+                ],
+                name="%(app_label)s_%(class)s_value_uniq",
+                condition=Q(tenant__isnull=True) & Q(site__isnull=True),
+                violation_error_message=_("BGP Community with this Value already exists."),
+            ),
         ]
+
+    def validate_constraints(self, exclude: Collection[str] | None = ...) -> None:
+        return super().validate_constraints(exclude)
 
     def __str__(self):
         return self.value
 
     def get_status_color(self):
-        return CommunityStatusChoices.colors.get(self.status)
+        return CommunityStatusChoices.colors.get(self.status)  # type: ignore
 
     def get_absolute_url(self):
         return reverse("plugins:netbox_peering_manager:bgpcommunity", args=[self.pk])
 
 
-class BGPSession(NetBoxModel):
+class BGPSession(BGPBase):
+    """BGP Session model"""
+
     name = models.CharField(max_length=100, blank=True, null=True)
-    site = models.ForeignKey(to="dcim.Site", on_delete=models.SET_NULL, blank=True, null=True)
-    tenant = models.ForeignKey(to="tenancy.Tenant", on_delete=models.PROTECT, blank=True, null=True)
     device = models.ForeignKey(
         to="dcim.Device",
         on_delete=models.PROTECT,
@@ -112,7 +136,6 @@ class BGPSession(NetBoxModel):
     local_as = models.ForeignKey(to="ipam.ASN", on_delete=models.PROTECT, related_name="local_as")
     remote_as = models.ForeignKey(to="ipam.ASN", on_delete=models.PROTECT, related_name="remote_as")
     status = models.CharField(max_length=50, choices=SessionStatusChoices, default=SessionStatusChoices.STATUS_ACTIVE)
-    description = models.CharField(max_length=200, blank=True)
     peer_group = models.ForeignKey(BGPPeerGroup, on_delete=models.SET_NULL, blank=True, null=True)
     import_policies = models.ManyToManyField(RoutingPolicy, blank=True, related_name="session_import_policies")
     export_policies = models.ManyToManyField(RoutingPolicy, blank=True, related_name="session_export_policies")
@@ -127,17 +150,15 @@ class BGPSession(NetBoxModel):
         return f"{self.device}:{self.name}"
 
     def get_status_color(self):
-        return SessionStatusChoices.colors.get(self.status)
+        return SessionStatusChoices.colors.get(self.status)  # type: ignore
 
     def get_absolute_url(self):
         return reverse("plugins:netbox_peering_manager:bgpsession", args=[self.pk])
 
 
-class PrefixList(NetBoxModel):
-    """ """
+class PrefixList(BaseModel):
+    """Prefix List model"""
 
-    name = models.CharField(max_length=100)
-    description = models.CharField(max_length=200, blank=True)
     family = models.CharField(max_length=10, choices=IPAddressFamilyChoices)
 
     class Meta:
@@ -152,7 +173,7 @@ class PrefixList(NetBoxModel):
 
 
 class PrefixListRule(NetBoxModel):
-    """ """
+    """Prefix List Rule model"""
 
     prefix_list = models.ForeignKey(to=PrefixList, on_delete=models.CASCADE, related_name="prefrules")
     index = models.PositiveIntegerField()
@@ -190,7 +211,7 @@ class PrefixListRule(NetBoxModel):
         return reverse("plugins:netbox_peering_manager:prefixlistrule", args=[self.pk])
 
     def get_action_color(self):
-        return ActionChoices.colors.get(self.action)
+        return ActionChoices.colors.get(self.action)  # type: ignore
 
     def clean(self):
         super().clean()
@@ -203,6 +224,8 @@ class PrefixListRule(NetBoxModel):
 
 
 class RoutingPolicyRule(NetBoxModel):
+    """Routing Policy Rule model"""
+
     routing_policy = models.ForeignKey(to=RoutingPolicy, on_delete=models.CASCADE, related_name="rules")
     index = models.PositiveIntegerField()
     action = models.CharField(max_length=30, choices=ActionChoices)
@@ -239,7 +262,7 @@ class RoutingPolicyRule(NetBoxModel):
         return reverse("plugins:netbox_peering_manager:routingpolicyrule", args=[self.pk])
 
     def get_action_color(self):
-        return ActionChoices.colors.get(self.action)
+        return ActionChoices.colors.get(self.action)  # type: ignore
 
     def get_match_custom(self):
         # some kind of ckeck?

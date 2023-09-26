@@ -169,7 +169,6 @@ class BGPCommunitySerializer(NetBoxModelSerializer):
             "description",
             "value",
             "site",
-            "role",
         ]
 
 

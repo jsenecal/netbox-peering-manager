@@ -43,6 +43,7 @@ class CommunityForm(TenancyForm, NetBoxModelForm):
     fieldsets = (
         (_("Community"), ("value", "description", "status", "tags")),
         (_("Tenancy"), ("tenant_group", "tenant")),
+        (_('Site Assignment'), ('site',))
     )
 
     class Meta:
@@ -53,6 +54,7 @@ class CommunityForm(TenancyForm, NetBoxModelForm):
             "status",
             "tenant_group",
             "tenant",
+            "site",
             "tags",
         ]
 
