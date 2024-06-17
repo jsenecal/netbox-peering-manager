@@ -1,12 +1,12 @@
 from django.conf import settings
 
-from extras.plugins import PluginMenuButton, PluginMenuItem, PluginMenu
+from netbox.plugins import PluginMenuButton, PluginMenuItem, PluginMenu
 from utilities.choices import ButtonColorChoices
 
 try:
-    from extras.plugins import get_plugin_config  # type: ignore
+    from netbox.plugins import get_plugin_config  # type: ignore
 except ImportError:
-    from extras.plugins.utils import get_plugin_config
+    from netbox.plugins.utils import get_plugin_config
 
 _bgp_menu_items = (
     PluginMenuItem(

@@ -1,4 +1,4 @@
-from extras.plugins import PluginTemplateExtension
+from netbox.plugins import PluginTemplateExtension
 
 from .models import BGPSession
 from .tables import BGPSessionTable
@@ -27,7 +27,8 @@ class DeviceBGPSession(PluginTemplateExtension):
         sess = BGPSession.objects.filter(device=obj)
         sess_table = BGPSessionTable(sess)
         return self.render(
-            "netbox_peering_manager/device_extend.html", extra_context={"related_session_table": sess_table}
+            "netbox_peering_manager/device_extend.html",
+            extra_context={"related_session_table": sess_table},
         )
 
 
