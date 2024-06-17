@@ -12,7 +12,7 @@ class PeeringManagerConfig(PluginConfig):
     base_url = "bgp"
     required_settings = []
     min_version = "3.4.0"
-    max_version = "3.6.99"
+    max_version = "4.99"
     default_settings = {
         "device_ext_page": "right",
         "top_level_menu": True,
