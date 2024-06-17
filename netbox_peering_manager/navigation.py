@@ -1,7 +1,8 @@
 from django.conf import settings
 
 from netbox.plugins import PluginMenuButton, PluginMenuItem, PluginMenu
-from utilities.choices import ButtonColorChoices
+
+# from netbox.choices import ButtonColorChoices
 
 try:
     from netbox.plugins import get_plugin_config  # type: ignore
@@ -18,7 +19,7 @@ _bgp_menu_items = (
                 link="plugins:netbox_peering_manager:bgpcommunity_add",
                 title="Communities",
                 icon_class="mdi mdi-plus-thick",
-                color=ButtonColorChoices.GREEN,
+                # color=ButtonColorChoices.GREEN,
                 permissions=["netbox_peering_manager.add_community"],
             ),
         ),
@@ -32,7 +33,7 @@ _bgp_menu_items = (
                 link="plugins:netbox_peering_manager:bgpsession_add",
                 title="Sessions",
                 icon_class="mdi mdi-plus-thick",
-                color=ButtonColorChoices.GREEN,
+                # color=ButtonColorChoices.GREEN,
                 permissions=["netbox_peering_manager.add_bgpsession"],
             ),
         ),
@@ -46,7 +47,7 @@ _bgp_menu_items = (
                 link="plugins:netbox_peering_manager:routingpolicy_add",
                 title="Routing Policies",
                 icon_class="mdi mdi-plus-thick",
-                color=ButtonColorChoices.GREEN,
+                # color=ButtonColorChoices.GREEN,
                 permissions=["netbox_peering_manager.add_routingpolicy"],
             ),
         ),
@@ -60,7 +61,7 @@ _bgp_menu_items = (
                 link="plugins:netbox_peering_manager:bgppeergroup_add",
                 title="Peer Groups",
                 icon_class="mdi mdi-plus-thick",
-                color=ButtonColorChoices.GREEN,
+                # color=ButtonColorChoices.GREEN,
                 permissions=["netbox_peering_manager.add_bgppeergroup"],
             ),
         ),
@@ -76,7 +77,7 @@ _routing_menu_items = (
                 link="plugins:netbox_peering_manager:prefixlist_add",
                 title="Prefix Lists",
                 icon_class="mdi mdi-plus-thick",
-                color=ButtonColorChoices.GREEN,
+                # color=ButtonColorChoices.GREEN,
                 permissions=["netbox_peering_manager.add_prefixlist"],
             ),
         ),
