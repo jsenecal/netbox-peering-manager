@@ -7,7 +7,7 @@ from typing import Annotated
 from netbox.graphql.filter_mixins import NetBoxModelFilterMixin
 from tenancy.graphql.filter_mixins import TenancyFilterMixin
 from ipam.graphql.filters import IPAddressFilter, ASNFilter
-from dcim.graphql.filter import DeviceFilter
+from dcim.graphql.filters import DeviceFilter
 
 from netbox_bgp.models import (
     Community,
@@ -19,6 +19,8 @@ from netbox_bgp.models import (
     PrefixListRule,
     CommunityList,
     CommunityListRule,
+    ASPathList,
+    ASPathListRule
 )
 
 from netbox_bgp.filtersets import (
@@ -31,6 +33,8 @@ from netbox_bgp.filtersets import (
     PrefixListRuleFilterSet,
     CommunityListFilterSet,
     CommunityListRuleFilterSet,
+    ASPathListFilterSet,
+    ASPathListRuleFilterSet
 )
 
 from netbox_bgp.graphql.enums import (
@@ -51,8 +55,31 @@ __all__ = (
     "NetBoxBGPPrefixListRuleFilter",
     "NetBoxBGPCommunityListFilter",
     "NetBoxBGPCommunityListRuleFilter",
+    "NetBoxBGPASPathListFilter",
+    "NetBoxBGPASPathListRuleFilter"
 )
 
+@strawberry_django.filter_type(ASPathList, lookups=True)
+class NetBoxBGPASPathListFilter(NetBoxModelFilterMixin):
+    name: FilterLookup[str] | None = strawberry_django.filter_field()
+    description: FilterLookup[str] | None = strawberry_django.filter_field()
+
+@strawberry_django.filter_type(ASPathListRule, lookups=True)
+class NetBoxBGPASPathListRuleFilter(NetBoxModelFilterMixin):
+    value: FilterLookup[str] | None = strawberry_django.filter_field()
+    aspath_list: (
+        Annotated[
+            "NetBoxBGPASPathListFilter", strawberry.lazy("netbox_bgp.graphql.filters")
+        ]
+        | None
+    ) = strawberry_django.filter_field()
+    aspath_list_id: ID | None = strawberry_django.filter_field()
+    action: (
+        Annotated[
+            "NetBoxBGPActionEnum", strawberry.lazy("netbox_bgp.graphql.enums")
+        ]
+        | None
+    ) = strawberry_django.filter_field()
 
 @strawberry_django.filter_type(Community, lookups=True)
 class NetBoxBGPCommunityFilter(TenancyFilterMixin, NetBoxModelFilterMixin):
@@ -152,6 +179,13 @@ class NetBoxBGPRoutingPolicyRuleFilter(NetBoxModelFilterMixin):
         ]
         | None
     ) = strawberry_django.filter_field()
+    aspath_list: (
+        Annotated[
+            "NetBoxBGPASPathListFilter", strawberry.lazy("netbox_bgp.graphql.filters")
+        ]
+        | None
+    ) = strawberry_django.filter_field()
+    aspath_list_id: ID | None = strawberry_django.filter_field()  
 
 
 @strawberry_django.filter_type(PrefixList, lookups=True)

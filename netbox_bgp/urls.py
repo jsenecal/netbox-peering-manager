@@ -11,6 +11,24 @@ from . import views
 app_name = 'netbox_bgp'
 
 urlpatterns = (
+    # AS Path Lists
+    path(
+        "aspath-list/",
+        include(get_model_urls("netbox_bgp", "aspathlist", detail=False)),
+    ),
+    path(
+        "aspath-list/<int:pk>/",
+        include(get_model_urls("netbox_bgp", "aspathlist")),
+    ),
+    # AS Path List Rules
+    path(
+        "aspath-list-rule/",
+        include(get_model_urls("netbox_bgp", "aspathlistrule", detail=False)),
+    ),
+    path(
+        "aspath-list-rule/<int:pk>/",
+        include(get_model_urls("netbox_bgp","aspathlistrule")),
+    ),
     # Community
     path(
         "community/",
