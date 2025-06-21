@@ -8,6 +8,7 @@ This plugin provide following Models:
 * BGP Peer Groups
 * Routing Policy
 * Prefix Lists 
+* AS Path Lists
 
 ## Compatibility
 
