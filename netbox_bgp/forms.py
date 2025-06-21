@@ -40,6 +40,8 @@ from .models import (
     PrefixListRule,
     CommunityList,
     CommunityListRule,
+    ASPathList,
+    ASPathListRule,
 )
 
 from .choices import (
@@ -49,6 +51,59 @@ from .choices import (
 )
 
 from virtualization.models import VirtualMachine
+
+class ASPathListFilterForm(NetBoxModelFilterSetForm):
+    model = ASPathList
+    q = forms.CharField(required=False, label="Search")
+
+    tag = TagFilterField(model)
+
+class ASPathListRuleFilterForm(NetBoxModelFilterSetForm):
+    model = ASPathListRule
+    q = forms.CharField(required=False, label="Search")
+    aspath_list = DynamicModelChoiceField(queryset=ASPathList.objects.all(), required=False)
+    tag = TagFilterField(model)
+
+    
+class ASPathListForm(NetBoxModelForm):
+
+    comments = CommentField()
+
+    class Meta:
+        model = ASPathList
+        fields = ["name", "description", "tags", "comments"]
+
+
+class ASPathListBulkEditForm(NetBoxModelBulkEditForm):
+    description = forms.CharField(max_length=200, required=False)
+
+    model = ASPathList
+    nullable_fields = [
+        "description",
+    ]
+
+
+class ASPathListImportForm(NetBoxModelImportForm):
+
+    class Meta:
+        model = ASPathList
+        fields = ["name", "description", "tags"]
+
+
+class ASPathListRuleImportForm(NetBoxModelImportForm):
+
+    class Meta:
+        model = ASPathListRule
+        fields = ["aspath_list", "index", "action", "pattern", "description", "tags", "comments"]   
+
+
+class ASPathListRuleForm(NetBoxModelForm):
+    comments = CommentField()
+
+    class Meta:
+        model = ASPathListRule
+        fields = ["aspath_list", "index", "action", "pattern", "description", "tags", "comments"]
+
 
 class CommunityForm(NetBoxModelForm):
     status = forms.ChoiceField(
@@ -647,6 +702,11 @@ class RoutingPolicyRuleForm(NetBoxModelForm):
         }
     )
 
+    match_aspath_list = DynamicModelMultipleChoiceField(
+        queryset=ASPathList.objects.all(),
+        required=False,
+    )   
+
     match_custom = forms.JSONField(
         label="Custom Match",
         help_text='Any custom match statements, e.g., {"ip nexthop": "1.1.1.1"}',
@@ -674,6 +734,7 @@ class RoutingPolicyRuleForm(NetBoxModelForm):
             "match_community_list",
             "match_ip_address",
             "match_ipv6_address",
+            "match_aspath_list",
             "match_custom",
             "set_actions",
             "description",

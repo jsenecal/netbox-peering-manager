@@ -8,7 +8,8 @@ from netbox.tables.columns import ChoiceFieldColumn, TagColumn
 from .models import (
     Community, BGPSession, RoutingPolicy,
     BGPPeerGroup, RoutingPolicyRule, PrefixList,
-    PrefixListRule, CommunityList, CommunityListRule
+    PrefixListRule, CommunityList, CommunityListRule,
+    ASPathList, ASPathListRule
 )
 
 
@@ -29,6 +30,31 @@ POLICIES = """
 {% endfor %}
 """
 
+
+class ASPathListTable(NetBoxTable):
+    name = tables.LinkColumn()
+
+    class Meta(NetBoxTable.Meta):
+        model = ASPathList
+        fields = ('pk', 'name', 'description', 'actions')
+
+
+class ASPathListRuleTable(NetBoxTable):
+    aspath_list = tables.Column(
+        linkify=True
+    )
+    index = tables.Column(
+        linkify=True
+    )
+    action = ChoiceFieldColumn()
+
+    class Meta(NetBoxTable.Meta):
+        model = ASPathListRule
+        fields = (
+            'pk', 'aspath_list',
+            'index',
+            'action', 'pattern',
+        )
 
 class CommunityTable(NetBoxTable):
     value = tables.LinkColumn()

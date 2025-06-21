@@ -10,7 +10,8 @@ from virtualization.models import VirtualMachine
 from .models import (
     Community, BGPSession, RoutingPolicy,
     BGPPeerGroup, RoutingPolicyRule, PrefixList,
-    PrefixListRule, CommunityList, CommunityListRule
+    PrefixListRule, CommunityList, CommunityListRule,
+    ASPathList, ASPathListRule
 )
 
 from . import filtersets, forms, tables
@@ -496,3 +497,96 @@ class VMBGPSessionView(generic.ObjectChildrenView):
 
     def get_children(self, request, parent):
         return parent.bgpsession_set.all()
+
+# AS Path List
+
+@register_model_view(ASPathList, "list", path="", detail=False)
+class ASPathListListView(generic.ObjectListView):
+    queryset = ASPathList.objects.all()
+    filterset = filtersets.ASPathListFilterSet
+    filterset_form = forms.ASPathListFilterForm
+    table = tables.ASPathListTable
+
+@register_model_view(ASPathList, "add", detail=False)
+@register_model_view(ASPathList, "edit")
+class ASPathListEditView(generic.ObjectEditView):
+    queryset = ASPathList.objects.all()
+    form = forms.ASPathListForm
+
+@register_model_view(ASPathList, "bulk_delete", path="delete", detail=False)
+class ASPathListBulkDeleteView(generic.BulkDeleteView):
+    queryset = ASPathList.objects.all()
+    table = tables.ASPathListTable
+
+@register_model_view(ASPathList, "bulk_edit", path="edit", detail=False)
+class ASPathListBulkEditView(generic.BulkEditView):
+    queryset = ASPathList.objects.all()
+    filterset = filtersets.ASPathListFilterSet
+    table = tables.ASPathListTable
+    form = forms.ASPathListBulkEditForm
+
+@register_model_view(ASPathList)
+class ASPathListView(generic.ObjectView):
+    queryset = ASPathList.objects.all()
+    template_name = 'netbox_bgp/aspathlist.html'
+
+    def get_extra_context(self, request, instance):
+        rprules = instance.aspathrules.all()
+        rprules_table = tables.RoutingPolicyRuleTable(rprules)
+        rules = instance.aspathlistrules.all()
+        rules_table = tables.ASPathListRuleTable(rules)
+        return {
+            'rules_table': rules_table,
+            'rprules_table': rprules_table
+        }
+
+@register_model_view(ASPathList, "delete")
+class ASPathListDeleteView(generic.ObjectDeleteView):
+    queryset = ASPathList.objects.all()
+    default_return_url = 'plugins:netbox_bgp:aspathlist_list'
+
+@register_model_view(ASPathList, "bulk_import", path="import", detail=False)
+class ASPathListBulkImportView(generic.BulkImportView):
+    queryset = ASPathList.objects.all()
+    model_form = forms.ASPathListImportForm
+
+# AS Path List Rule 
+
+@register_model_view(ASPathListRule, "list", path="", detail=False)
+class ASPathListRuleListView(generic.ObjectListView):
+    queryset = ASPathListRule.objects.all()
+    filterset = filtersets.ASPathListRuleFilterSet
+    # filterset_form = ASPathListRuleFilterForm
+    table = tables.ASPathListRuleTable
+    actions = {'add': {'add'}, 'bulk_delete': {'delete'}}
+
+
+@register_model_view(ASPathListRule, "add", detail=False)
+@register_model_view(ASPathListRule, "edit")
+class ASPathListRuleEditView(generic.ObjectEditView):
+    queryset = ASPathListRule.objects.all()
+    form = forms.ASPathListRuleForm
+
+
+@register_model_view(ASPathListRule, "bulk_delete", path="delete", detail=False)
+class ASPathListRuleBulkDeleteView(generic.BulkDeleteView):
+    queryset = ASPathListRule.objects.all()
+    table = tables.ASPathListRuleTable
+
+
+@register_model_view(ASPathListRule, "delete")
+class ASPathListRuleDeleteView(generic.ObjectDeleteView):
+    queryset = ASPathListRule.objects.all()
+    default_return_url = 'plugins:netbox_bgp:aspathlistrule_list'
+
+
+@register_model_view(ASPathListRule, "bulk_import", path="import", detail=False)
+class ASPathListRuleBulkImportView(generic.BulkImportView):
+    queryset = ASPathListRule.objects.all()
+    model_form = forms.ASPathListRuleImportForm
+
+
+@register_model_view(ASPathListRule)
+class ASPathListRuleView(generic.ObjectView):
+    queryset = ASPathListRule.objects.all()
+    template_name = 'netbox_bgp/aspathlistrule.html'

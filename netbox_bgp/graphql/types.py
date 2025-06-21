@@ -14,6 +14,8 @@ from netbox_bgp.models import (
     PrefixListRule,
     CommunityList,
     CommunityListRule,
+    ASPathList,
+    ASPathListRule
 )
 from .filters import (
     NetBoxBGPCommunityFilter,
@@ -25,7 +27,28 @@ from .filters import (
     NetBoxBGPPrefixListRuleFilter,
     NetBoxBGPCommunityListFilter,
     NetBoxBGPCommunityListRuleFilter,
+    NetBoxBGPASPathListFilter,
+    NetBoxBGPASPathListRuleFilter
 )
+
+@strawberry_django.type(ASPathList, fields="__all__", filters=NetBoxBGPASPathListFilter)
+class ASPathListType(NetBoxObjectType):
+    name: str
+    description: str
+    rules: List[
+         Annotated["ASPathListRuleType", strawberry.lazy("netbox_bgp.graphql.types")]
+    ]
+
+
+@strawberry_django.type(ASPathListRule, fields="__all__", filters=NetBoxBGPASPathListRuleFilter)
+class ASPathListRuleType(NetBoxObjectType):
+    aspath_list: Annotated[
+        "ASPathListType", strawberry.lazy("netbox_bgp.graphql.types")
+    ]
+    index: BigInt
+    action: str
+    pattern: str
+    description: str
 
 
 @strawberry_django.type(Community, fields="__all__", filters=NetBoxBGPCommunityFilter)

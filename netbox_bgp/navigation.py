@@ -138,6 +138,44 @@ _menu_items_primary = (
         ),
     ),
     PluginMenuItem(
+        link='plugins:netbox_bgp:aspathlist_list',
+        link_text='AS Path Lists',
+        permissions=['netbox_bgp.view_aspathlist'],
+        buttons=(
+            PluginMenuButton(
+                link='plugins:netbox_bgp:aspathlist_add',
+                title='Add',
+                icon_class='mdi mdi-plus-thick',
+                permissions=['netbox_bgp.add_aspathlist'],
+            ),
+            PluginMenuButton(
+                link='plugins:netbox_bgp:aspathlist_bulk_import',
+                title='Import',
+                icon_class='mdi mdi-upload',
+                permissions=['netbox_bgp.add_aspathlist'],
+            ),
+        ),
+    ),    
+    PluginMenuItem(
+        link='plugins:netbox_bgp:aspathlistrule_list',
+        link_text='AS Path List Rules',
+        permissions=['netbox_bgp.view_aspathlistrule'],
+        buttons=(
+            PluginMenuButton(
+                link='plugins:netbox_bgp:aspathlistrule_add',
+                title='Add',
+                icon_class='mdi mdi-plus-thick',
+                permissions=['netbox_bgp.add_aspathlistrule'],
+            ),
+            PluginMenuButton(
+                link='plugins:netbox_bgp:aspathlistrule_bulk_import',
+                title='Import',
+                icon_class='mdi mdi-upload',
+                permissions=['netbox_bgp.add_aspathlistrule'],
+            ),
+        ),
+    ),    
+    PluginMenuItem(
         link='plugins:netbox_bgp:bgppeergroup_list',
         link_text='Peer Groups',
         permissions=['netbox_bgp.view_bgppeergroup'],
@@ -239,6 +277,47 @@ _menu_items_grouped = (
     )
 )
 
+_aspath_list_menu = (
+    PluginMenuItem(
+        link='plugins:netbox_bgp:aspathlist_list',
+        link_text='AS Path Lists',
+        permissions=['netbox_bgp.view_aspathlist'],
+        buttons=(
+            PluginMenuButton(
+                link='plugins:netbox_bgp:aspathlist_add',
+                title='Add',
+                icon_class='mdi mdi-plus-thick',
+                permissions=['netbox_bgp.add_aspathlist'],
+            ),
+            PluginMenuButton(
+                link='plugins:netbox_bgp:aspathlist_bulk_import',
+                title='Import',
+                icon_class='mdi mdi-upload',
+                permissions=['netbox_bgp.add_aspathlist'],
+            ),
+        ),
+    ),  
+    PluginMenuItem(
+        link='plugins:netbox_bgp:aspathlistrule_list',
+        link_text='AS Path List Rules',
+        permissions=['netbox_bgp.view_aspathlistrule'],
+        buttons=(
+            PluginMenuButton(
+                link='plugins:netbox_bgp:aspathlistrule_add',
+                title='Add',
+                icon_class='mdi mdi-plus-thick',
+                permissions=['netbox_bgp.add_aspathlistrule'],
+            ),
+            PluginMenuButton(
+                link='plugins:netbox_bgp:aspathlistrule_bulk_import',
+                title='Import',
+                icon_class='mdi mdi-upload',
+                permissions=['netbox_bgp.add_aspathlistrule'],
+            ),
+        ),
+    ),   
+)   
+
 _routing_policy_menu = (
     PluginMenuItem(
         link='plugins:netbox_bgp:routingpolicy_list',
@@ -330,7 +409,8 @@ if plugin_settings.get('top_level_menu'):
         groups=(
             ("BGP", _menu_items_grouped),
             ("Prefix Lists", _prefix_list_menu),
-            ("Routing Policies", _routing_policy_menu)
+            ("Routing Policies", _routing_policy_menu),
+            ("AS Path Lists", _aspath_list_menu),
         ),
         icon_class="mdi mdi-bootstrap",
     )

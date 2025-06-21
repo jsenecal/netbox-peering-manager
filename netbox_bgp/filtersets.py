@@ -8,11 +8,47 @@ from tenancy.filtersets import TenancyFilterSet
 from .models import (
     Community, BGPSession, RoutingPolicy, RoutingPolicyRule,
     BGPPeerGroup, PrefixList, PrefixListRule, CommunityList,
-    CommunityListRule
+    CommunityListRule, ASPathList, ASPathListRule
 )
 from ipam.models import IPAddress, ASN
 from dcim.models import Device, Site
 from virtualization.models import VirtualMachine
+
+
+class ASPathListFilterSet(NetBoxModelFilterSet):
+
+    class Meta:
+        model = ASPathList
+        fields = ['id', 'name', 'description']
+
+    def search(self, queryset, name, value):
+        """Perform the filtered search."""
+        if not value.strip():
+            return queryset
+        qs_filter = (
+                Q(name__icontains=value)
+                | Q(description__icontains=value)
+        )
+        return queryset.filter(qs_filter)
+
+
+class ASPathListRuleFilterSet(NetBoxModelFilterSet):
+
+    class Meta:
+        model = ASPathListRule
+        fields = ['id', 'action', 'aspath_list', 'aspath_list_id']
+
+    def search(self, queryset, name, value):
+        """Perform the filtered search."""
+        if not value.strip():
+            return queryset
+        qs_filter = (
+                Q(action__icontains=value)
+                | Q(aspath_list__icontains=value)
+                | Q(aspath_list_id__icontains=value)
+        )
+        return queryset.filter(qs_filter)
+        
 
 class CommunityFilterSet(NetBoxModelFilterSet, TenancyFilterSet):
 
