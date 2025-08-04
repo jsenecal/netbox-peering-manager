@@ -71,7 +71,7 @@ class ASPathListRule(NetBoxModel):
         return ActionChoices.colors.get(self.action)
 
     class Meta:
-        ordering = ('aspath_list', 'index')
+        ordering = ['aspath_list', 'index']
 
 
 class RoutingPolicy(NetBoxModel):
@@ -334,7 +334,6 @@ class PrefixListRule(NetBoxModel):
     )
 
     class Meta:
-        ordering = ('prefix_list', 'index')
         unique_together = ('prefix_list', 'index')
         ordering = ['prefix_list','index']
 
@@ -548,7 +547,7 @@ class RoutingPolicyRule(NetBoxModel):
     )    
 
     class Meta:
-        ordering = ('routing_policy', 'index')
+        ordering = ['routing_policy', 'index']
         unique_together = ('routing_policy', 'index')
         ordering = ['routing_policy', 'index']
 
