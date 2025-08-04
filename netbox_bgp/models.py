@@ -27,6 +27,7 @@ class ASPathList(NetBoxModel):
     class Meta:
         verbose_name_plural = 'AS Path Lists'
         unique_together = ['name', 'description']
+        ordering = ['name']
 
     def __str__(self):
         return self.name
@@ -69,6 +70,8 @@ class ASPathListRule(NetBoxModel):
     def get_action_color(self):
         return ActionChoices.colors.get(self.action)
 
+    class Meta:
+        ordering = ('aspath_list', 'index')
 
 
 class RoutingPolicy(NetBoxModel):
@@ -88,6 +91,7 @@ class RoutingPolicy(NetBoxModel):
     class Meta:
         verbose_name_plural = 'Routing Policies'
         unique_together = ['name', 'description']
+        ordering = ['name']
 
     def __str__(self):
         return self.name
@@ -123,6 +127,7 @@ class BGPPeerGroup(NetBoxModel):
     class Meta:
         verbose_name_plural = 'Peer Groups'
         unique_together = ['name', 'description']
+        ordering = ['name']
 
     def __str__(self):
         return self.name
@@ -180,6 +185,7 @@ class Community(BGPBase):
 
     class Meta:
         verbose_name_plural = 'Communities'
+        ordering = ['value']
 
     def __str__(self):
         return self.value
@@ -208,6 +214,7 @@ class CommunityList(NetBoxModel):
     class Meta:
         verbose_name_plural = 'Community Lists'
         unique_together = ['name', 'description']
+        ordering = ['name']
 
     def __str__(self):
         return self.name
@@ -250,6 +257,9 @@ class CommunityListRule(NetBoxModel):
     def get_action_color(self):
         return ActionChoices.colors.get(self.action)
 
+    class Meta:
+        ordering = ['community_list', 'community']
+
 
 class PrefixList(NetBoxModel):
     """
@@ -272,6 +282,7 @@ class PrefixList(NetBoxModel):
     class Meta:
         verbose_name_plural = 'Prefix Lists'
         unique_together = ['name', 'description', 'family']
+        ordering = ['name']
 
     def __str__(self):
         return self.name
@@ -325,6 +336,7 @@ class PrefixListRule(NetBoxModel):
     class Meta:
         ordering = ('prefix_list', 'index')
         unique_together = ('prefix_list', 'index')
+        ordering = ['prefix_list','index']
 
     @property
     def network(self):
@@ -453,7 +465,8 @@ class BGPSession(NetBoxModel):
     class Meta:
         verbose_name_plural = 'BGP Sessions'
         unique_together = [['device', 'local_address', 'local_as', 'remote_address', 'remote_as'], ['virtualmachine', 'local_address', 'local_as', 'remote_address', 'remote_as']]
-    
+        ordering = ['name']
+
     def __str__(self):
         if self.device:
             return f'{self.device}:{self.name}'
@@ -537,6 +550,7 @@ class RoutingPolicyRule(NetBoxModel):
     class Meta:
         ordering = ('routing_policy', 'index')
         unique_together = ('routing_policy', 'index')
+        ordering = ['routing_policy', 'index']
 
     def __str__(self):
         return f'{self.routing_policy}: Rule {self.index}'

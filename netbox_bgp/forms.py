@@ -352,6 +352,7 @@ class BGPSessionImportForm(NetBoxModelImportForm):
         queryset=Device.objects.all(),
         to_field_name="name",
         help_text=_("Assigned device"),
+        required=False,
     )
     virtualmachine = CSVModelChoiceField(
         queryset=VirtualMachine.objects.all(),
