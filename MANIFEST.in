@@ -1,1 +1,1 @@
-recursive-include netbox_bgp/templates *.html
+recursive-include netbox_peering_manager/templates *.html

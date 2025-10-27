@@ -1,8 +1,10 @@
 .vscode
-env
 .DS_Store
 __pycache__
 dist
 build
 *.egg-info
 .idea/
+*.env
+!.env.example
+.devcontainer/home/

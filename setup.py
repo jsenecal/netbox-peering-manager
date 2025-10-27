@@ -24,12 +24,12 @@ def get_version(rel_path):
 
 
 setup(
-    name='netbox-bgp',
-    version=get_version('netbox_bgp/version.py'),
+    name='netbox-peering-manager',
+    version=get_version('netbox_peering_manager/version.py'),
     description='BGP related stuff',
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url='https://github.com/netbox-community/netbox-bgp',
+    url='https://github.com/jsenecal/netbox-peering-manager',
     author='Nikolay Yuzefovich',
     author_email='mgk.kolek@gmail.com',
     install_requires=[],

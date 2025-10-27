@@ -1,5 +1,5 @@
 version: 0.1
-package_name: netbox-bgp
+package_name: netbox-peering-manager
 compatibility:
   - release: 0.17.0
     netbox_min: 4.4.0
