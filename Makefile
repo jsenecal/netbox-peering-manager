@@ -16,7 +16,7 @@ help: ## Show this help message
 # Development targets (for use within devcontainer)
 .PHONY: runserver
 runserver: ## Start NetBox development server
-	${VENV_PY_PATH} ${NETBOX_DIR}/manage.py runserver 0.0.0.0:8000
+	${VENV_PY_PATH} ${NETBOX_DIR}/manage.py runserver 0.0.0.0:8001
 
 .PHONY: shell
 shell: ## Open Django shell

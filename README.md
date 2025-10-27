@@ -85,7 +85,7 @@ This plugin uses a VS Code devcontainer for development. The devcontainer provid
 
 4. Wait for the container to build and start. This may take a few minutes on the first run.
 
-5. Once the container is ready, NetBox will be accessible at `http://localhost:8000`
+5. Once the container is ready, NetBox will be accessible at `http://localhost:8001`
    - Username: `admin`
    - Password: `admin`
 
@@ -107,7 +107,7 @@ make rebuild          # Rebuild: reinstall plugin, run migrations, collect stati
 make setup            # Install/reinstall the plugin in editable mode
 
 # Development Server & Shells
-make runserver        # Start NetBox development server on port 8000
+make runserver        # Start NetBox development server on port 8001
 make shell            # Open Django shell
 make nbshell          # Open NetBox shell (with NetBox utilities)
 make dbshell          # Open database shell
@@ -147,7 +147,7 @@ You can also run Django management commands directly:
 ```bash
 # From within the devcontainer terminal
 cd /opt/netbox/netbox
-python manage.py runserver 0.0.0.0:8000
+python manage.py runserver 0.0.0.0:8001
 python manage.py test netbox_peering_manager
 python manage.py makemigrations netbox_peering_manager
 python manage.py migrate
