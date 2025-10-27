@@ -13,7 +13,7 @@ class Migration(migrations.Migration):
     dependencies = [
         ('extras', '0073_journalentry_tags_custom_fields'),
         ('ipam', '0057_created_datetimefield'),
-        ('netbox_bgp', '0022_netbox_bgp'),
+        ('netbox_peering_manager', '0022_netbox_bgp'),
     ]
 
     operations = [
@@ -47,7 +47,7 @@ class Migration(migrations.Migration):
                 ('ge', models.PositiveSmallIntegerField(blank=True, null=True, validators=[django.core.validators.MinValueValidator(0), django.core.validators.MaxValueValidator(128)])),
                 ('le', models.PositiveSmallIntegerField(blank=True, null=True, validators=[django.core.validators.MinValueValidator(0), django.core.validators.MaxValueValidator(128)])),
                 ('prefix', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='+', to='ipam.prefix')),
-                ('prefix_list', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='prefrules', to='netbox_bgp.prefixlist')),
+                ('prefix_list', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='prefrules', to='netbox_peering_manager.prefixlist')),
                 ('tags', taggit.managers.TaggableManager(through='extras.TaggedItem', to='extras.Tag')),
             ],
             options={

@@ -8,7 +8,7 @@ class Migration(migrations.Migration):
     dependencies = [
         #('dcim', '0131_consoleport_speed'),
         #('ipam', '0046_set_vlangroup_scope_types'),
-        ('netbox_bgp', '0016_netbox_bgp'),
+        ('netbox_peering_manager', '0016_netbox_bgp'),
     ]
 
     operations = [

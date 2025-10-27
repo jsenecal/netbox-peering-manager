@@ -9,7 +9,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ('dcim', '0153_created_datetimefield'),
-        ('netbox_bgp', '0020_netbox_bgp'),
+        ('netbox_peering_manager', '0020_netbox_bgp'),
     ]
 
     operations = [

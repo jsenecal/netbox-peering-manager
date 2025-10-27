@@ -8,7 +8,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ('extras', '0067_customfield_min_max_values'),
-        ('netbox_bgp', '0019_netbox_bgp'),
+        ('netbox_peering_manager', '0019_netbox_bgp'),
     ]
 
     operations = [

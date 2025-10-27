@@ -12,7 +12,7 @@ class Migration(migrations.Migration):
         ('ipam', '0043_add_tenancy_to_aggregates'),
         ('tenancy', '0011_standardize_name_length'),
         ('extras', '0053_rename_webhook_obj_type'),
-        ('netbox_bgp', '0002_netbox_bgp'),
+        ('netbox_peering_manager', '0002_netbox_bgp'),
     ]
 
     operations = [
@@ -25,9 +25,9 @@ class Migration(migrations.Migration):
                 ('status', models.CharField(default='active', max_length=50)),
                 ('description', models.CharField(blank=True, max_length=200)),
                 ('local_address', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='local_address', to='ipam.ipaddress')),
-                ('local_as', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='local_as', to='netbox_bgp.asn')),
+                ('local_as', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='local_as', to='netbox_peering_manager.asn')),
                 ('remote_address', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='remote_address', to='ipam.ipaddress')),
-                ('remote_as', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='remote_as', to='netbox_bgp.asn')),
+                ('remote_as', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='remote_as', to='netbox_peering_manager.asn')),
                 ('site', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='dcim.site')),
                 ('tags', taggit.managers.TaggableManager(through='extras.TaggedItem', to='extras.Tag')),
                 ('tenant', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.PROTECT, to='tenancy.tenant')),

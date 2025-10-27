@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('netbox_bgp', '0023_netbox_bgp'),
+        ('netbox_peering_manager', '0023_netbox_bgp'),
     ]
 
     operations = [
@@ -26,11 +26,11 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='routingpolicyrule',
             name='match_ip_address',
-            field=models.ManyToManyField(blank=True, related_name='+', to='netbox_bgp.prefixlist'),
+            field=models.ManyToManyField(blank=True, related_name='+', to='netbox_peering_manager.prefixlist'),
         ),
         migrations.AddField(
             model_name='routingpolicyrule',
             name='match_ipv6_address',
-            field=models.ManyToManyField(blank=True, related_name='+', to='netbox_bgp.prefixlist'),
+            field=models.ManyToManyField(blank=True, related_name='+', to='netbox_peering_manager.prefixlist'),
         ),
     ]

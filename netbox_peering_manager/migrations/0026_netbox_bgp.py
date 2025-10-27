@@ -10,8 +10,8 @@ def use_core_asn(apps, schema_editor):
     You must migrate all ASN objects for each ASN used in a BGPSession with the migration assistant
     available in v0.7.0 of this plugin before running this migration
     """
-    BGPSession = apps.get_model('netbox_bgp', 'BGPSession')
-    PluginASN = apps.get_model('netbox_bgp', 'ASN')
+    BGPSession = apps.get_model('netbox_peering_manager', 'BGPSession')
+    PluginASN = apps.get_model('netbox_peering_manager', 'ASN')
     CoreASN = apps.get_model('ipam', 'ASN')
 
     for bgpsession in BGPSession.objects.all():
@@ -25,7 +25,7 @@ def use_core_asn(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('netbox_bgp', '0025_netbox_bgp'),
+        ('netbox_peering_manager', '0025_netbox_bgp'),
     ]
 
     operations = [

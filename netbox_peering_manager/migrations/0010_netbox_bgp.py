@@ -7,7 +7,7 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('netbox_bgp', '0009_netbox_bgp'),
+        ('netbox_peering_manager', '0009_netbox_bgp'),
     ]
 
     operations = [
@@ -38,7 +38,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='bgpsession',
             name='peer_group',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='netbox_bgp.bgppeergroup'),
+            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='netbox_peering_manager.bgppeergroup'),
         ),
         migrations.AlterField(
             model_name='community',

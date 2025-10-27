@@ -9,7 +9,7 @@ class Migration(migrations.Migration):
     dependencies = [
         ('dcim', '0207_remove_redundant_indexes'),
         ('ipam', '0081_remove_service_device_virtual_machine_add_parent_gfk_index'),
-        ('netbox_bgp', '0032_netbox_bgp'),
+        ('netbox_peering_manager', '0032_netbox_bgp'),
         ('virtualization', '0048_populate_mac_addresses'),
     ]
 

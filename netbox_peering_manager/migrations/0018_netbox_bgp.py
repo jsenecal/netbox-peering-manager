@@ -9,7 +9,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         #('extras', '0059_exporttemplate_as_attachment'),
-        ('netbox_bgp', '0017_netbox_bgp'),
+        ('netbox_peering_manager', '0017_netbox_bgp'),
     ]
 
     operations = [

@@ -10,7 +10,7 @@ import utilities.json
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('netbox_bgp', '0030_netbox_bgp_comments'),
+        ('netbox_peering_manager', '0030_netbox_bgp_comments'),
     ]
 
     operations = [
@@ -46,8 +46,8 @@ class Migration(migrations.Migration):
                 ('action', models.CharField(max_length=30)),
                 ('description', models.CharField(blank=True, max_length=200)),
                 ('comments', models.TextField(blank=True)),
-                ('community', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='+', to='netbox_bgp.community')),
-                ('community_list', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='commlistrules', to='netbox_bgp.communitylist')),
+                ('community', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='+', to='netbox_peering_manager.community')),
+                ('community_list', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='commlistrules', to='netbox_peering_manager.communitylist')),
                 ('tags', taggit.managers.TaggableManager(through='extras.TaggedItem', to='extras.Tag')),
             ],
             options={
@@ -57,6 +57,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='routingpolicyrule',
             name='match_community_list',
-            field=models.ManyToManyField(blank=True, related_name='cmrules', to='netbox_bgp.communitylist'),
+            field=models.ManyToManyField(blank=True, related_name='cmrules', to='netbox_peering_manager.communitylist'),
         ),
     ]

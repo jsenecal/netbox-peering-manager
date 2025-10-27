@@ -6,13 +6,13 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('netbox_bgp', '0008_netbox_bgp'),
+        ('netbox_peering_manager', '0008_netbox_bgp'),
     ]
 
     operations = [
         migrations.AlterField(
             model_name='bgpsession',
             name='peer_group',
-            field=models.ManyToManyField(blank=True, to='netbox_bgp.BGPPeerGroup'),
+            field=models.ManyToManyField(blank=True, to='netbox_peering_manager.BGPPeerGroup'),
         ),
     ]

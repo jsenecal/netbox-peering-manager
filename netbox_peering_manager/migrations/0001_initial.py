@@ -61,7 +61,7 @@ class Migration(migrations.Migration):
                 ('number', models.PositiveIntegerField(validators=[django.core.validators.MinValueValidator(1), django.core.validators.MaxValueValidator(4294967294)])),
                 ('status', models.CharField(default='active', max_length=50)),
                 ('description', models.CharField(blank=True, max_length=200)),
-                ('group', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.PROTECT, to='netbox_bgp.asngroup')),
+                ('group', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.PROTECT, to='netbox_peering_manager.asngroup')),
                 ('role', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='ipam.role')),
                 ('site', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.PROTECT, related_name='asn_related', to='dcim.site')),
                 ('tags', taggit.managers.TaggableManager(through='extras.TaggedItem', to='extras.Tag')),

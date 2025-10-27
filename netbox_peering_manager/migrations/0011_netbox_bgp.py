@@ -8,7 +8,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         #('extras', '0059_exporttemplate_as_attachment'),
-        ('netbox_bgp', '0010_netbox_bgp'),
+        ('netbox_peering_manager', '0010_netbox_bgp'),
     ]
 
     operations = [
@@ -30,21 +30,21 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='bgppeergroup',
             name='export_policies',
-            field=models.ManyToManyField(blank=True, related_name='group_export_policies', to='netbox_bgp.RoutingPolicy'),
+            field=models.ManyToManyField(blank=True, related_name='group_export_policies', to='netbox_peering_manager.RoutingPolicy'),
         ),
         migrations.AddField(
             model_name='bgppeergroup',
             name='import_policies',
-            field=models.ManyToManyField(blank=True, related_name='group_import_policies', to='netbox_bgp.RoutingPolicy'),
+            field=models.ManyToManyField(blank=True, related_name='group_import_policies', to='netbox_peering_manager.RoutingPolicy'),
         ),
         migrations.AddField(
             model_name='bgpsession',
             name='export_policies',
-            field=models.ManyToManyField(blank=True, related_name='session_export_policies', to='netbox_bgp.RoutingPolicy'),
+            field=models.ManyToManyField(blank=True, related_name='session_export_policies', to='netbox_peering_manager.RoutingPolicy'),
         ),
         migrations.AddField(
             model_name='bgpsession',
             name='import_policies',
-            field=models.ManyToManyField(blank=True, related_name='session_import_policies', to='netbox_bgp.RoutingPolicy'),
+            field=models.ManyToManyField(blank=True, related_name='session_import_policies', to='netbox_peering_manager.RoutingPolicy'),
         ),
     ]

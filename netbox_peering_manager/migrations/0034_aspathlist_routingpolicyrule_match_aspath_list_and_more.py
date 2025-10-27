@@ -9,7 +9,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('netbox_bgp', '0033_alter_bgpsession_unique_together_and_more'),
+        ('netbox_peering_manager', '0033_alter_bgpsession_unique_together_and_more'),
     ]
 
     operations = [
@@ -33,7 +33,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='routingpolicyrule',
             name='match_aspath_list',
-            field=models.ManyToManyField(blank=True, related_name='aspathrules', to='netbox_bgp.aspathlist'),
+            field=models.ManyToManyField(blank=True, related_name='aspathrules', to='netbox_peering_manager.aspathlist'),
         ),
         migrations.CreateModel(
             name='ASPathListRule',
@@ -47,7 +47,7 @@ class Migration(migrations.Migration):
                 ('pattern', models.CharField(max_length=200)),
                 ('description', models.CharField(blank=True, max_length=200)),
                 ('comments', models.TextField(blank=True)),
-                ('aspath_list', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='aspathlistrules', to='netbox_bgp.aspathlist')),
+                ('aspath_list', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='aspathlistrules', to='netbox_peering_manager.aspathlist')),
                 ('tags', taggit.managers.TaggableManager(through='extras.TaggedItem', to='extras.Tag')),
             ],
             options={

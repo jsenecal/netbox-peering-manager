@@ -7,7 +7,7 @@ import utilities.json
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('netbox_bgp', '0026_netbox_bgp'),
+        ('netbox_peering_manager', '0026_netbox_bgp'),
     ]
 
     operations = [

@@ -6,7 +6,7 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('netbox_bgp', '0012_netbox_bgp'),
+        ('netbox_peering_manager', '0012_netbox_bgp'),
     ]
 
     operations = [

@@ -11,7 +11,7 @@ class Migration(migrations.Migration):
     dependencies = [
         ('ipam', '0057_created_datetimefield'),
         ('extras', '0073_journalentry_tags_custom_fields'),
-        ('netbox_bgp', '0021_netbox32_support'),
+        ('netbox_peering_manager', '0021_netbox32_support'),
     ]
 
     operations = [
@@ -28,9 +28,9 @@ class Migration(migrations.Migration):
                 ('match_ip_cond', models.JSONField(blank=True, null=True)),
                 ('match_custom', models.JSONField(blank=True, null=True)),
                 ('set_actions', models.JSONField(blank=True, null=True)),
-                ('match_community', models.ManyToManyField(blank=True, related_name='+', to='netbox_bgp.community')),
+                ('match_community', models.ManyToManyField(blank=True, related_name='+', to='netbox_peering_manager.community')),
                 ('match_ip', models.ManyToManyField(blank=True, related_name='+', to='ipam.prefix')),
-                ('routing_policy', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='rules', to='netbox_bgp.routingpolicy')),
+                ('routing_policy', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='rules', to='netbox_peering_manager.routingpolicy')),
                 ('tags', taggit.managers.TaggableManager(through='extras.TaggedItem', to='extras.Tag')),
             ],
             options={

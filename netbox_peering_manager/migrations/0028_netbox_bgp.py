@@ -7,7 +7,7 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('netbox_bgp', '0027_netbox_bgp'),
+        ('netbox_peering_manager', '0027_netbox_bgp'),
     ]
 
     operations = [
