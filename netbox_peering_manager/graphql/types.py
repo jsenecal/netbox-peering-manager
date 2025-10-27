@@ -1,50 +1,49 @@
-from typing import Annotated, List
+from typing import Annotated
+
 import strawberry
 import strawberry_django
-from netbox.graphql.types import NetBoxObjectType
 from netbox.graphql.scalars import BigInt
+from netbox.graphql.types import NetBoxObjectType
 
 from netbox_peering_manager.models import (
-    Community,
-    BGPSession,
-    RoutingPolicy,
+    ASPathList,
+    ASPathListRule,
     BGPPeerGroup,
-    RoutingPolicyRule,
-    PrefixList,
-    PrefixListRule,
+    BGPSession,
+    Community,
     CommunityList,
     CommunityListRule,
-    ASPathList,
-    ASPathListRule
+    PrefixList,
+    PrefixListRule,
+    RoutingPolicy,
+    RoutingPolicyRule,
 )
+
 from .filters import (
-    NetBoxBGPCommunityFilter,
-    NetBoxBGPSessionFilter,
+    NetBoxBGPASPathListFilter,
+    NetBoxBGPASPathListRuleFilter,
     NetBoxBGPBGPPeerGroupFilter,
-    NetBoxBGPRoutingPolicyFilter,
-    NetBoxBGPRoutingPolicyRuleFilter,
-    NetBoxBGPPrefixListFilter,
-    NetBoxBGPPrefixListRuleFilter,
+    NetBoxBGPCommunityFilter,
     NetBoxBGPCommunityListFilter,
     NetBoxBGPCommunityListRuleFilter,
-    NetBoxBGPASPathListFilter,
-    NetBoxBGPASPathListRuleFilter
+    NetBoxBGPPrefixListFilter,
+    NetBoxBGPPrefixListRuleFilter,
+    NetBoxBGPRoutingPolicyFilter,
+    NetBoxBGPRoutingPolicyRuleFilter,
+    NetBoxBGPSessionFilter,
 )
+
 
 @strawberry_django.type(ASPathList, fields="__all__", filters=NetBoxBGPASPathListFilter)
 class ASPathListType(NetBoxObjectType):
     name: str
     description: str
-    rules: List[
-         Annotated["ASPathListRuleType", strawberry.lazy("netbox_peering_manager.graphql.types")]
-    ]
+    rules: list[Annotated["ASPathListRuleType", strawberry.lazy("netbox_peering_manager.graphql.types")]]
 
 
 @strawberry_django.type(ASPathListRule, fields="__all__", filters=NetBoxBGPASPathListRuleFilter)
 class ASPathListRuleType(NetBoxObjectType):
-    aspath_list: Annotated[
-        "ASPathListType", strawberry.lazy("netbox_peering_manager.graphql.types")
-    ]
+    aspath_list: Annotated["ASPathListType", strawberry.lazy("netbox_peering_manager.graphql.types")]
     index: BigInt
     action: str
     pattern: str
@@ -73,16 +72,9 @@ class BGPSessionType(NetBoxObjectType):
     remote_as: Annotated["ASNType", strawberry.lazy("ipam.graphql.types")]
     status: str
     description: str
-    peer_group: (
-        Annotated["BGPPeerGroupType", strawberry.lazy("netbox_peering_manager.graphql.types")]
-        | None
-    )
-    import_policies: List[
-        Annotated["RoutingPolicyType", strawberry.lazy("netbox_peering_manager.graphql.types")]
-    ]
-    export_policies: List[
-        Annotated["RoutingPolicyType", strawberry.lazy("netbox_peering_manager.graphql.types")]
-    ]
+    peer_group: Annotated["BGPPeerGroupType", strawberry.lazy("netbox_peering_manager.graphql.types")] | None
+    import_policies: list[Annotated["RoutingPolicyType", strawberry.lazy("netbox_peering_manager.graphql.types")]]
+    export_policies: list[Annotated["RoutingPolicyType", strawberry.lazy("netbox_peering_manager.graphql.types")]]
     prefix_list_in: Annotated["PrefixListType", strawberry.lazy("netbox_peering_manager.graphql.types")] | None
     prefix_list_out: Annotated["PrefixListType", strawberry.lazy("netbox_peering_manager.graphql.types")] | None
 
@@ -91,46 +83,28 @@ class BGPSessionType(NetBoxObjectType):
 class BGPPeerGroupType(NetBoxObjectType):
     name: str
     description: str
-    import_policies: List[
-        Annotated["RoutingPolicyType", strawberry.lazy("netbox_peering_manager.graphql.types")]
-    ]
-    export_policies: List[
-        Annotated["RoutingPolicyType", strawberry.lazy("netbox_peering_manager.graphql.types")]
-    ]
+    import_policies: list[Annotated["RoutingPolicyType", strawberry.lazy("netbox_peering_manager.graphql.types")]]
+    export_policies: list[Annotated["RoutingPolicyType", strawberry.lazy("netbox_peering_manager.graphql.types")]]
 
 
 @strawberry_django.type(RoutingPolicy, fields="__all__", filters=NetBoxBGPRoutingPolicyFilter)
 class RoutingPolicyType(NetBoxObjectType):
     name: str
     description: str
-    rules: List[
-         Annotated["RoutingPolicyRuleType", strawberry.lazy("netbox_peering_manager.graphql.types")]
-    ]
+    rules: list[Annotated["RoutingPolicyRuleType", strawberry.lazy("netbox_peering_manager.graphql.types")]]
 
 
-@strawberry_django.type(
-    RoutingPolicyRule, fields="__all__", filters=NetBoxBGPRoutingPolicyRuleFilter
-)
+@strawberry_django.type(RoutingPolicyRule, fields="__all__", filters=NetBoxBGPRoutingPolicyRuleFilter)
 class RoutingPolicyRuleType(NetBoxObjectType):
-    routing_policy: Annotated[
-        "RoutingPolicyType", strawberry.lazy("netbox_peering_manager.graphql.types")
-    ]
+    routing_policy: Annotated["RoutingPolicyType", strawberry.lazy("netbox_peering_manager.graphql.types")]
     index: BigInt
     action: str
     description: str
     continue_entry: BigInt | None
-    match_community: List[
-        Annotated["CommunityType", strawberry.lazy("netbox_peering_manager.graphql.types")]
-    ]
-    match_community_list: List[
-        Annotated["CommunityListType", strawberry.lazy("netbox_peering_manager.graphql.types")]
-    ]
-    match_ip_address: List[
-        Annotated["PrefixListType", strawberry.lazy("netbox_peering_manager.graphql.types")]
-    ]
-    match_ipv6_address: List[
-        Annotated["PrefixListType", strawberry.lazy("netbox_peering_manager.graphql.types")]
-    ]
+    match_community: list[Annotated["CommunityType", strawberry.lazy("netbox_peering_manager.graphql.types")]]
+    match_community_list: list[Annotated["CommunityListType", strawberry.lazy("netbox_peering_manager.graphql.types")]]
+    match_ip_address: list[Annotated["PrefixListType", strawberry.lazy("netbox_peering_manager.graphql.types")]]
+    match_ipv6_address: list[Annotated["PrefixListType", strawberry.lazy("netbox_peering_manager.graphql.types")]]
 
 
 @strawberry_django.type(PrefixList, fields="__all__", filters=NetBoxBGPPrefixListFilter)
@@ -138,16 +112,12 @@ class PrefixListType(NetBoxObjectType):
     name: str
     description: str
     family: str
-    prefrules: List[
-         Annotated["PrefixListRuleType", strawberry.lazy("netbox_peering_manager.graphql.types")]
-    ]
+    prefrules: list[Annotated["PrefixListRuleType", strawberry.lazy("netbox_peering_manager.graphql.types")]]
 
 
 @strawberry_django.type(PrefixListRule, fields="__all__", filters=NetBoxBGPPrefixListRuleFilter)
 class PrefixListRuleType(NetBoxObjectType):
-    prefix_list: Annotated[
-        "PrefixListType", strawberry.lazy("netbox_peering_manager.graphql.types")
-    ]
+    prefix_list: Annotated["PrefixListType", strawberry.lazy("netbox_peering_manager.graphql.types")]
     index: BigInt
     action: str
     prefix: Annotated["PrefixType", strawberry.lazy("ipam.graphql.types")] | None
@@ -161,18 +131,12 @@ class PrefixListRuleType(NetBoxObjectType):
 class CommunityListType(NetBoxObjectType):
     name: str
     description: str
-    commlistrules: List[
-         Annotated["CommunityListRuleType", strawberry.lazy("netbox_peering_manager.graphql.types")]
-    ]
+    commlistrules: list[Annotated["CommunityListRuleType", strawberry.lazy("netbox_peering_manager.graphql.types")]]
 
 
-@strawberry_django.type(
-    CommunityListRule, fields="__all__", filters=NetBoxBGPCommunityListRuleFilter
-)
+@strawberry_django.type(CommunityListRule, fields="__all__", filters=NetBoxBGPCommunityListRuleFilter)
 class CommunityListRuleType(NetBoxObjectType):
-    community_list: Annotated[
-        "CommunityListType", strawberry.lazy("netbox_peering_manager.graphql.types")
-    ]
+    community_list: Annotated["CommunityListType", strawberry.lazy("netbox_peering_manager.graphql.types")]
     action: str
     community: Annotated["CommunityType", strawberry.lazy("netbox_peering_manager.graphql.types")]
     description: str

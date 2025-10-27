@@ -1,28 +1,23 @@
-import json
-
+from dcim.models import Device, DeviceRole, DeviceType, Interface, Manufacturer, Site
 from django.urls import reverse
+from ipam.models import ASN, RIR, IPAddress, Prefix
 from utilities.testing import APITestCase, APIViewTestCases
 
-from tenancy.models import Tenant
-from dcim.models import Site, DeviceRole, DeviceType, Manufacturer, Device, Interface
-from ipam.models import IPAddress, ASN, RIR, Prefix
-
+from netbox_peering_manager.choices import (
+    ActionChoices,
+    IPAddressFamilyChoices,
+    SessionStatusChoices,
+)
 from netbox_peering_manager.models import (
+    BGPPeerGroup,
+    BGPSession,
     Community,
     CommunityList,
     CommunityListRule,
-    BGPPeerGroup,
-    BGPSession,
-    RoutingPolicy,
-    RoutingPolicyRule,
     PrefixList,
     PrefixListRule,
-)
-
-from netbox_peering_manager.choices import (
-    SessionStatusChoices,
-    IPAddressFamilyChoices,
-    ActionChoices,
+    RoutingPolicy,
+    RoutingPolicyRule,
 )
 
 
@@ -118,15 +113,10 @@ class CommunityListRuleAPITestCase(
         "netbox_peering_manager.view_community",
     ]
 
-
     @classmethod
     def setUpTestData(cls):
-        com_list1 = CommunityList.objects.create(
-            name="community list 1", description="community list 1"
-        )
-        com_list2 = CommunityList.objects.create(
-            name="community list 2", description="community list 2"
-        )
+        com_list1 = CommunityList.objects.create(name="community list 1", description="community list 1")
+        com_list2 = CommunityList.objects.create(name="community list 2", description="community list 2")
         com1 = Community.objects.create(value="65001:65004", description="community1")
         com2 = Community.objects.create(value="65002:65005", description="community2")
         com3 = Community.objects.create(value="65003:65006", description="community3")
@@ -216,15 +206,9 @@ class BGPPeerGroupAPITestCase(
     @classmethod
     def setUpTestData(cls):
         peer_groups = (
-            BGPPeerGroup(
-                name="peer group 1", description="peer group 1", comments="peer group 1"
-            ),
-            BGPPeerGroup(
-                name="peer group 2", description="peer group 2", comments="peer group 2"
-            ),
-            BGPPeerGroup(
-                name="peer group 3", description="peer group 3", comments="peer group 3"
-            ),
+            BGPPeerGroup(name="peer group 1", description="peer group 1", comments="peer group 1"),
+            BGPPeerGroup(name="peer group 2", description="peer group 2", comments="peer group 2"),
+            BGPPeerGroup(name="peer group 3", description="peer group 3", comments="peer group 3"),
         )
         BGPPeerGroup.objects.bulk_create(peer_groups)
 
@@ -245,29 +229,17 @@ class BGPSessionAPITestCase(
     bulk_update_data = {
         "description": "Test BGP session desc",
     }
-    user_permissions = [
-        "ipam.view_ipaddress",
-        "ipam.view_asn"
-    ]
-
+    user_permissions = ["ipam.view_ipaddress", "ipam.view_asn"]
 
     @classmethod
     def setUpTestData(cls):
         site = Site.objects.create(name="test", slug="test")
         manufacturer = Manufacturer.objects.create(name="Juniper", slug="juniper")
         device_role = DeviceRole.objects.create(name="Firewall", slug="firewall")
-        device_type = DeviceType.objects.create(
-            slug="srx3600", model="SRX3600", manufacturer=manufacturer
-        )
-        device = Device.objects.create(
-            device_type=device_type, name="device1", role=device_role, site=site
-        )
-        device2 = Device.objects.create(
-            device_type=device_type, name="device2", role=device_role, site=site
-        )
+        device_type = DeviceType.objects.create(slug="srx3600", model="SRX3600", manufacturer=manufacturer)
+        device = Device.objects.create(device_type=device_type, name="device1", role=device_role, site=site)
+        device2 = Device.objects.create(device_type=device_type, name="device2", role=device_role, site=site)
         intf = Interface.objects.create(name="test_intf1", device=device)
-        intf2 = Interface.objects.create(name="test_intf2", device=device)
-        intf3 = Interface.objects.create(name="test_intf3", device=device)
         local_ip = IPAddress.objects.create(address="1.1.1.1/32")
         remote_ip1 = IPAddress.objects.create(address="2.2.2.2/32")
         remote_ip2 = IPAddress.objects.create(address="3.3.3.3/32")
@@ -276,12 +248,8 @@ class BGPSessionAPITestCase(
         rir = RIR.objects.create(name="rir")
         local_as = ASN.objects.create(asn=65002, rir=rir, description="local_as")
         remote_as = ASN.objects.create(asn=65003, rir=rir, description="remote_as")
-        peer_group = BGPPeerGroup.objects.create(
-            name="peer_group", description="peer_group_description"
-        )
-        rp = RoutingPolicy.objects.create(
-            name="rp1", description="test_rp", comments="comments_routing_policy"
-        )
+        peer_group = BGPPeerGroup.objects.create(name="peer_group", description="peer_group_description")
+        rp = RoutingPolicy.objects.create(name="rp1", description="test_rp", comments="comments_routing_policy")
         pl1 = PrefixList.objects.create(
             name="pl1",
             description="test_pl",
@@ -404,15 +372,9 @@ class RoutingPolicyAPITestCase(
     @classmethod
     def setUpTestData(cls):
         routing_policies = (
-            RoutingPolicy(
-                name="Route-map 1", description="Route-map 1", comments="Route-map 1"
-            ),
-            RoutingPolicy(
-                name="Route-map 2", description="Route-map 2", comments="Route-map 2"
-            ),
-            RoutingPolicy(
-                name="Route-map 3", description="Route-map 3", comments="Route-map 3"
-            ),
+            RoutingPolicy(name="Route-map 1", description="Route-map 1", comments="Route-map 1"),
+            RoutingPolicy(name="Route-map 2", description="Route-map 2", comments="Route-map 2"),
+            RoutingPolicy(name="Route-map 3", description="Route-map 3", comments="Route-map 3"),
         )
         RoutingPolicy.objects.bulk_create(routing_policies)
 
@@ -439,25 +401,14 @@ class RoutingPolicyRuleAPITestCase(
         "netbox_peering_manager.view_routingpolicy",
     ]
 
-
     @classmethod
     def setUpTestData(cls):
-        rp1 = RoutingPolicy.objects.create(
-            name="rp1", description="test_rp1", comments="comments_routing_policy1"
-        )
-        rp2 = RoutingPolicy.objects.create(
-            name="rp2", description="test_rp2", comments="comments_routing_policy2"
-        )
-        pl1 = PrefixList.objects.create(
-            name="pl1", description="test_pl", family=IPAddressFamilyChoices.FAMILY_4
-        )
-        pl2 = PrefixList.objects.create(
-            name="pl1", description="test_pl", family=IPAddressFamilyChoices.FAMILY_6
-        )
+        rp1 = RoutingPolicy.objects.create(name="rp1", description="test_rp1", comments="comments_routing_policy1")
+        rp2 = RoutingPolicy.objects.create(name="rp2", description="test_rp2", comments="comments_routing_policy2")
+        pl1 = PrefixList.objects.create(name="pl1", description="test_pl", family=IPAddressFamilyChoices.FAMILY_4)
+        pl2 = PrefixList.objects.create(name="pl1", description="test_pl", family=IPAddressFamilyChoices.FAMILY_6)
         com1 = Community.objects.create(value="65000:65000")
-        com_list1 = CommunityList.objects.create(
-            name="community list 1", description="community list 1"
-        )
+        com_list1 = CommunityList.objects.create(name="community list 1", description="community list 1")
 
         routing_policies_rules = (
             RoutingPolicyRule(
@@ -558,7 +509,6 @@ class PrefixListAPITestCase(
 
     @classmethod
     def setUpTestData(cls):
-
         prefix_lists = (
             PrefixList(
                 name="prefix_list 1",
@@ -603,12 +553,8 @@ class PrefixListRuleAPITestCase(
 
     @classmethod
     def setUpTestData(cls):
-        pl1 = PrefixList.objects.create(
-            name="pl1", description="test_pl1", family=IPAddressFamilyChoices.FAMILY_4
-        )
-        pl2 = PrefixList.objects.create(
-            name="pl2", description="test_pl2", family=IPAddressFamilyChoices.FAMILY_4
-        )
+        pl1 = PrefixList.objects.create(name="pl1", description="test_pl1", family=IPAddressFamilyChoices.FAMILY_4)
+        pl2 = PrefixList.objects.create(name="pl2", description="test_pl2", family=IPAddressFamilyChoices.FAMILY_4)
         subnet1 = Prefix.objects.create(prefix="10.0.0.0/24")
         subnet2 = Prefix.objects.create(prefix="10.0.0.0/24")
 

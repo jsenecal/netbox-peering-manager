@@ -1,29 +1,52 @@
 from netbox.api.viewsets import NetBoxModelViewSet
 from rest_framework.routers import APIRootView
 
-from .serializers import (
-    BGPSessionSerializer, RoutingPolicySerializer, BGPPeerGroupSerializer,
-    CommunitySerializer, PrefixListSerializer, PrefixListRuleSerializer,
-    RoutingPolicyRuleSerializer, CommunityListSerializer, CommunityListRuleSerializer,
-    ASPathListSerializer, ASPathListRuleSerializer
+from netbox_peering_manager.filtersets import (
+    ASPathListFilterSet,
+    ASPathListRuleFilterSet,
+    BGPPeerGroupFilterSet,
+    BGPSessionFilterSet,
+    CommunityFilterSet,
+    CommunityListFilterSet,
+    CommunityListRuleFilterSet,
+    PrefixListFilterSet,
+    PrefixListRuleFilterSet,
+    RoutingPolicyFilterSet,
+    RoutingPolicyRuleFilterSet,
 )
 from netbox_peering_manager.models import (
-    BGPSession, RoutingPolicy, BGPPeerGroup,
-    Community, PrefixList, PrefixListRule,
-    RoutingPolicyRule, CommunityList, CommunityListRule,
-    ASPathList, ASPathListRule
+    ASPathList,
+    ASPathListRule,
+    BGPPeerGroup,
+    BGPSession,
+    Community,
+    CommunityList,
+    CommunityListRule,
+    PrefixList,
+    PrefixListRule,
+    RoutingPolicy,
+    RoutingPolicyRule,
 )
-from netbox_peering_manager.filtersets import (
-    BGPSessionFilterSet, RoutingPolicyFilterSet, BGPPeerGroupFilterSet,
-    CommunityFilterSet, PrefixListFilterSet, PrefixListRuleFilterSet,
-    RoutingPolicyRuleFilterSet, CommunityListFilterSet, CommunityListRuleFilterSet,
-    ASPathListFilterSet, ASPathListRuleFilterSet
+
+from .serializers import (
+    ASPathListRuleSerializer,
+    ASPathListSerializer,
+    BGPPeerGroupSerializer,
+    BGPSessionSerializer,
+    CommunityListRuleSerializer,
+    CommunityListSerializer,
+    CommunitySerializer,
+    PrefixListRuleSerializer,
+    PrefixListSerializer,
+    RoutingPolicyRuleSerializer,
+    RoutingPolicySerializer,
 )
+
 
 class RootView(APIRootView):
     def get_view_name(self):
-        return 'BGP'
-    
+        return "BGP"
+
 
 class BGPSessionViewSet(NetBoxModelViewSet):
     queryset = BGPSession.objects.all()

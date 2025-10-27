@@ -1,14 +1,7 @@
 from django.urls import include, path
 from utilities.urls import get_model_urls
 
-from .models import (
-    BGPSession, Community, RoutingPolicy,
-    BGPPeerGroup, RoutingPolicyRule, PrefixList,
-    PrefixListRule, CommunityList, CommunityListRule
-)
-from . import views
-
-app_name = 'netbox_peering_manager'
+app_name = "netbox_peering_manager"
 
 urlpatterns = (
     # AS Path Lists
@@ -27,7 +20,7 @@ urlpatterns = (
     ),
     path(
         "aspath-list-rule/<int:pk>/",
-        include(get_model_urls("netbox_peering_manager","aspathlistrule")),
+        include(get_model_urls("netbox_peering_manager", "aspathlistrule")),
     ),
     # Community
     path(
@@ -38,7 +31,6 @@ urlpatterns = (
         "community/<int:pk>/",
         include(get_model_urls("netbox_peering_manager", "community")),
     ),
-
     # Community Lists
     path(
         "community-list/",
@@ -48,7 +40,6 @@ urlpatterns = (
         "community-list/<int:pk>/",
         include(get_model_urls("netbox_peering_manager", "communitylist")),
     ),
-
     # Community List Rules
     path(
         "community-list-rule/",
@@ -58,7 +49,6 @@ urlpatterns = (
         "community-list-rule/<int:pk>/",
         include(get_model_urls("netbox_peering_manager", "communitylistrule")),
     ),
-
     # Sessions
     path(
         "session/",
@@ -68,7 +58,6 @@ urlpatterns = (
         "session/<int:pk>/",
         include(get_model_urls("netbox_peering_manager", "bgpsession")),
     ),
-
     # Routing Policies
     path(
         "routing-policy/",
@@ -78,7 +67,6 @@ urlpatterns = (
         "routing-policy/<int:pk>/",
         include(get_model_urls("netbox_peering_manager", "routingpolicy")),
     ),
-
     # Routing Policy Rules
     path(
         "routing-policy-rule/",
@@ -88,7 +76,6 @@ urlpatterns = (
         "routing-policy-rule/<int:pk>/",
         include(get_model_urls("netbox_peering_manager", "routingpolicyrule")),
     ),
-
     # Peer Groups
     path(
         "peer-group/",
@@ -98,7 +85,6 @@ urlpatterns = (
         "peer-group/<int:pk>/",
         include(get_model_urls("netbox_peering_manager", "bgppeergroup")),
     ),
-
     # Prefix Lists
     path(
         "prefix-list/",
@@ -108,7 +94,6 @@ urlpatterns = (
         "prefix-list/<int:pk>/",
         include(get_model_urls("netbox_peering_manager", "prefixlist")),
     ),
-
     # Prefix List Rules
     path(
         "prefix-list-rule/",

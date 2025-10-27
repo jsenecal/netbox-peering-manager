@@ -30,7 +30,7 @@ if config.get("device_ext_page", "") == "tab":
             permission="netbox_peering_manager.view_bgpsession",
         )
 
-        def get_children(self, request, parent):
+        def get_children(self, _request, parent):
             """Get BGP sessions for this device."""
             return BGPSession.objects.filter(device=parent)
 

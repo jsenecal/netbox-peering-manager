@@ -1,56 +1,52 @@
+from dcim.models import Device, Site
 from django import forms
-from utilities.forms.rendering import FieldSet
 from django.core.exceptions import (
     MultipleObjectsReturned,
     ObjectDoesNotExist,
-    ValidationError,
 )
 from django.utils.translation import gettext as _
-
-from tenancy.models import Tenant
-from dcim.models import Device, Site
-from ipam.models import IPAddress, Prefix, ASN
 from ipam.formfields import IPNetworkFormField
-from utilities.forms.fields import (
-    DynamicModelChoiceField,
-    CSVModelChoiceField,
-    CSVModelMultipleChoiceField,
-    DynamicModelMultipleChoiceField,
-    TagFilterField,
-    CSVChoiceField,
-    CommentField,
-)
-from utilities.forms import add_blank_choice
-from utilities.forms.widgets import APISelect, APISelectMultiple
+from ipam.models import ASN, IPAddress, Prefix
 from netbox.forms import (
-    NetBoxModelForm,
     NetBoxModelBulkEditForm,
     NetBoxModelFilterSetForm,
+    NetBoxModelForm,
     NetBoxModelImportForm,
 )
-from .choices import SessionStatusChoices
-
-from .models import (
-    Community,
-    BGPSession,
-    RoutingPolicy,
-    BGPPeerGroup,
-    RoutingPolicyRule,
-    PrefixList,
-    PrefixListRule,
-    CommunityList,
-    CommunityListRule,
-    ASPathList,
-    ASPathListRule,
+from tenancy.models import Tenant
+from utilities.forms import add_blank_choice
+from utilities.forms.fields import (
+    CommentField,
+    CSVChoiceField,
+    CSVModelChoiceField,
+    CSVModelMultipleChoiceField,
+    DynamicModelChoiceField,
+    DynamicModelMultipleChoiceField,
+    TagFilterField,
 )
+from utilities.forms.rendering import FieldSet
+from utilities.forms.widgets import APISelect, APISelectMultiple
+from virtualization.models import VirtualMachine
 
 from .choices import (
-    SessionStatusChoices,
     CommunityStatusChoices,
     IPAddressFamilyChoices,
+    SessionStatusChoices,
+)
+from .models import (
+    ASPathList,
+    ASPathListRule,
+    BGPPeerGroup,
+    BGPSession,
+    Community,
+    CommunityList,
+    CommunityListRule,
+    PrefixList,
+    PrefixListRule,
+    RoutingPolicy,
+    RoutingPolicyRule,
 )
 
-from virtualization.models import VirtualMachine
 
 class ASPathListFilterForm(NetBoxModelFilterSetForm):
     model = ASPathList
@@ -58,15 +54,15 @@ class ASPathListFilterForm(NetBoxModelFilterSetForm):
 
     tag = TagFilterField(model)
 
+
 class ASPathListRuleFilterForm(NetBoxModelFilterSetForm):
     model = ASPathListRule
     q = forms.CharField(required=False, label="Search")
     aspath_list = DynamicModelChoiceField(queryset=ASPathList.objects.all(), required=False)
     tag = TagFilterField(model)
 
-    
-class ASPathListForm(NetBoxModelForm):
 
+class ASPathListForm(NetBoxModelForm):
     comments = CommentField()
 
     class Meta:
@@ -84,17 +80,15 @@ class ASPathListBulkEditForm(NetBoxModelBulkEditForm):
 
 
 class ASPathListImportForm(NetBoxModelImportForm):
-
     class Meta:
         model = ASPathList
         fields = ["name", "description", "tags"]
 
 
 class ASPathListRuleImportForm(NetBoxModelImportForm):
-
     class Meta:
         model = ASPathListRule
-        fields = ["aspath_list", "index", "action", "pattern", "description", "tags", "comments"]   
+        fields = ["aspath_list", "index", "action", "pattern", "description", "tags", "comments"]
 
 
 class ASPathListRuleForm(NetBoxModelForm):
@@ -155,9 +149,7 @@ class CommunityImportForm(NetBoxModelImportForm):
         help_text=_("Assigned tenant"),
     )
 
-    status = CSVChoiceField(
-        choices=CommunityStatusChoices, help_text=_("Operational status")
-    )
+    status = CSVChoiceField(choices=CommunityStatusChoices, help_text=_("Operational status"))
 
     class Meta:
         model = Community
@@ -172,7 +164,6 @@ class CommunityListFilterForm(NetBoxModelFilterSetForm):
 
 
 class CommunityListForm(NetBoxModelForm):
-
     comments = CommentField()
 
     class Meta:
@@ -190,7 +181,6 @@ class CommunityListBulkEditForm(NetBoxModelBulkEditForm):
 
 
 class CommunityListImportForm(NetBoxModelImportForm):
-
     class Meta:
         model = CommunityList
         fields = ("name", "description", "tags")
@@ -213,9 +203,7 @@ class CommunityListRuleForm(NetBoxModelForm):
 class BGPSessionForm(NetBoxModelForm):
     name = forms.CharField(max_length=64, required=True)
     site = DynamicModelChoiceField(queryset=Site.objects.all(), required=False)
-    device = DynamicModelChoiceField(
-        queryset=Device.objects.all(), required=False, query_params={"site_id": "$site"}
-    )
+    device = DynamicModelChoiceField(queryset=Device.objects.all(), required=False, query_params={"site_id": "$site"})
     virtualmachine = DynamicModelChoiceField(
         queryset=VirtualMachine.objects.all(), required=False, query_params={"site_id": "$site"}
     )
@@ -226,12 +214,8 @@ class BGPSessionForm(NetBoxModelForm):
         query_params={"site_id": "$site"},
         label=_("Local AS"),
     )
-    remote_as = DynamicModelChoiceField(
-        queryset=ASN.objects.all(), label=_("Remote AS")
-    )
-    local_address = DynamicModelChoiceField(
-        queryset=IPAddress.objects.all(), query_params={"device_id": "$device"}
-    )
+    remote_as = DynamicModelChoiceField(queryset=ASN.objects.all(), label=_("Remote AS"))
+    local_address = DynamicModelChoiceField(queryset=IPAddress.objects.all(), query_params={"device_id": "$device"})
     remote_address = DynamicModelChoiceField(
         queryset=IPAddress.objects.all(),
     )
@@ -267,7 +251,6 @@ class BGPSessionForm(NetBoxModelForm):
         ),
     )
     comments = CommentField()
-
 
     fieldsets = (
         FieldSet(
@@ -323,13 +306,9 @@ class BGPSessionAddForm(BGPSessionForm):
         try:
             ip = IPAddress.objects.get(address=str(self.cleaned_data["remote_address"]))
         except MultipleObjectsReturned:
-            ip = IPAddress.objects.filter(
-                address=str(self.cleaned_data["remote_address"])
-            ).first()
+            ip = IPAddress.objects.filter(address=str(self.cleaned_data["remote_address"])).first()
         except ObjectDoesNotExist:
-            ip = IPAddress.objects.create(
-                address=str(self.cleaned_data["remote_address"])
-            )
+            ip = IPAddress.objects.create(address=str(self.cleaned_data["remote_address"]))
         self.cleaned_data["remote_address"] = ip
         return self.cleaned_data["remote_address"]
 
@@ -360,9 +339,7 @@ class BGPSessionImportForm(NetBoxModelImportForm):
         help_text=_("Assigned virtual machine"),
         required=False,
     )
-    status = CSVChoiceField(
-        choices=SessionStatusChoices, required=False, help_text=_("Operational status")
-    )
+    status = CSVChoiceField(choices=SessionStatusChoices, required=False, help_text=_("Operational status"))
     local_address = CSVModelChoiceField(
         queryset=IPAddress.objects.all(),
         to_field_name="address",
@@ -440,23 +417,15 @@ class BGPSessionImportForm(NetBoxModelImportForm):
 class BGPSessionFilterForm(NetBoxModelFilterSetForm):
     model = BGPSession
     q = forms.CharField(required=False, label="Search")
-    remote_as_id = DynamicModelMultipleChoiceField(
-        queryset=ASN.objects.all(), required=False, label=_("Remote AS")
-    )
-    local_as_id = DynamicModelMultipleChoiceField(
-        queryset=ASN.objects.all(), required=False, label=_("Local AS")
-    )
+    remote_as_id = DynamicModelMultipleChoiceField(queryset=ASN.objects.all(), required=False, label=_("Remote AS"))
+    local_as_id = DynamicModelMultipleChoiceField(queryset=ASN.objects.all(), required=False, label=_("Local AS"))
     by_local_address = forms.CharField(required=False, label="Local Address")
     by_remote_address = forms.CharField(required=False, label="Remote Address")
-    device_id = DynamicModelMultipleChoiceField(
-        queryset=Device.objects.all(), required=False, label=_("Device")
-    )
+    device_id = DynamicModelMultipleChoiceField(queryset=Device.objects.all(), required=False, label=_("Device"))
     virtualmachine_id = DynamicModelMultipleChoiceField(
         queryset=VirtualMachine.objects.all(), required=False, label=_("VirtualMachine")
     )
-    site_id = DynamicModelMultipleChoiceField(
-        queryset=Site.objects.all(), required=False, label=_("Site")
-    )
+    site_id = DynamicModelMultipleChoiceField(queryset=Site.objects.all(), required=False, label=_("Site"))
     status = forms.MultipleChoiceField(
         choices=SessionStatusChoices,
         required=False,
@@ -502,21 +471,11 @@ class BGPSessionBulkEditForm(NetBoxModelBulkEditForm):
         queryset=VirtualMachine.objects.all(),
         required=False,
     )
-    site = DynamicModelChoiceField(
-        label=_("Site"), queryset=Site.objects.all(), required=False
-    )
+    site = DynamicModelChoiceField(label=_("Site"), queryset=Site.objects.all(), required=False)
 
-    status = forms.ChoiceField(
-        label=_('Status'),
-        choices=add_blank_choice(SessionStatusChoices),
-        required=False
-    )
-    description = forms.CharField(
-        label=_("Description"), max_length=200, required=False
-    )
-    tenant = DynamicModelChoiceField(
-        label=_("Tenant"), queryset=Tenant.objects.all(), required=False
-    )
+    status = forms.ChoiceField(label=_("Status"), choices=add_blank_choice(SessionStatusChoices), required=False)
+    description = forms.CharField(label=_("Description"), max_length=200, required=False)
+    tenant = DynamicModelChoiceField(label=_("Tenant"), queryset=Tenant.objects.all(), required=False)
     local_as = DynamicModelChoiceField(queryset=ASN.objects.all(), required=False)
     remote_as = DynamicModelChoiceField(queryset=ASN.objects.all(), required=False)
     peer_group = DynamicModelChoiceField(
@@ -577,7 +536,6 @@ class RoutingPolicyFilterForm(NetBoxModelFilterSetForm):
 
 
 class RoutingPolicyForm(NetBoxModelForm):
-
     comments = CommentField()
 
     class Meta:
@@ -586,7 +544,6 @@ class RoutingPolicyForm(NetBoxModelForm):
 
 
 class RoutingPolicyImportForm(NetBoxModelImportForm):
-
     class Meta:
         model = RoutingPolicy
         fields = ("name", "description", "tags")
@@ -634,7 +591,6 @@ class BGPPeerGroupForm(NetBoxModelForm):
 
 
 class BGPPeerGroupImportForm(NetBoxModelImportForm):
-
     import_policies = CSVModelMultipleChoiceField(
         queryset=RoutingPolicy.objects.all(),
         to_field_name="name",
@@ -668,9 +624,7 @@ class BGPPeerGroupBulkEditForm(NetBoxModelBulkEditForm):
     )
 
     model = BGPPeerGroup
-    nullable_fields = [
-        "description", "import_policies", "export_policies"
-    ]
+    nullable_fields = ["description", "import_policies", "export_policies"]
 
 
 class RoutingPolicyRuleForm(NetBoxModelForm):
@@ -687,27 +641,19 @@ class RoutingPolicyRuleForm(NetBoxModelForm):
         queryset=CommunityList.objects.all(),
         required=False,
     )
-    
+
     match_ip_address = DynamicModelMultipleChoiceField(
-        queryset=PrefixList.objects.all(),
-        required=False,
-        query_params={
-            'family': 'ipv4'
-        }
+        queryset=PrefixList.objects.all(), required=False, query_params={"family": "ipv4"}
     )
 
     match_ipv6_address = DynamicModelMultipleChoiceField(
-        queryset=PrefixList.objects.all(),
-        required=False,
-        query_params={
-            'family': 'ipv6'
-        }
+        queryset=PrefixList.objects.all(), required=False, query_params={"family": "ipv6"}
     )
 
     match_aspath_list = DynamicModelMultipleChoiceField(
         queryset=ASPathList.objects.all(),
         required=False,
-    )   
+    )
 
     match_custom = forms.JSONField(
         label="Custom Match",
@@ -723,7 +669,6 @@ class RoutingPolicyRuleForm(NetBoxModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        instance = kwargs.get("instance", {})
 
     class Meta:
         model = RoutingPolicyRule
@@ -744,8 +689,8 @@ class RoutingPolicyRuleForm(NetBoxModelForm):
             "comments",
         ]
 
-class RoutingPolicyRuleImportForm(NetBoxModelImportForm):
 
+class RoutingPolicyRuleImportForm(NetBoxModelImportForm):
     class Meta:
         model = RoutingPolicyRule
         fields = (
@@ -765,7 +710,6 @@ class RoutingPolicyRuleImportForm(NetBoxModelImportForm):
         )
 
 
-
 class PrefixListFilterForm(NetBoxModelFilterSetForm):
     model = PrefixList
     q = forms.CharField(required=False, label="Search")
@@ -774,7 +718,6 @@ class PrefixListFilterForm(NetBoxModelFilterSetForm):
 
 
 class PrefixListForm(NetBoxModelForm):
-
     comments = CommentField()
 
     class Meta:
@@ -783,9 +726,7 @@ class PrefixListForm(NetBoxModelForm):
 
 
 class PrefixListImportForm(NetBoxModelImportForm):
-    family = CSVChoiceField(
-        choices=IPAddressFamilyChoices, required=True, help_text=_("Family address")
-    )
+    family = CSVChoiceField(choices=IPAddressFamilyChoices, required=True, help_text=_("Family address"))
 
     class Meta:
         model = PrefixList
@@ -806,8 +747,8 @@ class PrefixListBulkEditForm(NetBoxModelBulkEditForm):
         "description",
     ]
 
-class PrefixListRuleImportForm(NetBoxModelImportForm):
 
+class PrefixListRuleImportForm(NetBoxModelImportForm):
     class Meta:
         model = PrefixListRule
         fields = (
@@ -821,7 +762,8 @@ class PrefixListRuleImportForm(NetBoxModelImportForm):
             "tags",
             "comments",
         )
-        
+
+
 class PrefixListRuleForm(NetBoxModelForm):
     prefix = DynamicModelChoiceField(
         queryset=Prefix.objects.all(),

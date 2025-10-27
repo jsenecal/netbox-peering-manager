@@ -1,28 +1,26 @@
-from rest_framework.serializers import HyperlinkedIdentityField, ValidationError
-from rest_framework.relations import PrimaryKeyRelatedField
+from dcim.api.serializers import DeviceSerializer, SiteSerializer
+from ipam.api.field_serializers import IPNetworkField
+from ipam.api.serializers import ASNSerializer, IPAddressSerializer, PrefixSerializer
 from netbox.api.fields import ChoiceField, SerializedPKRelatedField
 from netbox.api.serializers import NetBoxModelSerializer
-from ipam.api.serializers import IPAddressSerializer, ASNSerializer, PrefixSerializer
+from rest_framework.serializers import HyperlinkedIdentityField
 from tenancy.api.serializers import TenantSerializer
-from dcim.api.serializers import SiteSerializer, DeviceSerializer
-from ipam.api.field_serializers import IPNetworkField
 from virtualization.api.serializers import VirtualMachineSerializer
 
+from netbox_peering_manager.choices import CommunityStatusChoices, SessionStatusChoices
 from netbox_peering_manager.models import (
-    BGPSession,
-    RoutingPolicy,
+    ASPathList,
+    ASPathListRule,
     BGPPeerGroup,
+    BGPSession,
     Community,
-    RoutingPolicyRule,
-    PrefixList,
-    PrefixListRule,
     CommunityList,
     CommunityListRule,
-    ASPathList,
-    ASPathListRule
+    PrefixList,
+    PrefixListRule,
+    RoutingPolicy,
+    RoutingPolicyRule,
 )
-
-from netbox_peering_manager.choices import CommunityStatusChoices, SessionStatusChoices
 
 
 class ASPathListSerializer(NetBoxModelSerializer):
@@ -40,7 +38,7 @@ class ASPathListSerializer(NetBoxModelSerializer):
             "custom_fields",
             "comments",
         ]
-        brief_fields = ("id", "url", "display", "name", "description")    
+        brief_fields = ("id", "url", "display", "name", "description")
 
 
 class ASPathListRuleSerializer(NetBoxModelSerializer):
@@ -202,28 +200,23 @@ class BGPSessionSerializer(NetBoxModelSerializer):
     def to_representation(self, instance):
         ret = super().to_representation(instance)
 
-        if instance is not None:
-            if instance.peer_group:
-                for pol in instance.peer_group.import_policies.difference(
-                    instance.import_policies.all()
-                ):
-                    ret["import_policies"].append(
-                        RoutingPolicySerializer(
-                            pol,
-                            context={"request": self.context["request"]},
-                            nested=True,
-                        ).data
-                    )
-                for pol in instance.peer_group.export_policies.difference(
-                    instance.export_policies.all()
-                ):
-                    ret["export_policies"].append(
-                        RoutingPolicySerializer(
-                            pol,
-                            context={"request": self.context["request"]},
-                            nested=True,
-                        ).data
-                    )
+        if instance is not None and instance.peer_group:
+            for pol in instance.peer_group.import_policies.difference(instance.import_policies.all()):
+                ret["import_policies"].append(
+                    RoutingPolicySerializer(
+                        pol,
+                        context={"request": self.context["request"]},
+                        nested=True,
+                    ).data
+                )
+            for pol in instance.peer_group.export_policies.difference(instance.export_policies.all()):
+                ret["export_policies"].append(
+                    RoutingPolicySerializer(
+                        pol,
+                        context={"request": self.context["request"]},
+                        nested=True,
+                    ).data
+                )
         return ret
 
 
@@ -335,7 +328,7 @@ class RoutingPolicyRuleSerializer(NetBoxModelSerializer):
         required=False,
         allow_null=True,
         many=True,
-    )  
+    )
 
     class Meta:
         model = RoutingPolicyRule
@@ -386,4 +379,3 @@ class PrefixListRuleSerializer(NetBoxModelSerializer):
             "comments",
         )
         brief_fields = ("id", "display", "description")
-

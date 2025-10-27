@@ -7,12 +7,10 @@ from os.path import abspath, dirname, join
 # Read secret from file
 def _read_secret(secret_name, default=None):
     try:
-        f = open(f"/run/secrets/{secret_name}", encoding="utf-8")
+        with open(f"/run/secrets/{secret_name}", encoding="utf-8") as f:
+            return f.readline().strip()
     except OSError:
         return default
-    else:
-        with f:
-            return f.readline().strip()
 
 
 _BASE_DIR = dirname(dirname(abspath(__file__)))
