@@ -182,7 +182,7 @@ class BGPSessionEditView(generic.ObjectEditView):
 @register_model_view(BGPSession, "add", detail=False)
 class BGPSessionAddView(generic.ObjectEditView):
     queryset = BGPSession.objects.all()
-    form = forms.BGPSessionAddForm
+    form = forms.BGPSessionForm
 
 
 @register_model_view(BGPSession, "bulk_import", path="import", detail=False)

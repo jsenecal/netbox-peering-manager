@@ -1,9 +1,5 @@
 from dcim.models import Device, Site
 from django import forms
-from django.core.exceptions import (
-    MultipleObjectsReturned,
-    ObjectDoesNotExist,
-)
 from django.utils.translation import gettext as _
 from ipam.formfields import IPNetworkFormField
 from ipam.models import ASN, IPAddress, Prefix
@@ -215,9 +211,18 @@ class BGPSessionForm(NetBoxModelForm):
         label=_("Local AS"),
     )
     remote_as = DynamicModelChoiceField(queryset=ASN.objects.all(), label=_("Remote AS"))
-    local_address = DynamicModelChoiceField(queryset=IPAddress.objects.all(), query_params={"device_id": "$device"})
+    local_address = DynamicModelChoiceField(
+        queryset=IPAddress.objects.all(),
+        query_params={"device_id": "$device"},
+        selector=True,
+        quick_add=True,
+        label=_("Local IP Address"),
+    )
     remote_address = DynamicModelChoiceField(
         queryset=IPAddress.objects.all(),
+        selector=True,
+        quick_add=True,
+        label=_("Remote IP Address"),
     )
     peer_group = DynamicModelChoiceField(
         queryset=BGPPeerGroup.objects.all(),
@@ -297,20 +302,6 @@ class BGPSessionForm(NetBoxModelForm):
         widgets = {
             "status": forms.Select(),
         }
-
-
-class BGPSessionAddForm(BGPSessionForm):
-    remote_address = IPNetworkFormField()
-
-    def clean_remote_address(self):
-        try:
-            ip = IPAddress.objects.get(address=str(self.cleaned_data["remote_address"]))
-        except MultipleObjectsReturned:
-            ip = IPAddress.objects.filter(address=str(self.cleaned_data["remote_address"])).first()
-        except ObjectDoesNotExist:
-            ip = IPAddress.objects.create(address=str(self.cleaned_data["remote_address"]))
-        self.cleaned_data["remote_address"] = ip
-        return self.cleaned_data["remote_address"]
 
 
 class BGPSessionImportForm(NetBoxModelImportForm):

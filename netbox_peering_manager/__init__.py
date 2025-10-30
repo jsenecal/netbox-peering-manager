@@ -19,5 +19,10 @@ class BGPConfig(PluginConfig):
         "top_level_menu": False,
     }
 
+    def ready(self):
+        super().ready()
+        # Import views to ensure @register_model_view decorators are executed
+        from . import views  # noqa: F401
+
 
 config = BGPConfig  # noqa
