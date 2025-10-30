@@ -402,14 +402,14 @@ plugin_settings = settings.PLUGINS_CONFIG.get("netbox_peering_manager", {})
 
 if plugin_settings.get("top_level_menu"):
     menu = PluginMenu(
-        label="BGP",
+        label="Peering",
         groups=(
             ("BGP", _menu_items_grouped),
             ("Prefix Lists", _prefix_list_menu),
             ("Routing Policies", _routing_policy_menu),
             ("AS Path Lists", _aspath_list_menu),
         ),
-        icon_class="mdi mdi-bootstrap",
+        icon_class="mdi mdi-hub",
     )
 else:
     menu_items = _menu_items_primary
