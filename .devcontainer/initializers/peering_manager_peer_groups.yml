@@ -1,0 +1,72 @@
+## Peering Manager - Peer Groups
+## BGP peer group templates for consistent session configuration
+
+# Transit peer groups
+- name: TRANSIT-V4
+  description: IPv4 transit provider peer group
+  import_policies:
+    - import-transit
+    - reject-bogons
+  export_policies:
+    - export-transit
+
+- name: TRANSIT-V6
+  description: IPv6 transit provider peer group
+  import_policies:
+    - import-transit
+    - reject-bogons
+  export_policies:
+    - export-transit
+
+# Customer peer groups
+- name: CUSTOMERS-V4
+  description: IPv4 customer peer group
+  import_policies:
+    - import-customer
+    - reject-bogons
+    - reject-too-specific
+  export_policies:
+    - export-customer
+
+- name: CUSTOMERS-V6
+  description: IPv6 customer peer group
+  import_policies:
+    - import-customer
+    - reject-bogons
+    - reject-too-specific
+  export_policies:
+    - export-customer
+
+# Private peering peer groups
+- name: PEERS-V4
+  description: IPv4 private peer group
+  import_policies:
+    - import-peer
+    - reject-bogons
+  export_policies:
+    - export-peer
+
+- name: PEERS-V6
+  description: IPv6 private peer group
+  import_policies:
+    - import-peer
+    - reject-bogons
+  export_policies:
+    - export-peer
+
+# IX peer groups
+- name: IX-PEERS-V4
+  description: IPv4 IX peering group (including route servers)
+  import_policies:
+    - import-ix
+    - reject-bogons
+  export_policies:
+    - export-ix
+
+- name: IX-PEERS-V6
+  description: IPv6 IX peering group (including route servers)
+  import_policies:
+    - import-ix
+    - reject-bogons
+  export_policies:
+    - export-ix

@@ -1,0 +1,69 @@
+## Additional interfaces for peering manager demo
+## Note: Base interfaces come from device_types.yml templates
+
+# Core router NYC-01 - Transit interfaces (beyond device type template)
+- device: core-rtr-nyc-01
+  name: xe-0/0/0
+  type: 10gbase-x-sfpp
+  description: Transit - Cogent
+  enabled: true
+
+- device: core-rtr-nyc-01
+  name: xe-0/0/1
+  type: 10gbase-x-sfpp
+  description: Transit - Hurricane Electric
+  enabled: true
+
+# Edge router NYC-01 - Private peering interfaces
+- device: edge-rtr-nyc-01
+  name: xe-0/0/0
+  type: 10gbase-x-sfpp
+  description: Private Peer - Cloudflare
+  enabled: true
+
+- device: edge-rtr-nyc-01
+  name: xe-0/0/1
+  type: 10gbase-x-sfpp
+  description: Private Peer - Google
+  enabled: true
+
+- device: edge-rtr-nyc-01
+  name: xe-0/0/2
+  type: 10gbase-x-sfpp
+  description: Private Peer - Meta (planned)
+  enabled: false
+
+# Core router AMS-01 - Transit interface
+- device: core-rtr-ams-01
+  name: xe-0/0/0
+  type: 10gbase-x-sfpp
+  description: Transit - Lumen
+  enabled: true
+
+# IX router AMS-IX - Peering LAN interface
+- device: ix-rtr-amsix-01
+  name: xe-0/0/0
+  type: 10gbase-x-sfpp
+  description: AMS-IX Peering LAN
+  enabled: true
+
+# IX router DE-CIX - Peering LAN interface
+- device: ix-rtr-decix-01
+  name: xe-0/0/0
+  type: 10gbase-x-sfpp
+  description: DE-CIX Peering LAN
+  enabled: true
+
+# IX router LINX - Peering LAN interface
+- device: ix-rtr-linx-01
+  name: xe-0/0/0
+  type: 10gbase-x-sfpp
+  description: LINX Peering LAN
+  enabled: true
+
+# IX router Equinix Ashburn - Peering LAN interface
+- device: ix-rtr-ash-01
+  name: xe-0/0/0
+  type: 10gbase-x-sfpp
+  description: Equinix Ashburn Peering LAN
+  enabled: true

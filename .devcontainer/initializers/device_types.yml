@@ -1,0 +1,57 @@
+## Device types for peering manager demo
+
+- model: MX480
+  manufacturer: Juniper
+  slug: mx480
+  u_height: 8
+  interfaces:
+    - name: Loopback0
+      type: virtual
+    - name: xe-0/0/0
+      type: 10gbase-x-sfpp
+    - name: xe-0/0/1
+      type: 10gbase-x-sfpp
+    - name: xe-0/0/2
+      type: 10gbase-x-sfpp
+    - name: xe-0/0/3
+      type: 10gbase-x-sfpp
+    - name: et-0/1/0
+      type: 100gbase-x-qsfp28
+    - name: et-0/1/1
+      type: 100gbase-x-qsfp28
+
+- model: MX204
+  manufacturer: Juniper
+  slug: mx204
+  u_height: 2
+  interfaces:
+    - name: Loopback0
+      type: virtual
+    - name: xe-0/0/0
+      type: 10gbase-x-sfpp
+    - name: xe-0/0/1
+      type: 10gbase-x-sfpp
+    - name: xe-0/0/2
+      type: 10gbase-x-sfpp
+    - name: xe-0/0/3
+      type: 10gbase-x-sfpp
+    - name: et-0/0/4
+      type: 100gbase-x-qsfp28
+    - name: et-0/0/5
+      type: 100gbase-x-qsfp28
+
+- model: ASR-9001
+  manufacturer: Cisco
+  slug: asr-9001
+  u_height: 2
+  interfaces:
+    - name: Loopback0
+      type: virtual
+    - name: TenGigE0/0/0/0
+      type: 10gbase-x-sfpp
+    - name: TenGigE0/0/0/1
+      type: 10gbase-x-sfpp
+    - name: TenGigE0/0/0/2
+      type: 10gbase-x-sfpp
+    - name: TenGigE0/0/0/3
+      type: 10gbase-x-sfpp

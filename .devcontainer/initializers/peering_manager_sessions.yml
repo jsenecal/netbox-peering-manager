@@ -1,0 +1,198 @@
+## Peering Manager - BGP Sessions
+## Sample BGP sessions demonstrating various peering types
+## Addresses match ip_addresses.yml
+
+# =============================================================================
+# Transit Sessions
+# =============================================================================
+
+# Transit - Cogent at NYC
+- name: Cogent-Transit-NYC-v4
+  description: IPv4 transit to Cogent at NYC
+  device: core-rtr-nyc-01
+  local_as: 65000
+  remote_as: 174
+  local_address: 198.51.100.0/31
+  remote_address: 198.51.100.1/31
+  status: active
+  enabled: true
+  relationship: Transit
+  peer_group: TRANSIT-V4
+  tenant: Cogent Communications
+  import_policies:
+    - import-transit
+  export_policies:
+    - export-transit
+
+# Transit - Hurricane Electric at NYC
+- name: HE-Transit-NYC-v4
+  description: IPv4 transit to Hurricane Electric at NYC
+  device: core-rtr-nyc-01
+  local_as: 65000
+  remote_as: 6939
+  local_address: 198.51.100.2/31
+  remote_address: 198.51.100.3/31
+  status: active
+  enabled: true
+  relationship: Transit
+  peer_group: TRANSIT-V4
+  tenant: Hurricane Electric
+  bfd: Default
+
+# Transit - Lumen at Amsterdam
+- name: Lumen-Transit-AMS-v4
+  description: IPv4 transit to Lumen at Amsterdam
+  device: core-rtr-ams-01
+  local_as: 65000
+  remote_as: 3356
+  local_address: 198.51.100.4/31
+  remote_address: 198.51.100.5/31
+  status: active
+  enabled: true
+  relationship: Transit
+  peer_group: TRANSIT-V4
+  tenant: Lumen
+  bfd: Default
+
+# =============================================================================
+# Private Peering Sessions
+# =============================================================================
+
+# Peer - Cloudflare at NYC
+- name: Cloudflare-Peer-NYC-v4
+  description: Private peering with Cloudflare at NYC
+  device: edge-rtr-nyc-01
+  local_as: 65000
+  remote_as: 13335
+  local_address: 198.51.100.16/31
+  remote_address: 198.51.100.17/31
+  status: active
+  enabled: true
+  relationship: Peer
+  peer_group: PEERS-V4
+  tenant: Cloudflare
+  bfd: Fast
+
+# Peer - Google at NYC
+- name: Google-Peer-NYC-v4
+  description: Private peering with Google at NYC
+  device: edge-rtr-nyc-01
+  local_as: 65000
+  remote_as: 15169
+  local_address: 198.51.100.18/31
+  remote_address: 198.51.100.19/31
+  status: active
+  enabled: true
+  relationship: Peer
+  peer_group: PEERS-V4
+  tenant: Google
+  bfd: Fast
+
+# Peer - Meta at NYC (planned, not yet enabled)
+- name: Meta-Peer-NYC-v4
+  description: Private peering with Meta at NYC (pending)
+  device: edge-rtr-nyc-01
+  local_as: 65000
+  remote_as: 32934
+  local_address: 198.51.100.20/31
+  remote_address: 198.51.100.21/31
+  status: planned
+  enabled: false
+  relationship: Peer
+  peer_group: PEERS-V4
+  tenant: Meta
+  service_reference: PNI-META-2024-001
+
+# =============================================================================
+# IX Sessions - Route Servers
+# =============================================================================
+
+# AMS-IX Route Server 1
+- name: AMSIX-RS1-v4
+  description: AMS-IX Route Server 1
+  device: ix-rtr-amsix-01
+  local_as: 65000
+  remote_as: 65515
+  local_address: 203.0.113.10/24
+  remote_address: 203.0.113.253/24
+  status: active
+  enabled: true
+  relationship: Route Server
+  peer_group: IX-PEERS-V4
+  site: AMS-IX PoP
+  tenant: AMS-IX
+
+# AMS-IX Route Server 2
+- name: AMSIX-RS2-v4
+  description: AMS-IX Route Server 2
+  device: ix-rtr-amsix-01
+  local_as: 65000
+  remote_as: 65515
+  local_address: 203.0.113.10/24
+  remote_address: 203.0.113.254/24
+  status: active
+  enabled: true
+  relationship: Route Server
+  peer_group: IX-PEERS-V4
+  site: AMS-IX PoP
+  tenant: AMS-IX
+
+# DE-CIX Route Server 1
+- name: DECIX-RS1-v4
+  description: DE-CIX Route Server 1
+  device: ix-rtr-decix-01
+  local_as: 65000
+  remote_as: 65516
+  local_address: 192.0.2.10/24
+  remote_address: 192.0.2.253/24
+  status: active
+  enabled: true
+  relationship: Route Server
+  peer_group: IX-PEERS-V4
+  site: DE-CIX PoP
+  tenant: DE-CIX
+
+# DE-CIX Route Server 2
+- name: DECIX-RS2-v4
+  description: DE-CIX Route Server 2
+  device: ix-rtr-decix-01
+  local_as: 65000
+  remote_as: 65516
+  local_address: 192.0.2.10/24
+  remote_address: 192.0.2.254/24
+  status: active
+  enabled: true
+  relationship: Route Server
+  peer_group: IX-PEERS-V4
+  site: DE-CIX PoP
+  tenant: DE-CIX
+
+# LINX Route Server 1
+- name: LINX-RS1-v4
+  description: LINX Route Server 1
+  device: ix-rtr-linx-01
+  local_as: 65000
+  remote_as: 65517
+  local_address: 198.51.100.130/25
+  remote_address: 198.51.100.253/25
+  status: active
+  enabled: true
+  relationship: Route Server
+  peer_group: IX-PEERS-V4
+  site: LINX PoP
+  tenant: LINX
+
+# Equinix Ashburn Route Server 1
+- name: EQIX-ASH-RS1-v4
+  description: Equinix Ashburn IX Route Server 1
+  device: ix-rtr-ash-01
+  local_as: 65000
+  remote_as: 65518
+  local_address: 10.100.0.10/24
+  remote_address: 10.100.0.253/24
+  status: active
+  enabled: true
+  relationship: Route Server
+  peer_group: IX-PEERS-V4
+  site: Equinix Ashburn IX
+  tenant: Equinix IX

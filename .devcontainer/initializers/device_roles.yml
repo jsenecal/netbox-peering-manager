@@ -1,0 +1,21 @@
+## Device roles for peering manager demo
+
+- name: Core Router
+  slug: core-router
+  color: aa1409
+
+- name: Edge Router
+  slug: edge-router
+  color: f44336
+
+- name: IX Router
+  slug: ix-router
+  color: 2196f3
+
+- name: PE Router
+  slug: pe-router
+  color: 4caf50
+
+- name: Switch
+  slug: switch
+  color: 9e9e9e

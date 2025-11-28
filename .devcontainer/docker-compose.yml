@@ -2,7 +2,7 @@
 services:
   netbox: &netbox
     container_name: netbox-peering-manager-devcontainer
-    image: netboxcommunity/netbox:${NETBOX_VARIANT-latest}-devcontainer
+    image: netboxcommunity/netbox:${NETBOX_VARIANT-latest}-peering-manager-devcontainer
     depends_on:
       - postgres
       - redis
@@ -15,12 +15,10 @@ services:
       - ~/.gitconfig:/home/ubuntu/.gitconfig:z,ro
       - ~/.ssh:/home/ubuntu/.ssh
       - ./home/.config/:/home/ubuntu/.config/
-      - ./home/.claude:/home/ubuntu/.claude
-      - ./home/.claude.json:/home/ubuntu/.claude.json
       - ./configuration:/etc/netbox/config:z,ro
-      - netbox-scripts:/etc/netbox/scripts
+      - netbox-peering-manager-scripts:/etc/netbox/scripts
     ports:
-      - "8001:8001"
+      - "8002:8000"
     command:
       - sleep
       - infinity
@@ -59,5 +57,5 @@ services:
 volumes:
   netbox-postgres-data:
     driver: local
-  netbox-scripts:
+  netbox-peering-manager-scripts:
     driver: local

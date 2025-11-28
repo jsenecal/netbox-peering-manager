@@ -1,0 +1,27 @@
+## Peering Manager - Relationship Types
+## Defines the type of peering relationship (transit, peer, customer, etc.)
+
+- name: Transit
+  slug: transit
+  description: Upstream transit provider - we pay for connectivity
+  color: aa1409
+
+- name: Customer
+  slug: customer
+  description: Downstream customer - they pay us for connectivity
+  color: 4caf50
+
+- name: Peer
+  slug: peer
+  description: Settlement-free private peering
+  color: 2196f3
+
+- name: IX Peer
+  slug: ix-peer
+  description: Peering over Internet Exchange
+  color: 9c27b0
+
+- name: Route Server
+  slug: route-server
+  description: IX Route Server peering (multilateral)
+  color: ff9800

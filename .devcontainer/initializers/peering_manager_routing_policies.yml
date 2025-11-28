@@ -1,0 +1,44 @@
+## Peering Manager - Routing Policies
+## Import and export routing policies for BGP sessions
+
+# Transit policies
+- name: import-transit
+  description: Import policy for transit providers - accept all with community tagging
+
+- name: export-transit
+  description: Export policy for transit providers - announce our prefixes only
+
+# Customer policies
+- name: import-customer
+  description: Import policy for customers - accept customer prefixes with validation
+
+- name: export-customer
+  description: Export policy for customers - full table or default route
+
+# Private peer policies
+- name: import-peer
+  description: Import policy for private peers - accept peer and customer routes
+
+- name: export-peer
+  description: Export policy for private peers - announce our and customer prefixes
+
+# IX peer policies
+- name: import-ix
+  description: Import policy for IX peers - accept with IX community tagging
+
+- name: export-ix
+  description: Export policy for IX peers - announce our and customer prefixes
+
+# Route server policies
+- name: import-route-server
+  description: Import policy for IX route servers
+
+- name: export-route-server
+  description: Export policy for IX route servers
+
+# Special policies
+- name: reject-bogons
+  description: Reject bogon and martian prefixes
+
+- name: reject-too-specific
+  description: Reject prefixes more specific than /24 (IPv4) or /48 (IPv6)

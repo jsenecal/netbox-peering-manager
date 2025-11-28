@@ -1,0 +1,10 @@
+## Site groups for peering manager demo
+
+- name: Data Centers
+  slug: data-centers
+
+- name: IX PoPs
+  slug: ix-pops
+
+- name: Customer PoPs
+  slug: customer-pops

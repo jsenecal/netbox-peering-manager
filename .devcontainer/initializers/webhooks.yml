@@ -1,0 +1,8 @@
+## Examples:
+
+# - name: device_creation
+#   payload_url: 'http://localhost:8080'
+# - name: device_update
+#   payload_url: 'http://localhost:8080'
+# - name: device_delete
+#   payload_url: 'http://localhost:8080'

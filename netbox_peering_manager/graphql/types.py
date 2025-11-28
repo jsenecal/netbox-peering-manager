@@ -6,6 +6,7 @@ from netbox.graphql.scalars import BigInt
 from netbox.graphql.types import NetBoxObjectType
 
 from netbox_peering_manager.models import (
+    BFD,
     ASPathList,
     ASPathListRule,
     BGPPeerGroup,
@@ -15,6 +16,7 @@ from netbox_peering_manager.models import (
     CommunityListRule,
     PrefixList,
     PrefixListRule,
+    Relationship,
     RoutingPolicy,
     RoutingPolicyRule,
 )
@@ -22,16 +24,38 @@ from netbox_peering_manager.models import (
 from .filters import (
     NetBoxBGPASPathListFilter,
     NetBoxBGPASPathListRuleFilter,
+    NetBoxBGPBFDFilter,
     NetBoxBGPBGPPeerGroupFilter,
     NetBoxBGPCommunityFilter,
     NetBoxBGPCommunityListFilter,
     NetBoxBGPCommunityListRuleFilter,
     NetBoxBGPPrefixListFilter,
     NetBoxBGPPrefixListRuleFilter,
+    NetBoxBGPRelationshipFilter,
     NetBoxBGPRoutingPolicyFilter,
     NetBoxBGPRoutingPolicyRuleFilter,
     NetBoxBGPSessionFilter,
 )
+
+
+@strawberry_django.type(Relationship, fields="__all__", filters=NetBoxBGPRelationshipFilter)
+class RelationshipType(NetBoxObjectType):
+    name: str
+    slug: str
+    description: str
+    color: str
+    sessions: list[Annotated["BGPSessionType", strawberry.lazy("netbox_peering_manager.graphql.types")]]
+
+
+@strawberry_django.type(BFD, fields="__all__", filters=NetBoxBGPBFDFilter)
+class BFDType(NetBoxObjectType):
+    name: str
+    description: str
+    minimum_transmit_interval: int
+    minimum_receive_interval: int
+    detect_multiplier: int
+    hold_time: int | None
+    sessions: list[Annotated["BGPSessionType", strawberry.lazy("netbox_peering_manager.graphql.types")]]
 
 
 @strawberry_django.type(ASPathList, fields="__all__", filters=NetBoxBGPASPathListFilter)
@@ -71,8 +95,13 @@ class BGPSessionType(NetBoxObjectType):
     local_as: Annotated["ASNType", strawberry.lazy("ipam.graphql.types")]
     remote_as: Annotated["ASNType", strawberry.lazy("ipam.graphql.types")]
     status: str
+    enabled: bool
     description: str
     peer_group: Annotated["BGPPeerGroupType", strawberry.lazy("netbox_peering_manager.graphql.types")] | None
+    relationship: Annotated["RelationshipType", strawberry.lazy("netbox_peering_manager.graphql.types")] | None
+    bfd: Annotated["BFDType", strawberry.lazy("netbox_peering_manager.graphql.types")] | None
+    multihop_ttl: int
+    service_reference: str
     import_policies: list[Annotated["RoutingPolicyType", strawberry.lazy("netbox_peering_manager.graphql.types")]]
     export_policies: list[Annotated["RoutingPolicyType", strawberry.lazy("netbox_peering_manager.graphql.types")]]
     prefix_list_in: Annotated["PrefixListType", strawberry.lazy("netbox_peering_manager.graphql.types")] | None

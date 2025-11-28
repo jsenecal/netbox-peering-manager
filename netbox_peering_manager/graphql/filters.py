@@ -16,6 +16,7 @@ from netbox_peering_manager.graphql.enums import (
     NetBoxBGPSessionStatusEnum,
 )
 from netbox_peering_manager.models import (
+    BFD,
     ASPathList,
     ASPathListRule,
     BGPPeerGroup,
@@ -25,11 +26,14 @@ from netbox_peering_manager.models import (
     CommunityListRule,
     PrefixList,
     PrefixListRule,
+    Relationship,
     RoutingPolicy,
     RoutingPolicyRule,
 )
 
 __all__ = (
+    "NetBoxBGPRelationshipFilter",
+    "NetBoxBGPBFDFilter",
     "NetBoxBGPCommunityFilter",
     "NetBoxBGPSessionFilter",
     "NetBoxBGPBGPPeerGroupFilter",
@@ -42,6 +46,19 @@ __all__ = (
     "NetBoxBGPASPathListFilter",
     "NetBoxBGPASPathListRuleFilter",
 )
+
+
+@strawberry_django.filter_type(Relationship, lookups=True)
+class NetBoxBGPRelationshipFilter(NetBoxModelFilterMixin):
+    name: FilterLookup[str] | None = strawberry_django.filter_field()
+    slug: FilterLookup[str] | None = strawberry_django.filter_field()
+    description: FilterLookup[str] | None = strawberry_django.filter_field()
+
+
+@strawberry_django.filter_type(BFD, lookups=True)
+class NetBoxBGPBFDFilter(NetBoxModelFilterMixin):
+    name: FilterLookup[str] | None = strawberry_django.filter_field()
+    description: FilterLookup[str] | None = strawberry_django.filter_field()
 
 
 @strawberry_django.filter_type(ASPathList, lookups=True)
@@ -78,6 +95,7 @@ class NetBoxBGPSessionFilter(TenancyFilterMixin, NetBoxModelFilterMixin):
     status: Annotated["NetBoxBGPSessionStatusEnum", strawberry.lazy("netbox_peering_manager.graphql.enums")] | None = (
         strawberry_django.filter_field()
     )
+    enabled: FilterLookup[bool] | None = strawberry_django.filter_field()
 
     remote_as: Annotated["ASNFilter", strawberry.lazy("ipam.graphql.filters")] | None = strawberry_django.filter_field()
     remote_as_id: ID | None = strawberry_django.filter_field()
@@ -101,6 +119,16 @@ class NetBoxBGPSessionFilter(TenancyFilterMixin, NetBoxModelFilterMixin):
     peer_group: (
         Annotated["NetBoxBGPBGPPeerGroupFilter", strawberry.lazy("netbox_peering_manager.graphql.filters")] | None
     ) = strawberry_django.filter_field()
+
+    relationship: (
+        Annotated["NetBoxBGPRelationshipFilter", strawberry.lazy("netbox_peering_manager.graphql.filters")] | None
+    ) = strawberry_django.filter_field()
+    relationship_id: ID | None = strawberry_django.filter_field()
+
+    bfd: Annotated["NetBoxBGPBFDFilter", strawberry.lazy("netbox_peering_manager.graphql.filters")] | None = (
+        strawberry_django.filter_field()
+    )
+    bfd_id: ID | None = strawberry_django.filter_field()
 
     import_policies: (
         Annotated["NetBoxBGPRoutingPolicyFilter", strawberry.lazy("netbox_peering_manager.graphql.filters")] | None

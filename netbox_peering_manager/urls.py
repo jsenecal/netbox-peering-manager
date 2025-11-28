@@ -4,6 +4,24 @@ from utilities.urls import get_model_urls
 app_name = "netbox_peering_manager"
 
 urlpatterns = (
+    # Relationships
+    path(
+        "relationship/",
+        include(get_model_urls("netbox_peering_manager", "relationship", detail=False)),
+    ),
+    path(
+        "relationship/<int:pk>/",
+        include(get_model_urls("netbox_peering_manager", "relationship")),
+    ),
+    # BFD Profiles
+    path(
+        "bfd/",
+        include(get_model_urls("netbox_peering_manager", "bfd", detail=False)),
+    ),
+    path(
+        "bfd/<int:pk>/",
+        include(get_model_urls("netbox_peering_manager", "bfd")),
+    ),
     # AS Path Lists
     path(
         "aspath-list/",

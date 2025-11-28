@@ -5,6 +5,7 @@ from virtualization.models import VirtualMachine
 
 from . import filtersets, forms, tables
 from .models import (
+    BFD,
     ASPathList,
     ASPathListRule,
     BGPPeerGroup,
@@ -14,9 +15,121 @@ from .models import (
     CommunityListRule,
     PrefixList,
     PrefixListRule,
+    Relationship,
     RoutingPolicy,
     RoutingPolicyRule,
 )
+
+# =============================================================================
+# Relationship Views
+# =============================================================================
+
+
+@register_model_view(Relationship, "list", path="", detail=False)
+class RelationshipListView(generic.ObjectListView):
+    queryset = Relationship.objects.all()
+    filterset = filtersets.RelationshipFilterSet
+    filterset_form = forms.RelationshipFilterForm
+    table = tables.RelationshipTable
+
+
+@register_model_view(Relationship)
+class RelationshipView(generic.ObjectView):
+    queryset = Relationship.objects.all()
+
+    def get_extra_context(self, _request, instance):
+        sessions = BGPSession.objects.filter(relationship=instance)
+        sessions_table = tables.BGPSessionTable(sessions)
+        return {"sessions_table": sessions_table}
+
+
+@register_model_view(Relationship, "add", detail=False)
+@register_model_view(Relationship, "edit")
+class RelationshipEditView(generic.ObjectEditView):
+    queryset = Relationship.objects.all()
+    form = forms.RelationshipForm
+
+
+@register_model_view(Relationship, "bulk_delete", path="delete", detail=False)
+class RelationshipBulkDeleteView(generic.BulkDeleteView):
+    queryset = Relationship.objects.all()
+    table = tables.RelationshipTable
+
+
+@register_model_view(Relationship, "bulk_edit", path="edit", detail=False)
+class RelationshipBulkEditView(generic.BulkEditView):
+    queryset = Relationship.objects.all()
+    filterset = filtersets.RelationshipFilterSet
+    table = tables.RelationshipTable
+    form = forms.RelationshipBulkEditForm
+
+
+@register_model_view(Relationship, "delete")
+class RelationshipDeleteView(generic.ObjectDeleteView):
+    queryset = Relationship.objects.all()
+    default_return_url = "plugins:netbox_peering_manager:relationship_list"
+
+
+@register_model_view(Relationship, "bulk_import", path="import", detail=False)
+class RelationshipBulkImportView(generic.BulkImportView):
+    queryset = Relationship.objects.all()
+    model_form = forms.RelationshipImportForm
+
+
+# =============================================================================
+# BFD Views
+# =============================================================================
+
+
+@register_model_view(BFD, "list", path="", detail=False)
+class BFDListView(generic.ObjectListView):
+    queryset = BFD.objects.all()
+    filterset = filtersets.BFDFilterSet
+    filterset_form = forms.BFDFilterForm
+    table = tables.BFDTable
+
+
+@register_model_view(BFD)
+class BFDView(generic.ObjectView):
+    queryset = BFD.objects.all()
+
+    def get_extra_context(self, _request, instance):
+        sessions = BGPSession.objects.filter(bfd=instance)
+        sessions_table = tables.BGPSessionTable(sessions)
+        return {"sessions_table": sessions_table}
+
+
+@register_model_view(BFD, "add", detail=False)
+@register_model_view(BFD, "edit")
+class BFDEditView(generic.ObjectEditView):
+    queryset = BFD.objects.all()
+    form = forms.BFDForm
+
+
+@register_model_view(BFD, "bulk_delete", path="delete", detail=False)
+class BFDBulkDeleteView(generic.BulkDeleteView):
+    queryset = BFD.objects.all()
+    table = tables.BFDTable
+
+
+@register_model_view(BFD, "bulk_edit", path="edit", detail=False)
+class BFDBulkEditView(generic.BulkEditView):
+    queryset = BFD.objects.all()
+    filterset = filtersets.BFDFilterSet
+    table = tables.BFDTable
+    form = forms.BFDBulkEditForm
+
+
+@register_model_view(BFD, "delete")
+class BFDDeleteView(generic.ObjectDeleteView):
+    queryset = BFD.objects.all()
+    default_return_url = "plugins:netbox_peering_manager:bfd_list"
+
+
+@register_model_view(BFD, "bulk_import", path="import", detail=False)
+class BFDBulkImportView(generic.BulkImportView):
+    queryset = BFD.objects.all()
+    model_form = forms.BFDImportForm
 
 # Community
 

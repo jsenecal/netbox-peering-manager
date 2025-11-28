@@ -1,0 +1,38 @@
+# Regional Internet Registries
+- name: ARIN
+  slug: arin
+  is_private: false
+  description: American Registry for Internet Numbers
+
+- name: RIPE NCC
+  slug: ripe-ncc
+  is_private: false
+  description: Réseaux IP Européens Network Coordination Centre
+
+- name: APNIC
+  slug: apnic
+  is_private: false
+  description: Asia-Pacific Network Information Centre
+
+- name: LACNIC
+  slug: lacnic
+  is_private: false
+  description: Latin America and Caribbean Network Information Centre
+
+- name: AFRINIC
+  slug: afrinic
+  is_private: false
+  description: African Network Information Centre
+
+# Private ranges
+- name: RFC1918
+  slug: rfc1918
+  is_private: true
+
+- name: RFC4193 ULA
+  slug: rfc4193-ula
+  is_private: true
+
+- name: RFC3849
+  slug: rfc3849
+  is_private: true

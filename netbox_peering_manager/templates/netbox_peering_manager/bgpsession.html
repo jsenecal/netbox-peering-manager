@@ -106,6 +106,39 @@
                         </td>
                     </tr>
                     <tr>
+                        <td>Enabled</td>
+                        <td>{% checkmark object.enabled %}</td>
+                    </tr>
+                    <tr>
+                        <td>Relationship</td>
+                        <td>
+                            {% if object.relationship %}
+                            <span class="color-label" style="background-color: #{{ object.relationship.color }}">&nbsp;</span>
+                            <a href="{{ object.relationship.get_absolute_url }}">{{ object.relationship }}</a>
+                            {% else %}
+                            <span class="text-muted">None</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>BFD Profile</td>
+                        <td>
+                            {% if object.bfd %}
+                            <a href="{{ object.bfd.get_absolute_url }}">{{ object.bfd }}</a>
+                            {% else %}
+                            <span class="text-muted">None</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Multihop TTL</td>
+                        <td>{{ object.multihop_ttl }}</td>
+                    </tr>
+                    <tr>
+                        <td>Service Reference</td>
+                        <td>{{ object.service_reference|placeholder }}</td>
+                    </tr>
+                    <tr>
                         <td>Prefix List In</td>
                         <td>
                             {% if object.prefix_list_in %}

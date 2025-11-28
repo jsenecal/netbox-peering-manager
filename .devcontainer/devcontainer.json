@@ -2,11 +2,12 @@
 // https://github.com/microsoft/vscode-dev-containers/tree/v0.238.0/containers/python-3-postgres
 // Update the VARIANT arg in docker-compose.yml to pick a Python version
 {
-	"name": "NetBox Peering Manager Plugin Development",
+	"name": "NetBox Peering Manager Development",
 	"dockerComposeFile": [
 		"docker-compose.yml"
 	],
 	"service": "netbox",
+	//"workspaceMount": "source=${localWorkspaceFolder},target=/opt/netbox-peering-manager,type=bind,consistency=cached",
 	"workspaceFolder": "/opt/netbox-peering-manager",
 	"overrideCommand": false,
 	// Configure tool-specific properties.
@@ -16,6 +17,11 @@
 			// Set *default* container specific settings.json values on container create.
 			"settings": {
 				"editor.experimental.stickyScroll.enabled": true,
+				//"[python]": {
+				//	"editor.codeActionsOnSave": {
+				//		"source.organizeImports": true
+				//	}
+				//},
 				"isort.args": [
 					"--profile=black"
 				],

@@ -3,6 +3,7 @@ from netbox.api.routers import NetBoxRouter
 from .views import (
     ASPathListRuleViewSet,
     ASPathListViewSet,
+    BFDViewSet,
     BGPPeerGroupViewSet,
     BGPSessionViewSet,
     CommunityListRuleViewSet,
@@ -10,6 +11,7 @@ from .views import (
     CommunityViewSet,
     PrefixListRuleViewSet,
     PrefixListViewSet,
+    RelationshipViewSet,
     RootView,
     RoutingPolicyRuleViewSet,
     RoutingPolicyViewSet,
@@ -17,6 +19,8 @@ from .views import (
 
 router = NetBoxRouter()
 router.APIRootView = RootView
+router.register("relationship", RelationshipViewSet)
+router.register("bfd", BFDViewSet)
 router.register("session", BGPSessionViewSet, "session")
 router.register("bgpsession", BGPSessionViewSet, "bgpsession")
 router.register("routing-policy", RoutingPolicyViewSet)

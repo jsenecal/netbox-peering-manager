@@ -1,0 +1,32 @@
+## Peering Manager - BFD Profiles
+## Bidirectional Forwarding Detection timing profiles
+
+- name: Default
+  description: Default BFD profile - standard timing
+  minimum_transmit_interval: 300
+  minimum_receive_interval: 300
+  detect_multiplier: 3
+
+- name: Fast
+  description: Fast failure detection for critical peers
+  minimum_transmit_interval: 100
+  minimum_receive_interval: 100
+  detect_multiplier: 3
+
+- name: Aggressive
+  description: Very fast detection - use with caution
+  minimum_transmit_interval: 50
+  minimum_receive_interval: 50
+  detect_multiplier: 3
+
+- name: Slow
+  description: Conservative timing for unstable links
+  minimum_transmit_interval: 1000
+  minimum_receive_interval: 1000
+  detect_multiplier: 5
+
+- name: IX-Standard
+  description: Standard IX peering BFD profile
+  minimum_transmit_interval: 300
+  minimum_receive_interval: 300
+  detect_multiplier: 3

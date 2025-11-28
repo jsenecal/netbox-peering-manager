@@ -22,7 +22,13 @@ class BGPConfig(PluginConfig):
     def ready(self):
         super().ready()
         # Import views to ensure @register_model_view decorators are executed
+        # Register initializers with netbox-initializers plugin (if installed)
+        import contextlib
+
         from . import views  # noqa: F401
+
+        with contextlib.suppress(ImportError):
+            from . import initializers  # noqa: F401
 
 
 config = BGPConfig  # noqa

@@ -1,0 +1,22 @@
+## Regions for peering manager demo
+
+- name: North America
+  slug: north-america
+
+- name: Europe
+  slug: europe
+
+- name: Asia Pacific
+  slug: asia-pacific
+
+- name: US East
+  slug: us-east
+  parent: North America
+
+- name: US West
+  slug: us-west
+  parent: North America
+
+- name: Western Europe
+  slug: western-europe
+  parent: Europe

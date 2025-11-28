@@ -1,0 +1,13 @@
+## Tenant groups for peering manager demo
+
+- name: Transit Providers
+  slug: transit-providers
+
+- name: Peers
+  slug: peers
+
+- name: Customers
+  slug: customers
+
+- name: Internet Exchanges
+  slug: internet-exchanges

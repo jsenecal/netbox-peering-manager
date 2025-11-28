@@ -4,6 +4,7 @@ from rest_framework.routers import APIRootView
 from netbox_peering_manager.filtersets import (
     ASPathListFilterSet,
     ASPathListRuleFilterSet,
+    BFDFilterSet,
     BGPPeerGroupFilterSet,
     BGPSessionFilterSet,
     CommunityFilterSet,
@@ -11,10 +12,12 @@ from netbox_peering_manager.filtersets import (
     CommunityListRuleFilterSet,
     PrefixListFilterSet,
     PrefixListRuleFilterSet,
+    RelationshipFilterSet,
     RoutingPolicyFilterSet,
     RoutingPolicyRuleFilterSet,
 )
 from netbox_peering_manager.models import (
+    BFD,
     ASPathList,
     ASPathListRule,
     BGPPeerGroup,
@@ -24,6 +27,7 @@ from netbox_peering_manager.models import (
     CommunityListRule,
     PrefixList,
     PrefixListRule,
+    Relationship,
     RoutingPolicy,
     RoutingPolicyRule,
 )
@@ -31,6 +35,7 @@ from netbox_peering_manager.models import (
 from .serializers import (
     ASPathListRuleSerializer,
     ASPathListSerializer,
+    BFDSerializer,
     BGPPeerGroupSerializer,
     BGPSessionSerializer,
     CommunityListRuleSerializer,
@@ -38,6 +43,7 @@ from .serializers import (
     CommunitySerializer,
     PrefixListRuleSerializer,
     PrefixListSerializer,
+    RelationshipSerializer,
     RoutingPolicyRuleSerializer,
     RoutingPolicySerializer,
 )
@@ -45,7 +51,19 @@ from .serializers import (
 
 class RootView(APIRootView):
     def get_view_name(self):
-        return "BGP"
+        return "Peering Manager"
+
+
+class RelationshipViewSet(NetBoxModelViewSet):
+    queryset = Relationship.objects.all()
+    serializer_class = RelationshipSerializer
+    filterset_class = RelationshipFilterSet
+
+
+class BFDViewSet(NetBoxModelViewSet):
+    queryset = BFD.objects.all()
+    serializer_class = BFDSerializer
+    filterset_class = BFDFilterSet
 
 
 class BGPSessionViewSet(NetBoxModelViewSet):

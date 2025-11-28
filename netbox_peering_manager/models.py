@@ -4,8 +4,81 @@ from django.db import models
 from django.urls import reverse
 from ipam.fields import IPNetworkField
 from netbox.models import NetBoxModel
+from utilities.fields import ColorField
 
 from .choices import ActionChoices, CommunityStatusChoices, IPAddressFamilyChoices, SessionStatusChoices
+
+
+class Relationship(NetBoxModel):
+    """
+    Defines the type of BGP session relationship (e.g., transit, customer, peer, IXP).
+    User-defined relationship types allow flexible classification of BGP sessions.
+    """
+
+    name = models.CharField(max_length=100, unique=True)
+    slug = models.SlugField(max_length=100, unique=True)
+    description = models.CharField(max_length=200, blank=True)
+    color = ColorField(default="9e9e9e")
+    comments = models.TextField(blank=True)
+
+    class Meta:
+        ordering = ["name"]
+
+    def __str__(self):
+        return self.name
+
+    def get_absolute_url(self):
+        return reverse("plugins:netbox_peering_manager:relationship", args=[self.pk])
+
+
+class BFD(NetBoxModel):
+    """
+    Bidirectional Forwarding Detection (BFD) configuration profile.
+    Reusable BFD settings that can be applied to multiple BGP sessions.
+    """
+
+    name = models.CharField(max_length=100, unique=True)
+    description = models.CharField(max_length=200, blank=True)
+    minimum_transmit_interval = models.PositiveIntegerField(
+        default=300,
+        help_text="Minimum interval (in milliseconds) between transmitted BFD packets",
+        validators=[MinValueValidator(50), MaxValueValidator(60000)],
+    )
+    minimum_receive_interval = models.PositiveIntegerField(
+        default=300,
+        help_text="Minimum interval (in milliseconds) between received BFD packets",
+        validators=[MinValueValidator(50), MaxValueValidator(60000)],
+    )
+    detect_multiplier = models.PositiveSmallIntegerField(
+        default=3,
+        help_text="Number of missed packets before session is declared down",
+        validators=[MinValueValidator(1), MaxValueValidator(255)],
+    )
+    hold_time = models.PositiveIntegerField(
+        blank=True,
+        null=True,
+        help_text="Optional hold time override (in milliseconds)",
+        validators=[MinValueValidator(50), MaxValueValidator(60000)],
+    )
+    comments = models.TextField(blank=True)
+
+    class Meta:
+        verbose_name = "BFD Profile"
+        verbose_name_plural = "BFD Profiles"
+        ordering = ["name"]
+
+    def __str__(self):
+        return self.name
+
+    def get_absolute_url(self):
+        return reverse("plugins:netbox_peering_manager:bfd", args=[self.pk])
+
+    @property
+    def calculated_hold_time(self):
+        """Calculate hold time as minimum_receive_interval * detect_multiplier if not explicitly set."""
+        if self.hold_time:
+            return self.hold_time
+        return self.minimum_receive_interval * self.detect_multiplier
 
 
 class ASPathList(NetBoxModel):
@@ -285,6 +358,38 @@ class BGPSession(NetBoxModel):
         to=PrefixList, blank=True, null=True, on_delete=models.SET_NULL, related_name="session_prefix_out"
     )
     comments = models.TextField(blank=True)
+
+    # Phase 1: Session enhancements
+    relationship = models.ForeignKey(
+        to=Relationship,
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+        related_name="sessions",
+        help_text="Type of BGP relationship (e.g., transit, customer, peer)",
+    )
+    bfd = models.ForeignKey(
+        to=BFD,
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+        related_name="sessions",
+        help_text="BFD configuration profile for this session",
+    )
+    multihop_ttl = models.PositiveSmallIntegerField(
+        default=1,
+        validators=[MinValueValidator(1), MaxValueValidator(255)],
+        help_text="TTL for eBGP multihop (1 = directly connected)",
+    )
+    service_reference = models.CharField(
+        max_length=100,
+        blank=True,
+        help_text="External reference ID (e.g., ticket number, service ID)",
+    )
+    enabled = models.BooleanField(
+        default=True,
+        help_text="Administrative enable/disable state",
+    )
 
     afi_safi = None  # for future use
 

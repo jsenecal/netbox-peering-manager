@@ -12,12 +12,14 @@ from netbox.forms import (
 from tenancy.models import Tenant
 from utilities.forms import add_blank_choice
 from utilities.forms.fields import (
+    ColorField,
     CommentField,
     CSVChoiceField,
     CSVModelChoiceField,
     CSVModelMultipleChoiceField,
     DynamicModelChoiceField,
     DynamicModelMultipleChoiceField,
+    SlugField,
     TagFilterField,
 )
 from utilities.forms.rendering import FieldSet
@@ -30,6 +32,7 @@ from .choices import (
     SessionStatusChoices,
 )
 from .models import (
+    BFD,
     ASPathList,
     ASPathListRule,
     BGPPeerGroup,
@@ -39,9 +42,101 @@ from .models import (
     CommunityListRule,
     PrefixList,
     PrefixListRule,
+    Relationship,
     RoutingPolicy,
     RoutingPolicyRule,
 )
+
+# =============================================================================
+# Relationship Forms
+# =============================================================================
+
+
+class RelationshipForm(NetBoxModelForm):
+    slug = SlugField()
+    comments = CommentField()
+
+    class Meta:
+        model = Relationship
+        fields = ["name", "slug", "description", "color", "tags", "comments"]
+
+
+class RelationshipFilterForm(NetBoxModelFilterSetForm):
+    model = Relationship
+    q = forms.CharField(required=False, label="Search")
+    tag = TagFilterField(model)
+
+
+class RelationshipBulkEditForm(NetBoxModelBulkEditForm):
+    description = forms.CharField(max_length=200, required=False)
+    color = ColorField(required=False)
+
+    model = Relationship
+    nullable_fields = ["description"]
+
+
+class RelationshipImportForm(NetBoxModelImportForm):
+    class Meta:
+        model = Relationship
+        fields = ["name", "slug", "description", "color", "tags"]
+
+
+# =============================================================================
+# BFD Forms
+# =============================================================================
+
+
+class BFDForm(NetBoxModelForm):
+    comments = CommentField()
+
+    class Meta:
+        model = BFD
+        fields = [
+            "name",
+            "description",
+            "minimum_transmit_interval",
+            "minimum_receive_interval",
+            "detect_multiplier",
+            "hold_time",
+            "tags",
+            "comments",
+        ]
+
+
+class BFDFilterForm(NetBoxModelFilterSetForm):
+    model = BFD
+    q = forms.CharField(required=False, label="Search")
+    tag = TagFilterField(model)
+
+
+class BFDBulkEditForm(NetBoxModelBulkEditForm):
+    description = forms.CharField(max_length=200, required=False)
+    minimum_transmit_interval = forms.IntegerField(required=False, min_value=50, max_value=60000)
+    minimum_receive_interval = forms.IntegerField(required=False, min_value=50, max_value=60000)
+    detect_multiplier = forms.IntegerField(required=False, min_value=1, max_value=255)
+    hold_time = forms.IntegerField(required=False, min_value=50, max_value=60000)
+
+    model = BFD
+    nullable_fields = ["description", "hold_time"]
+
+
+class BFDImportForm(NetBoxModelImportForm):
+    class Meta:
+        model = BFD
+        fields = [
+            "name",
+            "description",
+            "minimum_transmit_interval",
+            "minimum_receive_interval",
+            "detect_multiplier",
+            "hold_time",
+            "tags",
+        ]
+
+
+# =============================================================================
+# AS Path List Forms
+# =============================================================================
 
 
 class ASPathListFilterForm(NetBoxModelFilterSetForm):
@@ -255,6 +350,40 @@ class BGPSessionForm(NetBoxModelForm):
             api_url="/api/plugins/bgp/prefix-list/",
         ),
     )
+    # Phase 1: New fields
+    relationship = DynamicModelChoiceField(
+        queryset=Relationship.objects.all(),
+        required=False,
+        widget=APISelect(api_url="/api/plugins/bgp/relationship/"),
+        help_text=_("Type of BGP relationship"),
+    )
+    bfd = DynamicModelChoiceField(
+        queryset=BFD.objects.all(),
+        required=False,
+        widget=APISelect(api_url="/api/plugins/bgp/bfd/"),
+        label=_("BFD Profile"),
+        help_text=_("BFD configuration for this session"),
+    )
+    multihop_ttl = forms.IntegerField(
+        required=False,
+        initial=1,
+        min_value=1,
+        max_value=255,
+        label=_("Multihop TTL"),
+        help_text=_("TTL for eBGP multihop (1 = directly connected)"),
+    )
+    service_reference = forms.CharField(
+        max_length=100,
+        required=False,
+        label=_("Service Reference"),
+        help_text=_("External reference ID (e.g., ticket number)"),
+    )
+    enabled = forms.BooleanField(
+        required=False,
+        initial=True,
+        label=_("Enabled"),
+        help_text=_("Administrative enable/disable state"),
+    )
     comments = CommentField()
 
     fieldsets = (
@@ -265,6 +394,8 @@ class BGPSessionForm(NetBoxModelForm):
             "device",
             "virtualmachine",
             "status",
+            "enabled",
+            "relationship",
             "peer_group",
             "tenant",
             "tags",
@@ -274,6 +405,7 @@ class BGPSessionForm(NetBoxModelForm):
         FieldSet("local_as", "local_address", name="Local"),
         FieldSet("import_policies", "export_policies", name="Policies"),
         FieldSet("prefix_list_in", "prefix_list_out", name="Prefixes"),
+        FieldSet("bfd", "multihop_ttl", "service_reference", name="Advanced"),
     )
 
     class Meta:
@@ -289,6 +421,8 @@ class BGPSessionForm(NetBoxModelForm):
             "remote_address",
             "description",
             "status",
+            "enabled",
+            "relationship",
             "peer_group",
             "tenant",
             "tags",
@@ -296,6 +430,9 @@ class BGPSessionForm(NetBoxModelForm):
             "export_policies",
             "prefix_list_in",
             "prefix_list_out",
+            "bfd",
+            "multihop_ttl",
+            "service_reference",
             "comments",
         ]
 
@@ -381,6 +518,19 @@ class BGPSessionImportForm(NetBoxModelImportForm):
         to_field_name="name",
         help_text=_("Prefix List Out"),
     )
+    # Phase 1: New fields
+    relationship = CSVModelChoiceField(
+        queryset=Relationship.objects.all(),
+        required=False,
+        to_field_name="name",
+        help_text=_("Relationship type"),
+    )
+    bfd = CSVModelChoiceField(
+        queryset=BFD.objects.all(),
+        required=False,
+        to_field_name="name",
+        help_text=_("BFD Profile"),
+    )
 
     class Meta:
         model = BGPSession
@@ -392,6 +542,8 @@ class BGPSessionImportForm(NetBoxModelImportForm):
             "description",
             "tenant",
             "status",
+            "enabled",
+            "relationship",
             "peer_group",
             "import_policies",
             "export_policies",
@@ -402,6 +554,9 @@ class BGPSessionImportForm(NetBoxModelImportForm):
             "tags",
             "prefix_list_in",
             "prefix_list_out",
+            "bfd",
+            "multihop_ttl",
+            "service_reference",
         ]
 
 
@@ -421,10 +576,26 @@ class BGPSessionFilterForm(NetBoxModelFilterSetForm):
         choices=SessionStatusChoices,
         required=False,
     )
+    enabled = forms.NullBooleanField(
+        required=False,
+        label=_("Enabled"),
+        widget=forms.Select(choices=[("", "---------"), (True, "Yes"), (False, "No")]),
+    )
+    relationship = DynamicModelMultipleChoiceField(
+        queryset=Relationship.objects.all(),
+        required=False,
+        widget=APISelectMultiple(api_url="/api/plugins/bgp/relationship/"),
+    )
     peer_group = DynamicModelMultipleChoiceField(
         queryset=BGPPeerGroup.objects.all(),
         required=False,
         widget=APISelectMultiple(api_url="/api/plugins/bgp/peer-group/"),
+    )
+    bfd = DynamicModelMultipleChoiceField(
+        queryset=BFD.objects.all(),
+        required=False,
+        label=_("BFD Profile"),
+        widget=APISelectMultiple(api_url="/api/plugins/bgp/bfd/"),
     )
     import_policies = DynamicModelMultipleChoiceField(
         queryset=RoutingPolicy.objects.all(),
@@ -465,10 +636,20 @@ class BGPSessionBulkEditForm(NetBoxModelBulkEditForm):
     site = DynamicModelChoiceField(label=_("Site"), queryset=Site.objects.all(), required=False)
 
     status = forms.ChoiceField(label=_("Status"), choices=add_blank_choice(SessionStatusChoices), required=False)
+    enabled = forms.NullBooleanField(
+        required=False,
+        label=_("Enabled"),
+        widget=forms.Select(choices=[("", "---------"), (True, "Yes"), (False, "No")]),
+    )
     description = forms.CharField(label=_("Description"), max_length=200, required=False)
     tenant = DynamicModelChoiceField(label=_("Tenant"), queryset=Tenant.objects.all(), required=False)
     local_as = DynamicModelChoiceField(queryset=ASN.objects.all(), required=False)
     remote_as = DynamicModelChoiceField(queryset=ASN.objects.all(), required=False)
+    relationship = DynamicModelChoiceField(
+        queryset=Relationship.objects.all(),
+        required=False,
+        widget=APISelect(api_url="/api/plugins/bgp/relationship/"),
+    )
     peer_group = DynamicModelChoiceField(
         queryset=BGPPeerGroup.objects.all(),
         required=False,
@@ -476,6 +657,14 @@ class BGPSessionBulkEditForm(NetBoxModelBulkEditForm):
             api_url="/api/plugins/bgp/peer-group/",
         ),
     )
+    bfd = DynamicModelChoiceField(
+        queryset=BFD.objects.all(),
+        required=False,
+        label=_("BFD Profile"),
+        widget=APISelect(api_url="/api/plugins/bgp/bfd/"),
+    )
+    multihop_ttl = forms.IntegerField(required=False, min_value=1, max_value=255, label=_("Multihop TTL"))
+    service_reference = forms.CharField(max_length=100, required=False, label=_("Service Reference"))
     import_policies = DynamicModelMultipleChoiceField(
         queryset=RoutingPolicy.objects.all(),
         required=False,
@@ -497,6 +686,8 @@ class BGPSessionBulkEditForm(NetBoxModelBulkEditForm):
             "device",
             "virtualmachine",
             "status",
+            "enabled",
+            "relationship",
             "peer_group",
             "tenant",
             "tags",
@@ -506,12 +697,16 @@ class BGPSessionBulkEditForm(NetBoxModelBulkEditForm):
         FieldSet("local_as", "local_address", name="Local"),
         FieldSet("import_policies", "export_policies", name="Policies"),
         FieldSet("prefix_list_in", "prefix_list_out", name="Prefixes"),
+        FieldSet("bfd", "multihop_ttl", "service_reference", name="Advanced"),
     )
 
     nullable_fields = [
         "tenant",
         "description",
+        "relationship",
         "peer_group",
+        "bfd",
+        "service_reference",
         "import_policies",
         "export_policies",
         "prefix_list_in",

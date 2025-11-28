@@ -9,6 +9,7 @@ from virtualization.api.serializers import VirtualMachineSerializer
 
 from netbox_peering_manager.choices import CommunityStatusChoices, SessionStatusChoices
 from netbox_peering_manager.models import (
+    BFD,
     ASPathList,
     ASPathListRule,
     BGPPeerGroup,
@@ -18,6 +19,7 @@ from netbox_peering_manager.models import (
     CommunityListRule,
     PrefixList,
     PrefixListRule,
+    Relationship,
     RoutingPolicy,
     RoutingPolicyRule,
 )
@@ -61,6 +63,48 @@ class ASPathListRuleSerializer(NetBoxModelSerializer):
             "comments",
         ]
         brief_fields = ("id", "display", "description")
+
+
+class RelationshipSerializer(NetBoxModelSerializer):
+    url = HyperlinkedIdentityField(view_name="plugins-api:netbox_peering_manager-api:relationship-detail")
+
+    class Meta:
+        model = Relationship
+        fields = (
+            "id",
+            "url",
+            "display",
+            "name",
+            "slug",
+            "description",
+            "color",
+            "tags",
+            "custom_fields",
+            "comments",
+        )
+        brief_fields = ("id", "url", "display", "name", "slug", "color")
+
+
+class BFDSerializer(NetBoxModelSerializer):
+    url = HyperlinkedIdentityField(view_name="plugins-api:netbox_peering_manager-api:bfd-detail")
+
+    class Meta:
+        model = BFD
+        fields = (
+            "id",
+            "url",
+            "display",
+            "name",
+            "description",
+            "minimum_transmit_interval",
+            "minimum_receive_interval",
+            "detect_multiplier",
+            "hold_time",
+            "tags",
+            "custom_fields",
+            "comments",
+        )
+        brief_fields = ("id", "url", "display", "name", "description")
 
 
 class RoutingPolicySerializer(NetBoxModelSerializer):
@@ -148,6 +192,8 @@ class BGPSessionSerializer(NetBoxModelSerializer):
     local_as = ASNSerializer(nested=True, required=True, allow_null=False)
     remote_as = ASNSerializer(nested=True, required=True, allow_null=False)
     peer_group = BGPPeerGroupSerializer(nested=True, required=False, allow_null=True)
+    relationship = RelationshipSerializer(nested=True, required=False, allow_null=True)
+    bfd = BFDSerializer(nested=True, required=False, allow_null=True)
     prefix_list_in = PrefixListSerializer(nested=True, required=False, allow_null=True)
     prefix_list_out = PrefixListSerializer(nested=True, required=False, allow_null=True)
     import_policies = SerializedPKRelatedField(
@@ -176,6 +222,7 @@ class BGPSessionSerializer(NetBoxModelSerializer):
             "custom_fields",
             "display",
             "status",
+            "enabled",
             "site",
             "tenant",
             "device",
@@ -185,6 +232,10 @@ class BGPSessionSerializer(NetBoxModelSerializer):
             "local_as",
             "remote_as",
             "peer_group",
+            "relationship",
+            "bfd",
+            "multihop_ttl",
+            "service_reference",
             "import_policies",
             "export_policies",
             "prefix_list_in",

@@ -1,0 +1,47 @@
+## Peering Manager - BGP Communities
+## Standard and extended BGP communities for routing policy
+
+# Informational communities - learned route origin
+- value: "65000:100"
+  description: Route learned from transit provider
+
+- value: "65000:200"
+  description: Route learned from private peer
+
+- value: "65000:300"
+  description: Route learned from IX peer
+
+- value: "65000:400"
+  description: Route learned from customer
+
+# Geographic communities
+- value: "65000:1001"
+  description: Learned in US East region
+
+- value: "65000:1002"
+  description: Learned in US West region
+
+- value: "65000:1003"
+  description: Learned in Europe region
+
+- value: "65000:1004"
+  description: Learned in Asia Pacific region
+
+# Action communities - announcement control
+- value: "65535:65281"
+  description: Do not export outside AS (well-known NO_EXPORT)
+
+- value: "65535:65282"
+  description: Do not advertise to any peer (well-known NO_ADVERTISE)
+
+- value: "65000:666"
+  description: Blackhole this prefix
+
+- value: "65000:901"
+  description: Prepend AS once on export
+
+- value: "65000:902"
+  description: Prepend AS twice on export
+
+- value: "65000:903"
+  description: Prepend AS three times on export

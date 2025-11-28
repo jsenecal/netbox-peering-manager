@@ -1,9 +1,10 @@
 import django_tables2 as tables
 from django.utils.safestring import mark_safe
 from netbox.tables import NetBoxTable
-from netbox.tables.columns import ChoiceFieldColumn, TagColumn
+from netbox.tables.columns import BooleanColumn, ChoiceFieldColumn, ColorColumn, TagColumn
 
 from .models import (
+    BFD,
     ASPathList,
     ASPathListRule,
     BGPPeerGroup,
@@ -13,6 +14,7 @@ from .models import (
     CommunityListRule,
     PrefixList,
     PrefixListRule,
+    Relationship,
     RoutingPolicy,
     RoutingPolicyRule,
 )
@@ -33,6 +35,58 @@ POLICIES = """
     &mdash;
 {% endfor %}
 """
+
+
+# =============================================================================
+# Relationship Table
+# =============================================================================
+
+
+class RelationshipTable(NetBoxTable):
+    name = tables.LinkColumn()
+    color = ColorColumn()
+    tags = TagColumn(url_name="plugins:netbox_peering_manager:relationship_list")
+
+    class Meta(NetBoxTable.Meta):
+        model = Relationship
+        fields = ("pk", "name", "slug", "color", "description", "tags", "actions")
+        default_columns = ("pk", "name", "color", "description")
+
+
+# =============================================================================
+# BFD Table
+# =============================================================================
+
+
+class BFDTable(NetBoxTable):
+    name = tables.LinkColumn()
+    tags = TagColumn(url_name="plugins:netbox_peering_manager:bfd_list")
+
+    class Meta(NetBoxTable.Meta):
+        model = BFD
+        fields = (
+            "pk",
+            "name",
+            "description",
+            "minimum_transmit_interval",
+            "minimum_receive_interval",
+            "detect_multiplier",
+            "hold_time",
+            "tags",
+            "actions",
+        )
+        default_columns = (
+            "pk",
+            "name",
+            "minimum_transmit_interval",
+            "minimum_receive_interval",
+            "detect_multiplier",
+        )
+
+
+# =============================================================================
+# AS Path List Tables
+# =============================================================================
 
 
 class ASPathListTable(NetBoxTable):
@@ -107,7 +161,10 @@ class BGPSessionTable(NetBoxTable):
     remote_as = tables.LinkColumn()
     site = tables.LinkColumn()
     peer_group = tables.LinkColumn()
+    relationship = tables.LinkColumn()
+    bfd = tables.LinkColumn()
     status = ChoiceFieldColumn(default=AVAILABLE_LABEL)
+    enabled = BooleanColumn()
     tenant = tables.TemplateColumn(template_code=COL_TENANT)
 
     class Meta(NetBoxTable.Meta):
@@ -123,9 +180,14 @@ class BGPSessionTable(NetBoxTable):
             "remote_as",
             "description",
             "peer_group",
+            "relationship",
+            "bfd",
             "site",
             "status",
+            "enabled",
             "tenant",
+            "multihop_ttl",
+            "service_reference",
             "actions",
         )
         default_columns = (
@@ -138,8 +200,10 @@ class BGPSessionTable(NetBoxTable):
             "remote_address",
             "remote_as",
             "description",
+            "relationship",
             "site",
             "status",
+            "enabled",
             "tenant",
         )
 

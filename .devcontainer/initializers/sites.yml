@@ -1,0 +1,71 @@
+## Sites for peering manager demo
+
+# Data Centers
+- name: NYC-DC1
+  slug: nyc-dc1
+  region: US East
+  group: Data Centers
+  status: active
+  facility: Equinix NY5
+  description: Primary US East data center
+
+- name: AMS-DC1
+  slug: ams-dc1
+  region: Western Europe
+  group: Data Centers
+  status: active
+  facility: Equinix AM5
+  description: Primary Europe data center
+
+- name: SIN-DC1
+  slug: sin-dc1
+  region: Asia Pacific
+  group: Data Centers
+  status: active
+  facility: Equinix SG3
+  description: Primary Asia Pacific data center
+
+- name: LAX-DC1
+  slug: lax-dc1
+  region: US West
+  group: Data Centers
+  status: active
+  facility: Equinix LA1
+  description: US West data center
+
+# IX PoPs
+- name: AMS-IX PoP
+  slug: ams-ix-pop
+  region: Western Europe
+  group: IX PoPs
+  status: active
+  facility: AMS-IX
+  description: AMS-IX presence point
+  tenant: AMS-IX
+
+- name: DE-CIX PoP
+  slug: de-cix-pop
+  region: Western Europe
+  group: IX PoPs
+  status: active
+  facility: DE-CIX Frankfurt
+  description: DE-CIX presence point
+  tenant: DE-CIX
+
+- name: LINX PoP
+  slug: linx-pop
+  region: Western Europe
+  group: IX PoPs
+  status: active
+  facility: LINX LON1
+  description: LINX presence point
+  tenant: LINX
+
+- name: Equinix Ashburn IX
+  slug: eqix-ash-ix
+  region: US East
+  group: IX PoPs
+  status: active
+  facility: Equinix DC2
+  description: Equinix IX Ashburn presence
+  tenant: Equinix IX

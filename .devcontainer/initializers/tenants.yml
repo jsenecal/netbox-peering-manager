@@ -1,0 +1,80 @@
+## Tenants for peering manager demo
+
+# Transit providers
+- name: Cogent Communications
+  slug: cogent
+  group: Transit Providers
+  description: AS174 - Global transit provider
+
+- name: Hurricane Electric
+  slug: hurricane-electric
+  group: Transit Providers
+  description: AS6939 - Global transit provider
+
+- name: Lumen
+  slug: lumen
+  group: Transit Providers
+  description: AS3356 - Global transit provider (formerly CenturyLink/Level3)
+
+# Private peers
+- name: Cloudflare
+  slug: cloudflare
+  group: Peers
+  description: AS13335 - CDN and security provider
+
+- name: Google
+  slug: google
+  group: Peers
+  description: AS15169 - Search and cloud provider
+
+- name: Meta
+  slug: meta
+  group: Peers
+  description: AS32934 - Social media provider
+
+- name: Amazon
+  slug: amazon
+  group: Peers
+  description: AS16509 - Cloud and e-commerce provider
+
+- name: Microsoft
+  slug: microsoft
+  group: Peers
+  description: AS8075 - Cloud and software provider
+
+- name: Netflix
+  slug: netflix
+  group: Peers
+  description: AS2906 - Streaming provider
+
+# Internet Exchanges
+- name: AMS-IX
+  slug: ams-ix
+  group: Internet Exchanges
+  description: Amsterdam Internet Exchange
+
+- name: DE-CIX
+  slug: de-cix
+  group: Internet Exchanges
+  description: German Internet Exchange
+
+- name: LINX
+  slug: linx
+  group: Internet Exchanges
+  description: London Internet Exchange
+
+- name: Equinix IX
+  slug: equinix-ix
+  group: Internet Exchanges
+  description: Equinix Internet Exchange
+
+# Sample customers
+- name: Acme Corp
+  slug: acme-corp
+  group: Customers
+  description: Sample customer - enterprise
+
+- name: Example ISP
+  slug: example-isp
+  group: Customers
+  description: Sample customer - downstream ISP

@@ -1,0 +1,80 @@
+{% extends 'generic/object.html' %}
+{% load buttons %}
+{% load custom_links %}
+{% load helpers %}
+{% load plugins %}
+{% load render_table from django_tables2 %}
+
+{% block breadcrumbs %}
+<li class="breadcrumb-item"><a href="{% url 'plugins:netbox_peering_manager:bfd_list' %}">BFD Profiles</a></li>
+{% endblock %}
+
+
+{% block content %}
+<div class="row mb-3">
+    <div class="col-md-6">
+        <div class="card">
+            <h5 class="card-header">
+                BFD Profile
+            </h5>
+            <div class="card-body">
+                <table class="table table-hover attr-table">
+                    <tr>
+                        <td>Name</td>
+                        <td>{{ object.name }}</td>
+                    </tr>
+                    <tr>
+                        <td>Description</td>
+                        <td>{{ object.description|placeholder }}</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+        <div class="card">
+            <h5 class="card-header">
+                Timers
+            </h5>
+            <div class="card-body">
+                <table class="table table-hover attr-table">
+                    <tr>
+                        <td>Minimum Transmit Interval</td>
+                        <td>{{ object.minimum_transmit_interval }} ms</td>
+                    </tr>
+                    <tr>
+                        <td>Minimum Receive Interval</td>
+                        <td>{{ object.minimum_receive_interval }} ms</td>
+                    </tr>
+                    <tr>
+                        <td>Detect Multiplier</td>
+                        <td>{{ object.detect_multiplier }}</td>
+                    </tr>
+                    <tr>
+                        <td>Hold Time</td>
+                        <td>{{ object.hold_time|default:"Auto"|placeholder }} ms</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+        {% include 'inc/panels/custom_fields.html' %}
+        {% include 'inc/panels/tags.html' %}
+        {% include 'inc/panels/comments.html' %}
+        {% plugin_left_page object %}
+    </div>
+    <div class="col-md-6">
+        {% plugin_right_page object %}
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <h5 class="card-header">
+                Related BGP Sessions
+            </h5>
+            <div class="card-body">
+                {% render_table related_session_table 'inc/table.html' %}
+            </div>
+        </div>
+        {% plugin_full_width_page object %}
+    </div>
+</div>
+{% endblock %}

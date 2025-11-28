@@ -9,6 +9,7 @@ from tenancy.filtersets import TenancyFilterSet
 from virtualization.models import VirtualMachine
 
 from .models import (
+    BFD,
     ASPathList,
     ASPathListRule,
     BGPPeerGroup,
@@ -18,9 +19,50 @@ from .models import (
     CommunityListRule,
     PrefixList,
     PrefixListRule,
+    Relationship,
     RoutingPolicy,
     RoutingPolicyRule,
 )
+
+# =============================================================================
+# Relationship FilterSet
+# =============================================================================
+
+
+class RelationshipFilterSet(NetBoxModelFilterSet):
+    class Meta:
+        model = Relationship
+        fields = ("id", "name", "slug", "description")
+
+    def search(self, queryset, _name, value):
+        """Perform the filtered search."""
+        if not value.strip():
+            return queryset
+        qs_filter = Q(name__icontains=value) | Q(slug__icontains=value) | Q(description__icontains=value)
+        return queryset.filter(qs_filter)
+
+
+# =============================================================================
+# BFD FilterSet
+# =============================================================================
+
+
+class BFDFilterSet(NetBoxModelFilterSet):
+    class Meta:
+        model = BFD
+        fields = ("id", "name", "description", "minimum_transmit_interval", "minimum_receive_interval", "detect_multiplier")
+
+    def search(self, queryset, _name, value):
+        """Perform the filtered search."""
+        if not value.strip():
+            return queryset
+        qs_filter = Q(name__icontains=value) | Q(description__icontains=value)
+        return queryset.filter(qs_filter)
+
+
+# =============================================================================
+# AS Path List FilterSets
+# =============================================================================
 
 
 class ASPathListFilterSet(NetBoxModelFilterSet):
@@ -133,6 +175,17 @@ class BGPSessionFilterSet(NetBoxModelFilterSet, TenancyFilterSet):
     peer_group = django_filters.ModelMultipleChoiceFilter(
         queryset=BGPPeerGroup.objects.all(),
     )
+    relationship = django_filters.ModelMultipleChoiceFilter(
+        queryset=Relationship.objects.all(),
+        label="Relationship",
+    )
+    bfd = django_filters.ModelMultipleChoiceFilter(
+        queryset=BFD.objects.all(),
+        label="BFD Profile",
+    )
+    enabled = django_filters.BooleanFilter(
+        label="Enabled",
+    )
     import_policies = django_filters.ModelMultipleChoiceFilter(
         queryset=RoutingPolicy.objects.all(),
     )
@@ -215,6 +268,7 @@ class BGPSessionFilterSet(NetBoxModelFilterSet, TenancyFilterSet):
             "name",
             "description",
             "status",
+            "enabled",
             "tenant",
         )
 

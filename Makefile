@@ -16,7 +16,7 @@ help: ## Show this help message
 # Development targets (for use within devcontainer)
 .PHONY: runserver
 runserver: ## Start NetBox development server
-	${VENV_PY_PATH} ${NETBOX_DIR}/manage.py runserver 0.0.0.0:8001
+	${VENV_PY_PATH} ${NETBOX_DIR}/manage.py runserver 0.0.0.0:8000
 
 .PHONY: shell
 shell: ## Open Django shell
@@ -34,8 +34,8 @@ dbshell: ## Open database shell
 migrate: ## Run database migrations
 	${VENV_PY_PATH} ${NETBOX_DIR}/manage.py migrate
 
-.PHONY: makemigrations
-makemigrations: ## Create new migrations for the plugin
+.PHONY: migrations
+migrations: ## Create new migrations for the plugin
 	${VENV_PY_PATH} ${NETBOX_DIR}/manage.py makemigrations $(PLUGIN_NAME)
 
 .PHONY: showmigrations
@@ -101,7 +101,7 @@ example_initializers: ## Copy example initializers to .devcontainer
 
 .PHONY: load_initializers
 load_initializers: ## Load initializer data from .devcontainer/initializers
-	${VENV_PY_PATH} ${NETBOX_DIR}/manage.py load_initializer_data --path ${INITIALIZER_PATH}
+	${VENV_PY_PATH} ${NETBOX_DIR}/manage.py load_all_initializer_data --path ${INITIALIZER_PATH}
 
 .PHONY: initializers
 initializers: ## Setup and load demo data via initializers
@@ -109,14 +109,14 @@ initializers: ## Setup and load demo data via initializers
 	-mkdir ${INITIALIZER_PATH}
 	-${VENV_PY_PATH} ${NETBOX_DIR}/manage.py copy_initializers_examples --path ${INITIALIZER_PATH}
 	-for file in ${INITIALIZER_PATH}/*.yml; do sed -i "s/^# //g" "$$file"; done
-	-${VENV_PY_PATH} ${NETBOX_DIR}/manage.py load_initializer_data --path ${INITIALIZER_PATH}
+	-${VENV_PY_PATH} ${NETBOX_DIR}/manage.py load_all_initializer_data --path ${INITIALIZER_PATH}
 
 # Composite targets
 .PHONY: rebuild
-rebuild: setup makemigrations migrate collectstatic ## Rebuild plugin (setup, migrations, static)
+rebuild: setup migrations migrate collectstatic ## Rebuild plugin (setup, migrations, static)
 
 .PHONY: all
-all: setup makemigrations migrate collectstatic initializers trace_paths ## Full setup with demo data
+all: setup migrations migrate collectstatic initializers trace_paths ## Full setup with demo data
 
 # Package building targets
 .PHONY: pbuild

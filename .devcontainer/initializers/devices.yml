@@ -1,0 +1,73 @@
+## Devices for peering manager demo
+
+# NYC Data Center - Core Routers
+- name: core-rtr-nyc-01
+  role: Core Router
+  device_type: MX480
+  site: NYC-DC1
+  status: active
+
+- name: core-rtr-nyc-02
+  role: Core Router
+  device_type: MX480
+  site: NYC-DC1
+  status: active
+
+# NYC Data Center - Edge Router
+- name: edge-rtr-nyc-01
+  role: Edge Router
+  device_type: MX204
+  site: NYC-DC1
+  status: active
+
+# Amsterdam Data Center - Core Routers
+- name: core-rtr-ams-01
+  role: Core Router
+  device_type: MX480
+  site: AMS-DC1
+  status: active
+
+- name: core-rtr-ams-02
+  role: Core Router
+  device_type: MX480
+  site: AMS-DC1
+  status: active
+
+# Amsterdam Data Center - Edge Router
+- name: edge-rtr-ams-01
+  role: Edge Router
+  device_type: MX204
+  site: AMS-DC1
+  status: active
+
+# Singapore Data Center - Core Router
+- name: core-rtr-sin-01
+  role: Core Router
+  device_type: MX480
+  site: SIN-DC1
+  status: active
+
+# IX Routers
+- name: ix-rtr-amsix-01
+  role: IX Router
+  device_type: MX204
+  site: AMS-IX PoP
+  status: active
+
+- name: ix-rtr-decix-01
+  role: IX Router
+  device_type: MX204
+  site: DE-CIX PoP
+  status: active
+
+- name: ix-rtr-linx-01
+  role: IX Router
+  device_type: MX204
+  site: LINX PoP
+  status: active
+
+- name: ix-rtr-ash-01
+  role: IX Router
+  device_type: MX204
+  site: Equinix Ashburn IX
+  status: active

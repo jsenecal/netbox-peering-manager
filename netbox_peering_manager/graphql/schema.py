@@ -4,6 +4,7 @@ import strawberry_django
 from .types import (
     ASPathListRuleType,
     ASPathListType,
+    BFDType,
     BGPPeerGroupType,
     BGPSessionType,
     CommunityListRuleType,
@@ -11,6 +12,7 @@ from .types import (
     CommunityType,
     PrefixListRuleType,
     PrefixListType,
+    RelationshipType,
     RoutingPolicyRuleType,
     RoutingPolicyType,
 )
@@ -18,6 +20,12 @@ from .types import (
 
 @strawberry.type(name="Query")
 class NetBoxBGPQuery:
+    netbox_peering_manager_relationship: RelationshipType = strawberry_django.field()
+    netbox_peering_manager_relationship_list: list[RelationshipType] = strawberry_django.field()
+
+    netbox_peering_manager_bfd: BFDType = strawberry_django.field()
+    netbox_peering_manager_bfd_list: list[BFDType] = strawberry_django.field()
+
     netbox_peering_manager_community: CommunityType = strawberry_django.field()
     netbox_peering_manager_community_list: list[CommunityType] = strawberry_django.field()
 

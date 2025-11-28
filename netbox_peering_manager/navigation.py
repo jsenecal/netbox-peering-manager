@@ -3,6 +3,44 @@ from netbox.plugins import PluginMenu, PluginMenuButton, PluginMenuItem
 
 _menu_items_primary = (
     PluginMenuItem(
+        link="plugins:netbox_peering_manager:relationship_list",
+        link_text="Relationship Types",
+        permissions=["netbox_peering_manager.view_relationship"],
+        buttons=(
+            PluginMenuButton(
+                link="plugins:netbox_peering_manager:relationship_add",
+                title="Add",
+                icon_class="mdi mdi-plus-thick",
+                permissions=["netbox_peering_manager.add_relationship"],
+            ),
+            PluginMenuButton(
+                link="plugins:netbox_peering_manager:relationship_bulk_import",
+                title="Import",
+                icon_class="mdi mdi-upload",
+                permissions=["netbox_peering_manager.add_relationship"],
+            ),
+        ),
+    ),
+    PluginMenuItem(
+        link="plugins:netbox_peering_manager:bfd_list",
+        link_text="BFD Profiles",
+        permissions=["netbox_peering_manager.view_bfd"],
+        buttons=(
+            PluginMenuButton(
+                link="plugins:netbox_peering_manager:bfd_add",
+                title="Add",
+                icon_class="mdi mdi-plus-thick",
+                permissions=["netbox_peering_manager.add_bfd"],
+            ),
+            PluginMenuButton(
+                link="plugins:netbox_peering_manager:bfd_bulk_import",
+                title="Import",
+                icon_class="mdi mdi-upload",
+                permissions=["netbox_peering_manager.add_bfd"],
+            ),
+        ),
+    ),
+    PluginMenuItem(
         link="plugins:netbox_peering_manager:community_list",
         link_text="Communities",
         permissions=["netbox_peering_manager.view_community"],
@@ -197,6 +235,44 @@ _menu_items_primary = (
 
 _menu_items_grouped = (
     PluginMenuItem(
+        link="plugins:netbox_peering_manager:bgpsession_list",
+        link_text="Sessions",
+        permissions=["netbox_peering_manager.view_bgpsession"],
+        buttons=(
+            PluginMenuButton(
+                link="plugins:netbox_peering_manager:bgpsession_add",
+                title="Add",
+                icon_class="mdi mdi-plus-thick",
+                permissions=["netbox_peering_manager.add_bgpsession"],
+            ),
+            PluginMenuButton(
+                link="plugins:netbox_peering_manager:bgpsession_bulk_import",
+                title="Import",
+                icon_class="mdi mdi-upload",
+                permissions=["netbox_peering_manager.add_bgpsession"],
+            ),
+        ),
+    ),
+    PluginMenuItem(
+        link="plugins:netbox_peering_manager:bgppeergroup_list",
+        link_text="Peer Groups",
+        permissions=["netbox_peering_manager.view_bgppeergroup"],
+        buttons=(
+            PluginMenuButton(
+                link="plugins:netbox_peering_manager:bgppeergroup_add",
+                title="Add",
+                icon_class="mdi mdi-plus-thick",
+                permissions=["netbox_peering_manager.add_bgppeergroup"],
+            ),
+            PluginMenuButton(
+                link="plugins:netbox_peering_manager:bgppeergroup_bulk_import",
+                title="Import",
+                icon_class="mdi mdi-upload",
+                permissions=["netbox_peering_manager.add_bgppeergroup"],
+            ),
+        ),
+    ),
+    PluginMenuItem(
         link="plugins:netbox_peering_manager:community_list",
         link_text="Communities",
         permissions=["netbox_peering_manager.view_community"],
@@ -234,41 +310,44 @@ _menu_items_grouped = (
             ),
         ),
     ),
+)
+
+_config_menu = (
     PluginMenuItem(
-        link="plugins:netbox_peering_manager:bgpsession_list",
-        link_text="Sessions",
-        permissions=["netbox_peering_manager.view_bgpsession"],
+        link="plugins:netbox_peering_manager:relationship_list",
+        link_text="Relationship Types",
+        permissions=["netbox_peering_manager.view_relationship"],
         buttons=(
             PluginMenuButton(
-                link="plugins:netbox_peering_manager:bgpsession_add",
+                link="plugins:netbox_peering_manager:relationship_add",
                 title="Add",
                 icon_class="mdi mdi-plus-thick",
-                permissions=["netbox_peering_manager.add_bgpsession"],
+                permissions=["netbox_peering_manager.add_relationship"],
             ),
             PluginMenuButton(
-                link="plugins:netbox_peering_manager:bgpsession_bulk_import",
+                link="plugins:netbox_peering_manager:relationship_bulk_import",
                 title="Import",
                 icon_class="mdi mdi-upload",
-                permissions=["netbox_peering_manager.add_bgpsession"],
+                permissions=["netbox_peering_manager.add_relationship"],
             ),
         ),
     ),
     PluginMenuItem(
-        link="plugins:netbox_peering_manager:bgppeergroup_list",
-        link_text="Peer Groups",
-        permissions=["netbox_peering_manager.view_bgppeergroup"],
+        link="plugins:netbox_peering_manager:bfd_list",
+        link_text="BFD Profiles",
+        permissions=["netbox_peering_manager.view_bfd"],
         buttons=(
             PluginMenuButton(
-                link="plugins:netbox_peering_manager:bgppeergroup_add",
+                link="plugins:netbox_peering_manager:bfd_add",
                 title="Add",
                 icon_class="mdi mdi-plus-thick",
-                permissions=["netbox_peering_manager.add_bgppeergroup"],
+                permissions=["netbox_peering_manager.add_bfd"],
             ),
             PluginMenuButton(
-                link="plugins:netbox_peering_manager:bgppeergroup_bulk_import",
+                link="plugins:netbox_peering_manager:bfd_bulk_import",
                 title="Import",
                 icon_class="mdi mdi-upload",
-                permissions=["netbox_peering_manager.add_bgppeergroup"],
+                permissions=["netbox_peering_manager.add_bfd"],
             ),
         ),
     ),
@@ -408,6 +487,7 @@ if plugin_settings.get("top_level_menu"):
             ("Prefix Lists", _prefix_list_menu),
             ("Routing Policies", _routing_policy_menu),
             ("AS Path Lists", _aspath_list_menu),
+            ("Configuration", _config_menu),
         ),
         icon_class="mdi mdi-hub",
     )

@@ -1,0 +1,309 @@
+## IP Addresses for peering manager demo
+## Using RFC 5737 documentation ranges:
+##   - 192.0.2.0/24 (TEST-NET-1)
+##   - 198.51.100.0/24 (TEST-NET-2)
+##   - 203.0.113.0/24 (TEST-NET-3)
+## Using RFC 3849 for IPv6: 2001:db8::/32
+
+# =============================================================================
+# Loopback addresses - /32 for IPv4, /128 for IPv6
+# Range: 10.255.0.0/24 (internal use)
+# =============================================================================
+
+# Core routers - NYC
+- address: 10.255.0.1/32
+  device: core-rtr-nyc-01
+  interface: Loopback0
+  status: active
+  role: loopback
+  description: Loopback core-rtr-nyc-01
+
+- address: 10.255.0.2/32
+  device: core-rtr-nyc-02
+  interface: Loopback0
+  status: active
+  role: loopback
+  description: Loopback core-rtr-nyc-02
+
+# Core routers - AMS
+- address: 10.255.0.3/32
+  device: core-rtr-ams-01
+  interface: Loopback0
+  status: active
+  role: loopback
+  description: Loopback core-rtr-ams-01
+
+- address: 10.255.0.4/32
+  device: core-rtr-ams-02
+  interface: Loopback0
+  status: active
+  role: loopback
+  description: Loopback core-rtr-ams-02
+
+# Core router - SIN
+- address: 10.255.0.5/32
+  device: core-rtr-sin-01
+  interface: Loopback0
+  status: active
+  role: loopback
+  description: Loopback core-rtr-sin-01
+
+# Edge routers
+- address: 10.255.0.10/32
+  device: edge-rtr-nyc-01
+  interface: Loopback0
+  status: active
+  role: loopback
+  description: Loopback edge-rtr-nyc-01
+
+- address: 10.255.0.11/32
+  device: edge-rtr-ams-01
+  interface: Loopback0
+  status: active
+  role: loopback
+  description: Loopback edge-rtr-ams-01
+
+# IX routers
+- address: 10.255.0.20/32
+  device: ix-rtr-amsix-01
+  interface: Loopback0
+  status: active
+  role: loopback
+  description: Loopback ix-rtr-amsix-01
+
+- address: 10.255.0.21/32
+  device: ix-rtr-decix-01
+  interface: Loopback0
+  status: active
+  role: loopback
+  description: Loopback ix-rtr-decix-01
+
+- address: 10.255.0.22/32
+  device: ix-rtr-linx-01
+  interface: Loopback0
+  status: active
+  role: loopback
+  description: Loopback ix-rtr-linx-01
+
+- address: 10.255.0.23/32
+  device: ix-rtr-ash-01
+  interface: Loopback0
+  status: active
+  role: loopback
+  description: Loopback ix-rtr-ash-01
+
+# =============================================================================
+# Transit link IPs - /31 point-to-point links
+# Using 198.51.100.0/24 (TEST-NET-2)
+# =============================================================================
+
+# Transit - Cogent at NYC (core-rtr-nyc-01 xe-0/0/0)
+# Link: 198.51.100.0/31 (.0 = us, .1 = Cogent)
+- address: 198.51.100.0/31
+  device: core-rtr-nyc-01
+  interface: xe-0/0/0
+  status: active
+  description: Transit Cogent - our side
+
+- address: 198.51.100.1/31
+  status: active
+  description: Transit Cogent - provider side
+  tenant: Cogent Communications
+
+# Transit - Hurricane Electric at NYC (core-rtr-nyc-01 xe-0/0/1)
+# Link: 198.51.100.2/31 (.2 = us, .3 = HE)
+- address: 198.51.100.2/31
+  device: core-rtr-nyc-01
+  interface: xe-0/0/1
+  status: active
+  description: Transit HE - our side
+
+- address: 198.51.100.3/31
+  status: active
+  description: Transit HE - provider side
+  tenant: Hurricane Electric
+
+# Transit - Lumen at AMS (core-rtr-ams-01 xe-0/0/0)
+# Link: 198.51.100.4/31 (.4 = us, .5 = Lumen)
+- address: 198.51.100.4/31
+  device: core-rtr-ams-01
+  interface: xe-0/0/0
+  status: active
+  description: Transit Lumen - our side
+
+- address: 198.51.100.5/31
+  status: active
+  description: Transit Lumen - provider side
+  tenant: Lumen
+
+# =============================================================================
+# Private peering IPs - /31 point-to-point links
+# Using 198.51.100.16/28 range
+# =============================================================================
+
+# Peer - Cloudflare at NYC (edge-rtr-nyc-01 xe-0/0/0)
+# Link: 198.51.100.16/31 (.16 = us, .17 = Cloudflare)
+- address: 198.51.100.16/31
+  device: edge-rtr-nyc-01
+  interface: xe-0/0/0
+  status: active
+  description: Peer Cloudflare - our side
+
+- address: 198.51.100.17/31
+  status: active
+  description: Peer Cloudflare - their side
+  tenant: Cloudflare
+
+# Peer - Google at NYC (edge-rtr-nyc-01 xe-0/0/1)
+# Link: 198.51.100.18/31 (.18 = us, .19 = Google)
+- address: 198.51.100.18/31
+  device: edge-rtr-nyc-01
+  interface: xe-0/0/1
+  status: active
+  description: Peer Google - our side
+
+- address: 198.51.100.19/31
+  status: active
+  description: Peer Google - their side
+  tenant: Google
+
+# Peer - Meta at NYC (edge-rtr-nyc-01 xe-0/0/2) - PLANNED
+# Link: 198.51.100.20/31 (.20 = us, .21 = Meta)
+- address: 198.51.100.20/31
+  device: edge-rtr-nyc-01
+  interface: xe-0/0/2
+  status: reserved
+  description: Peer Meta - our side (pending)
+
+- address: 198.51.100.21/31
+  status: reserved
+  description: Peer Meta - their side (pending)
+  tenant: Meta
+
+# =============================================================================
+# IX Peering LAN IPs
+# Using 203.0.113.0/24 (TEST-NET-3) for AMS-IX
+# Using 192.0.2.0/24 (TEST-NET-1) for DE-CIX
+# =============================================================================
+
+# AMS-IX peering LAN (203.0.113.0/24)
+- address: 203.0.113.10/24
+  device: ix-rtr-amsix-01
+  interface: xe-0/0/0
+  status: active
+  description: AMS-IX peering LAN - our address
+
+- address: 203.0.113.253/24
+  status: active
+  description: AMS-IX Route Server 1
+  tenant: AMS-IX
+
+- address: 203.0.113.254/24
+  status: active
+  description: AMS-IX Route Server 2
+  tenant: AMS-IX
+
+# DE-CIX peering LAN (192.0.2.0/24)
+- address: 192.0.2.10/24
+  device: ix-rtr-decix-01
+  interface: xe-0/0/0
+  status: active
+  description: DE-CIX peering LAN - our address
+
+- address: 192.0.2.253/24
+  status: active
+  description: DE-CIX Route Server 1
+  tenant: DE-CIX
+
+- address: 192.0.2.254/24
+  status: active
+  description: DE-CIX Route Server 2
+  tenant: DE-CIX
+
+# LINX peering LAN (198.51.100.128/25)
+- address: 198.51.100.130/25
+  device: ix-rtr-linx-01
+  interface: xe-0/0/0
+  status: active
+  description: LINX peering LAN - our address
+
+- address: 198.51.100.253/25
+  status: active
+  description: LINX Route Server 1
+  tenant: LINX
+
+- address: 198.51.100.254/25
+  status: active
+  description: LINX Route Server 2
+  tenant: LINX
+
+# Equinix Ashburn IX peering LAN (10.100.0.0/24)
+- address: 10.100.0.10/24
+  device: ix-rtr-ash-01
+  interface: xe-0/0/0
+  status: active
+  description: Equinix Ashburn IX - our address
+
+- address: 10.100.0.253/24
+  status: active
+  description: Equinix Ashburn Route Server 1
+  tenant: Equinix IX
+
+- address: 10.100.0.254/24
+  status: active
+  description: Equinix Ashburn Route Server 2
+  tenant: Equinix IX
+
+# =============================================================================
+# IPv6 Loopback Addresses
+# Using 2001:db8::/32 (documentation range)
+# =============================================================================
+
+- address: 2001:db8::1/128
+  device: core-rtr-nyc-01
+  interface: Loopback0
+  status: active
+  role: loopback
+  description: IPv6 Loopback core-rtr-nyc-01
+
+- address: 2001:db8::2/128
+  device: core-rtr-nyc-02
+  interface: Loopback0
+  status: active
+  role: loopback
+  description: IPv6 Loopback core-rtr-nyc-02
+
+- address: 2001:db8::3/128
+  device: core-rtr-ams-01
+  interface: Loopback0
+  status: active
+  role: loopback
+  description: IPv6 Loopback core-rtr-ams-01
+
+- address: 2001:db8::4/128
+  device: core-rtr-ams-02
+  interface: Loopback0
+  status: active
+  role: loopback
+  description: IPv6 Loopback core-rtr-ams-02
+
+- address: 2001:db8::5/128
+  device: core-rtr-sin-01
+  interface: Loopback0
+  status: active
+  role: loopback
+  description: IPv6 Loopback core-rtr-sin-01
+
+- address: 2001:db8::10/128
+  device: edge-rtr-nyc-01
+  interface: Loopback0
+  status: active
+  role: loopback
+  description: IPv6 Loopback edge-rtr-nyc-01
+
+- address: 2001:db8::11/128
+  device: edge-rtr-ams-01
+  interface: Loopback0
+  status: active
+  role: loopback
+  description: IPv6 Loopback edge-rtr-ams-01

@@ -1,0 +1,16 @@
+## Manufacturers for peering manager demo
+
+- name: Juniper
+  slug: juniper
+
+- name: Cisco
+  slug: cisco
+
+- name: Arista
+  slug: arista
+
+- name: Nokia
+  slug: nokia
+
+- name: Generic
+  slug: generic

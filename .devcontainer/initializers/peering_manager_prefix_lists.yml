@@ -1,0 +1,46 @@
+## Peering Manager - Prefix Lists
+## Prefix lists for filtering and policy matching
+
+# Our announced prefixes
+- name: OUR-PREFIXES-V4
+  description: Our IPv4 prefix announcements
+  family: ipv4
+
+- name: OUR-PREFIXES-V6
+  description: Our IPv6 prefix announcements
+  family: ipv6
+
+# Bogon and martian filters
+- name: BOGONS-V4
+  description: IPv4 bogon prefixes - never accept or announce
+  family: ipv4
+
+- name: BOGONS-V6
+  description: IPv6 bogon prefixes - never accept or announce
+  family: ipv6
+
+- name: MARTIANS-V4
+  description: IPv4 martian prefixes (RFC1918, etc.)
+  family: ipv4
+
+- name: MARTIANS-V6
+  description: IPv6 martian prefixes (link-local, etc.)
+  family: ipv6
+
+# Customer prefix lists (IRR-based)
+- name: CUSTOMER-ACME-V4
+  description: Acme Corp IPv4 prefixes (from IRR)
+  family: ipv4
+
+- name: CUSTOMER-EXAMPLE-ISP-V4
+  description: Example ISP IPv4 prefixes (from IRR)
+  family: ipv4
+
+# Blackhole prefix list
+- name: BLACKHOLE-V4
+  description: IPv4 prefixes for blackholing
+  family: ipv4
+
+- name: BLACKHOLE-V6
+  description: IPv6 prefixes for blackholing
+  family: ipv6

@@ -1,0 +1,74 @@
+## ASNs for peering manager demo
+
+# Our network
+- asn: 65000
+  rir: RFC1918
+  description: Our Network (Demo ASN)
+
+# Transit providers
+- asn: 174
+  rir: ARIN
+  description: Cogent Communications
+  tenant: Cogent Communications
+
+- asn: 6939
+  rir: ARIN
+  description: Hurricane Electric
+  tenant: Hurricane Electric
+
+- asn: 3356
+  rir: ARIN
+  description: Lumen (Level3)
+  tenant: Lumen
+
+# Content/Cloud peers
+- asn: 13335
+  rir: ARIN
+  description: Cloudflare
+  tenant: Cloudflare
+
+- asn: 15169
+  rir: ARIN
+  description: Google
+  tenant: Google
+
+- asn: 32934
+  rir: ARIN
+  description: Meta (Facebook)
+  tenant: Meta
+
+- asn: 16509
+  rir: ARIN
+  description: Amazon
+  tenant: Amazon
+
+- asn: 8075
+  rir: ARIN
+  description: Microsoft
+  tenant: Microsoft
+
+- asn: 2906
+  rir: ARIN
+  description: Netflix
+  tenant: Netflix
+
+# Route server ASNs (private)
+- asn: 65515
+  rir: RFC1918
+  description: AMS-IX Route Servers
+  tenant: AMS-IX
+
+- asn: 65516
+  rir: RFC1918
+  description: DE-CIX Route Servers
+  tenant: DE-CIX
+
+- asn: 65517
+  rir: RFC1918
+  description: LINX Route Servers
+  tenant: LINX
+
+- asn: 65518
+  rir: RFC1918
+  description: Equinix IX Route Servers
+  tenant: Equinix IX
