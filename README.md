@@ -9,12 +9,14 @@ Currently the codebase is mostly a fork of the original [NetBox BGP Plugin](http
 ## Features
 
 This plugin provides the following Models:
-* BGP Communities
 * BGP Sessions
 * BGP Peer Groups
-* Routing Policy
+* BGP Communities
+* Routing Policies
 * Prefix Lists
 * AS Path Lists
+* Relationship Types (transit, peer, customer, etc.)
+* BFD Profiles
 
 ## Compatibility
 
