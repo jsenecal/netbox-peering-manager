@@ -21,4 +21,10 @@ else
   echo "skipping GID configuration"
 fi
 
+# Install pre-commit hooks if in a git repo
+if [ -d "/opt/netbox-peering-manager/.git" ]; then
+  cd /opt/netbox-peering-manager
+  pre-commit install --install-hooks 2>/dev/null || true
+fi
+
 exec "$@"
