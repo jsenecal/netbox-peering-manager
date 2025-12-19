@@ -54,6 +54,72 @@ class PeeringFabricType(NetBoxModel):
         return reverse("plugins:netbox_peering_manager:peeringfabrictype", args=[self.pk])
 
 
+class PeeringFabric(NetBoxModel):
+    """
+    Represents a shared peering environment such as an Internet Exchange,
+    cloud exchange, or private peering LAN.
+    """
+
+    name = models.CharField(max_length=100)
+    slug = models.SlugField(max_length=100)
+    description = models.CharField(max_length=200, blank=True)
+    type = models.ForeignKey(
+        to="PeeringFabricType",
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+        related_name="fabrics",
+    )
+    status = models.CharField(
+        max_length=50,
+        choices=PeeringStatusChoices,
+        default=PeeringStatusChoices.STATUS_ACTIVE,
+    )
+    peeringdb_id = models.PositiveIntegerField(
+        blank=True,
+        null=True,
+        help_text="PeeringDB IX ID for integration",
+    )
+    site = models.ForeignKey(
+        to="dcim.Site",
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+        related_name="peering_fabrics",
+    )
+    tenant = models.ForeignKey(
+        to="tenancy.Tenant",
+        on_delete=models.PROTECT,
+        blank=True,
+        null=True,
+        related_name="peering_fabrics",
+    )
+    peer_group = models.ForeignKey(
+        to="BGPPeerGroup",
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+        related_name="fabrics",
+        help_text="Default peer group for sessions on this fabric",
+    )
+    comments = models.TextField(blank=True)
+
+    class Meta:
+        ordering = ["name"]
+        unique_together = ["name", "site"]
+        verbose_name = "Peering Fabric"
+        verbose_name_plural = "Peering Fabrics"
+
+    def __str__(self):
+        return self.name
+
+    def get_absolute_url(self):
+        return reverse("plugins:netbox_peering_manager:peeringfabric", args=[self.pk])
+
+    def get_status_color(self):
+        return PeeringStatusChoices.colors.get(self.status)
+
+
 class BFD(NetBoxModel):
     """
     Bidirectional Forwarding Detection (BFD) configuration profile.
