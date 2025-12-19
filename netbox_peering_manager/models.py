@@ -583,6 +583,16 @@ class BGPSession(NetBoxModel):
         help_text="Administrative enable/disable state",
     )
 
+    # Phase 2: Peering fabric support
+    peering_network = models.ForeignKey(
+        to="PeeringNetwork",
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+        related_name="sessions",
+        help_text="Peering network this session operates on (for fabric-based sessions)",
+    )
+
     afi_safi = None  # for future use
 
     class Meta:
