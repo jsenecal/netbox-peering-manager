@@ -10,6 +10,10 @@ from netbox_peering_manager.filtersets import (
     CommunityFilterSet,
     CommunityListFilterSet,
     CommunityListRuleFilterSet,
+    PeeringConnectionFilterSet,
+    PeeringFabricFilterSet,
+    PeeringFabricTypeFilterSet,
+    PeeringNetworkFilterSet,
     PrefixListFilterSet,
     PrefixListRuleFilterSet,
     RelationshipFilterSet,
@@ -25,6 +29,10 @@ from netbox_peering_manager.models import (
     Community,
     CommunityList,
     CommunityListRule,
+    PeeringConnection,
+    PeeringFabric,
+    PeeringFabricType,
+    PeeringNetwork,
     PrefixList,
     PrefixListRule,
     Relationship,
@@ -41,6 +49,10 @@ from .serializers import (
     CommunityListRuleSerializer,
     CommunityListSerializer,
     CommunitySerializer,
+    PeeringConnectionSerializer,
+    PeeringFabricSerializer,
+    PeeringFabricTypeSerializer,
+    PeeringNetworkSerializer,
     PrefixListRuleSerializer,
     PrefixListSerializer,
     RelationshipSerializer,
@@ -130,3 +142,32 @@ class ASPathListRuleViewSet(NetBoxModelViewSet):
     queryset = ASPathListRule.objects.all()
     serializer_class = ASPathListRuleSerializer
     filterset_class = ASPathListRuleFilterSet
+
+
+# =============================================================================
+# Peering Fabric ViewSets
+# =============================================================================
+
+
+class PeeringFabricTypeViewSet(NetBoxModelViewSet):
+    queryset = PeeringFabricType.objects.all()
+    serializer_class = PeeringFabricTypeSerializer
+    filterset_class = PeeringFabricTypeFilterSet
+
+
+class PeeringFabricViewSet(NetBoxModelViewSet):
+    queryset = PeeringFabric.objects.all()
+    serializer_class = PeeringFabricSerializer
+    filterset_class = PeeringFabricFilterSet
+
+
+class PeeringNetworkViewSet(NetBoxModelViewSet):
+    queryset = PeeringNetwork.objects.all()
+    serializer_class = PeeringNetworkSerializer
+    filterset_class = PeeringNetworkFilterSet
+
+
+class PeeringConnectionViewSet(NetBoxModelViewSet):
+    queryset = PeeringConnection.objects.all()
+    serializer_class = PeeringConnectionSerializer
+    filterset_class = PeeringConnectionFilterSet
