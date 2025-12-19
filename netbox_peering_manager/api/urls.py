@@ -9,6 +9,10 @@ from .views import (
     CommunityListRuleViewSet,
     CommunityListViewSet,
     CommunityViewSet,
+    PeeringConnectionViewSet,
+    PeeringFabricTypeViewSet,
+    PeeringFabricViewSet,
+    PeeringNetworkViewSet,
     PrefixListRuleViewSet,
     PrefixListViewSet,
     RelationshipViewSet,
@@ -34,5 +38,11 @@ router.register("community-list", CommunityListViewSet)
 router.register("community-list-rule", CommunityListRuleViewSet)
 router.register("aspath-list", ASPathListViewSet)
 router.register("aspath-list-rule", ASPathListRuleViewSet)
+
+# Peering Fabric routes
+router.register("peering-fabric-type", PeeringFabricTypeViewSet)
+router.register("peering-fabric", PeeringFabricViewSet)
+router.register("peering-network", PeeringNetworkViewSet)
+router.register("peering-connection", PeeringConnectionViewSet)
 
 urlpatterns = router.urls
