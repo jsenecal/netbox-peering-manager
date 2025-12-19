@@ -120,6 +120,109 @@ class PeeringFabric(NetBoxModel):
         return PeeringStatusChoices.colors.get(self.status)
 
 
+class PeeringNetwork(NetBoxModel):
+    """
+    A specific peering LAN within a fabric. A fabric may have multiple networks
+    (e.g., production peering, GRX service, reseller VLAN).
+    """
+
+    fabric = models.ForeignKey(
+        to="PeeringFabric",
+        on_delete=models.CASCADE,
+        related_name="networks",
+    )
+    name = models.CharField(max_length=100)
+    prefix = models.ForeignKey(
+        to="ipam.Prefix",
+        on_delete=models.PROTECT,
+        related_name="peering_networks",
+    )
+    vlan = models.ForeignKey(
+        to="ipam.VLAN",
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+        related_name="peering_networks",
+    )
+    status = models.CharField(
+        max_length=50,
+        choices=PeeringStatusChoices,
+        default=PeeringStatusChoices.STATUS_ACTIVE,
+    )
+    description = models.CharField(max_length=200, blank=True)
+    comments = models.TextField(blank=True)
+
+    class Meta:
+        ordering = ["fabric", "name"]
+        unique_together = ["fabric", "name"]
+        verbose_name = "Peering Network"
+        verbose_name_plural = "Peering Networks"
+
+    def __str__(self):
+        return f"{self.fabric.name}: {self.name}"
+
+    def get_absolute_url(self):
+        return reverse("plugins:netbox_peering_manager:peeringnetwork", args=[self.pk])
+
+    def get_status_color(self):
+        return PeeringStatusChoices.colors.get(self.status)
+
+
+class PeeringConnection(NetBoxModel):
+    """
+    Your router's attachment to a peering network. Leverages NetBox's Interface
+    model for IP addresses, MAC, and VLAN assignments.
+    """
+
+    peering_network = models.ForeignKey(
+        to="PeeringNetwork",
+        on_delete=models.CASCADE,
+        related_name="connections",
+    )
+    interface = models.ForeignKey(
+        to="dcim.Interface",
+        on_delete=models.PROTECT,
+        related_name="peering_connections",
+    )
+    status = models.CharField(
+        max_length=50,
+        choices=PeeringStatusChoices,
+        default=PeeringStatusChoices.STATUS_ACTIVE,
+    )
+    description = models.CharField(max_length=200, blank=True)
+
+    class Meta:
+        ordering = ["peering_network", "interface"]
+        unique_together = ["peering_network", "interface"]
+        verbose_name = "Peering Connection"
+        verbose_name_plural = "Peering Connections"
+
+    def __str__(self):
+        return f"{self.peering_network}: {self.interface}"
+
+    def get_absolute_url(self):
+        return reverse("plugins:netbox_peering_manager:peeringconnection", args=[self.pk])
+
+    def get_status_color(self):
+        return PeeringStatusChoices.colors.get(self.status)
+
+    @property
+    def device(self):
+        """Return the device from the interface."""
+        return self.interface.device
+
+    @property
+    def ip_addresses(self):
+        """Return IP addresses on the interface within the peering network's prefix."""
+        from ipam.models import IPAddress
+
+        return IPAddress.objects.filter(
+            assigned_object_type__model="interface",
+            assigned_object_id=self.interface.id,
+            address__net_contained=self.peering_network.prefix.prefix,
+        )
+
+
 class BFD(NetBoxModel):
     """
     Bidirectional Forwarding Detection (BFD) configuration profile.
