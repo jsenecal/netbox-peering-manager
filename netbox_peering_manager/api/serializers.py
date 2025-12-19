@@ -1,13 +1,13 @@
-from dcim.api.serializers import DeviceSerializer, SiteSerializer
+from dcim.api.serializers import DeviceSerializer, InterfaceSerializer, SiteSerializer
 from ipam.api.field_serializers import IPNetworkField
-from ipam.api.serializers import ASNSerializer, IPAddressSerializer, PrefixSerializer
+from ipam.api.serializers import ASNSerializer, IPAddressSerializer, PrefixSerializer, VLANSerializer
 from netbox.api.fields import ChoiceField, SerializedPKRelatedField
 from netbox.api.serializers import NetBoxModelSerializer
 from rest_framework.serializers import HyperlinkedIdentityField
 from tenancy.api.serializers import TenantSerializer
 from virtualization.api.serializers import VirtualMachineSerializer
 
-from netbox_peering_manager.choices import CommunityStatusChoices, SessionStatusChoices
+from netbox_peering_manager.choices import CommunityStatusChoices, PeeringStatusChoices, SessionStatusChoices
 from netbox_peering_manager.models import (
     BFD,
     ASPathList,
@@ -17,6 +17,10 @@ from netbox_peering_manager.models import (
     Community,
     CommunityList,
     CommunityListRule,
+    PeeringConnection,
+    PeeringFabric,
+    PeeringFabricType,
+    PeeringNetwork,
     PrefixList,
     PrefixListRule,
     Relationship,
@@ -430,3 +434,105 @@ class PrefixListRuleSerializer(NetBoxModelSerializer):
             "comments",
         )
         brief_fields = ("id", "display", "description")
+
+
+# =============================================================================
+# Peering Fabric Serializers
+# =============================================================================
+
+
+class PeeringFabricTypeSerializer(NetBoxModelSerializer):
+    url = HyperlinkedIdentityField(view_name="plugins-api:netbox_peering_manager-api:peeringfabrictype-detail")
+
+    class Meta:
+        model = PeeringFabricType
+        fields = (
+            "id",
+            "url",
+            "display",
+            "name",
+            "slug",
+            "description",
+            "color",
+            "tags",
+            "custom_fields",
+        )
+        brief_fields = ("id", "url", "display", "name", "slug", "color")
+
+
+class PeeringFabricSerializer(NetBoxModelSerializer):
+    url = HyperlinkedIdentityField(view_name="plugins-api:netbox_peering_manager-api:peeringfabric-detail")
+    status = ChoiceField(choices=PeeringStatusChoices, required=False)
+    type = PeeringFabricTypeSerializer(nested=True, required=False, allow_null=True)
+    site = SiteSerializer(nested=True, required=False, allow_null=True)
+    tenant = TenantSerializer(nested=True, required=False, allow_null=True)
+    peer_group = BGPPeerGroupSerializer(nested=True, required=False, allow_null=True)
+
+    class Meta:
+        model = PeeringFabric
+        fields = (
+            "id",
+            "url",
+            "display",
+            "name",
+            "slug",
+            "description",
+            "type",
+            "status",
+            "peeringdb_id",
+            "site",
+            "tenant",
+            "peer_group",
+            "tags",
+            "custom_fields",
+            "comments",
+        )
+        brief_fields = ("id", "url", "display", "name", "slug", "status")
+
+
+class PeeringNetworkSerializer(NetBoxModelSerializer):
+    url = HyperlinkedIdentityField(view_name="plugins-api:netbox_peering_manager-api:peeringnetwork-detail")
+    status = ChoiceField(choices=PeeringStatusChoices, required=False)
+    fabric = PeeringFabricSerializer(nested=True)
+    prefix = PrefixSerializer(nested=True)
+    vlan = VLANSerializer(nested=True, required=False, allow_null=True)
+
+    class Meta:
+        model = PeeringNetwork
+        fields = (
+            "id",
+            "url",
+            "display",
+            "fabric",
+            "name",
+            "prefix",
+            "vlan",
+            "status",
+            "description",
+            "tags",
+            "custom_fields",
+            "comments",
+        )
+        brief_fields = ("id", "url", "display", "name", "fabric", "status")
+
+
+class PeeringConnectionSerializer(NetBoxModelSerializer):
+    url = HyperlinkedIdentityField(view_name="plugins-api:netbox_peering_manager-api:peeringconnection-detail")
+    status = ChoiceField(choices=PeeringStatusChoices, required=False)
+    peering_network = PeeringNetworkSerializer(nested=True)
+    interface = InterfaceSerializer(nested=True)
+
+    class Meta:
+        model = PeeringConnection
+        fields = (
+            "id",
+            "url",
+            "display",
+            "peering_network",
+            "interface",
+            "status",
+            "description",
+            "tags",
+            "custom_fields",
+        )
+        brief_fields = ("id", "url", "display", "peering_network", "interface", "status")
