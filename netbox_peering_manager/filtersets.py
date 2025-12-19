@@ -8,6 +8,7 @@ from netbox.filtersets import NetBoxModelFilterSet
 from tenancy.filtersets import TenancyFilterSet
 from virtualization.models import VirtualMachine
 
+from .choices import PeeringStatusChoices
 from .models import (
     BFD,
     ASPathList,
@@ -17,6 +18,10 @@ from .models import (
     Community,
     CommunityList,
     CommunityListRule,
+    PeeringConnection,
+    PeeringFabric,
+    PeeringFabricType,
+    PeeringNetwork,
     PrefixList,
     PrefixListRule,
     Relationship,
@@ -407,5 +412,95 @@ class PrefixListRuleFilterSet(NetBoxModelFilterSet):
             | Q(le__icontains=value)
             | Q(prefix_list__icontains=value)
             | Q(prefix_list_id__icontains=value)
+        )
+        return queryset.filter(qs_filter)
+
+
+# =============================================================================
+# Peering Fabric FilterSets
+# =============================================================================
+
+
+class PeeringFabricTypeFilterSet(NetBoxModelFilterSet):
+    class Meta:
+        model = PeeringFabricType
+        fields = ("id", "name", "slug", "description")
+
+    def search(self, queryset, _name, value):
+        if not value.strip():
+            return queryset
+        qs_filter = Q(name__icontains=value) | Q(slug__icontains=value) | Q(description__icontains=value)
+        return queryset.filter(qs_filter)
+
+
+class PeeringFabricFilterSet(NetBoxModelFilterSet, TenancyFilterSet):
+    type_id = django_filters.ModelMultipleChoiceFilter(
+        queryset=PeeringFabricType.objects.all(),
+        label="Type (ID)",
+    )
+    site_id = django_filters.ModelMultipleChoiceFilter(
+        queryset=Site.objects.all(),
+        label="Site (ID)",
+    )
+    status = django_filters.MultipleChoiceFilter(
+        choices=PeeringStatusChoices,
+    )
+
+    class Meta:
+        model = PeeringFabric
+        fields = ("id", "name", "slug", "status", "peeringdb_id")
+
+    def search(self, queryset, _name, value):
+        if not value.strip():
+            return queryset
+        qs_filter = Q(name__icontains=value) | Q(slug__icontains=value) | Q(description__icontains=value)
+        return queryset.filter(qs_filter)
+
+
+class PeeringNetworkFilterSet(NetBoxModelFilterSet):
+    fabric_id = django_filters.ModelMultipleChoiceFilter(
+        queryset=PeeringFabric.objects.all(),
+        label="Fabric (ID)",
+    )
+    status = django_filters.MultipleChoiceFilter(
+        choices=PeeringStatusChoices,
+    )
+
+    class Meta:
+        model = PeeringNetwork
+        fields = ("id", "name", "fabric", "status")
+
+    def search(self, queryset, _name, value):
+        if not value.strip():
+            return queryset
+        qs_filter = Q(name__icontains=value) | Q(fabric__name__icontains=value) | Q(description__icontains=value)
+        return queryset.filter(qs_filter)
+
+
+class PeeringConnectionFilterSet(NetBoxModelFilterSet):
+    peering_network_id = django_filters.ModelMultipleChoiceFilter(
+        queryset=PeeringNetwork.objects.all(),
+        label="Peering Network (ID)",
+    )
+    device_id = django_filters.ModelMultipleChoiceFilter(
+        queryset=Device.objects.all(),
+        field_name="interface__device",
+        label="Device (ID)",
+    )
+    status = django_filters.MultipleChoiceFilter(
+        choices=PeeringStatusChoices,
+    )
+
+    class Meta:
+        model = PeeringConnection
+        fields = ("id", "peering_network", "interface", "status")
+
+    def search(self, queryset, _name, value):
+        if not value.strip():
+            return queryset
+        qs_filter = (
+            Q(peering_network__name__icontains=value)
+            | Q(interface__name__icontains=value)
+            | Q(description__icontains=value)
         )
         return queryset.filter(qs_filter)
