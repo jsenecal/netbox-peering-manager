@@ -1,0 +1,64 @@
+{% extends 'generic/object.html' %}
+{% load buttons %}
+{% load custom_links %}
+{% load helpers %}
+{% load plugins %}
+{% load render_table from django_tables2 %}
+
+{% block breadcrumbs %}
+<li class="breadcrumb-item"><a href="{% url 'plugins:netbox_peering_manager:peeringfabrictype_list' %}">Fabric Types</a></li>
+{% endblock %}
+
+
+{% block content %}
+<div class="row mb-3">
+    <div class="col-md-6">
+        <div class="card">
+            <h5 class="card-header">
+                Peering Fabric Type
+            </h5>
+            <div class="card-body">
+                <table class="table table-hover attr-table">
+                    <tr>
+                        <td>Name</td>
+                        <td>{{ object.name }}</td>
+                    </tr>
+                    <tr>
+                        <td>Slug</td>
+                        <td>{{ object.slug }}</td>
+                    </tr>
+                    <tr>
+                        <td>Color</td>
+                        <td>
+                            <span class="color-label" style="background-color: #{{ object.color }}">&nbsp;</span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Description</td>
+                        <td>{{ object.description|placeholder }}</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+        {% include 'inc/panels/custom_fields.html' %}
+        {% include 'inc/panels/tags.html' %}
+        {% plugin_left_page object %}
+    </div>
+    <div class="col-md-6">
+        {% plugin_right_page object %}
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <h5 class="card-header">
+                Fabrics
+            </h5>
+            <div class="card-body">
+                {% render_table fabrics_table 'inc/table.html' %}
+            </div>
+        </div>
+        {% plugin_full_width_page object %}
+    </div>
+</div>
+{% endblock %}

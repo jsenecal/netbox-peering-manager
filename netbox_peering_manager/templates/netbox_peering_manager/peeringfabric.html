@@ -1,0 +1,107 @@
+{% extends 'generic/object.html' %}
+{% load buttons %}
+{% load custom_links %}
+{% load helpers %}
+{% load plugins %}
+{% load render_table from django_tables2 %}
+
+{% block breadcrumbs %}
+<li class="breadcrumb-item"><a href="{% url 'plugins:netbox_peering_manager:peeringfabric_list' %}">Fabrics</a></li>
+{% endblock %}
+
+
+{% block content %}
+<div class="row mb-3">
+    <div class="col-md-6">
+        <div class="card">
+            <h5 class="card-header">
+                Peering Fabric
+            </h5>
+            <div class="card-body">
+                <table class="table table-hover attr-table">
+                    <tr>
+                        <td>Name</td>
+                        <td>{{ object.name }}</td>
+                    </tr>
+                    <tr>
+                        <td>Slug</td>
+                        <td>{{ object.slug }}</td>
+                    </tr>
+                    <tr>
+                        <td>Type</td>
+                        <td>
+                            {% if object.type %}
+                                <a href="{{ object.type.get_absolute_url }}">{{ object.type }}</a>
+                            {% else %}
+                                {{ ''|placeholder }}
+                            {% endif %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Status</td>
+                        <td>{% badge object.get_status_display bg_color=object.get_status_color %}</td>
+                    </tr>
+                    <tr>
+                        <td>Site</td>
+                        <td>
+                            {% if object.site %}
+                                <a href="{{ object.site.get_absolute_url }}">{{ object.site }}</a>
+                            {% else %}
+                                {{ ''|placeholder }}
+                            {% endif %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Tenant</td>
+                        <td>
+                            {% if object.tenant %}
+                                <a href="{{ object.tenant.get_absolute_url }}">{{ object.tenant }}</a>
+                            {% else %}
+                                {{ ''|placeholder }}
+                            {% endif %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Default Peer Group</td>
+                        <td>
+                            {% if object.peer_group %}
+                                <a href="{{ object.peer_group.get_absolute_url }}">{{ object.peer_group }}</a>
+                            {% else %}
+                                {{ ''|placeholder }}
+                            {% endif %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>PeeringDB ID</td>
+                        <td>{{ object.peeringdb_id|placeholder }}</td>
+                    </tr>
+                    <tr>
+                        <td>Description</td>
+                        <td>{{ object.description|placeholder }}</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+        {% include 'inc/panels/custom_fields.html' %}
+        {% include 'inc/panels/tags.html' %}
+        {% include 'inc/panels/comments.html' %}
+        {% plugin_left_page object %}
+    </div>
+    <div class="col-md-6">
+        {% plugin_right_page object %}
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <h5 class="card-header">
+                Networks
+            </h5>
+            <div class="card-body">
+                {% render_table networks_table 'inc/table.html' %}
+            </div>
+        </div>
+        {% plugin_full_width_page object %}
+    </div>
+</div>
+{% endblock %}
