@@ -1,8 +1,8 @@
-from dcim.models import Device, Site
+from dcim.models import Device, Interface, Site
 from django import forms
 from django.utils.translation import gettext as _
 from ipam.formfields import IPNetworkFormField
-from ipam.models import ASN, IPAddress, Prefix
+from ipam.models import ASN, VLAN, IPAddress, Prefix
 from netbox.forms import (
     NetBoxModelBulkEditForm,
     NetBoxModelFilterSetForm,
@@ -29,6 +29,7 @@ from virtualization.models import VirtualMachine
 from .choices import (
     CommunityStatusChoices,
     IPAddressFamilyChoices,
+    PeeringStatusChoices,
     SessionStatusChoices,
 )
 from .models import (
@@ -40,6 +41,10 @@ from .models import (
     Community,
     CommunityList,
     CommunityListRule,
+    PeeringConnection,
+    PeeringFabric,
+    PeeringFabricType,
+    PeeringNetwork,
     PrefixList,
     PrefixListRule,
     Relationship,
@@ -984,3 +989,294 @@ class PrefixListRuleForm(NetBoxModelForm):
             "tags",
             "comments",
         ]
+
+
+# =============================================================================
+# PeeringFabricType Forms
+# =============================================================================
+
+
+class PeeringFabricTypeForm(NetBoxModelForm):
+    slug = SlugField()
+
+    class Meta:
+        model = PeeringFabricType
+        fields = ["name", "slug", "description", "color", "tags"]
+
+
+class PeeringFabricTypeFilterForm(NetBoxModelFilterSetForm):
+    model = PeeringFabricType
+    q = forms.CharField(required=False, label="Search")
+    tag = TagFilterField(model)
+
+
+class PeeringFabricTypeBulkEditForm(NetBoxModelBulkEditForm):
+    description = forms.CharField(max_length=200, required=False)
+    color = ColorField(required=False)
+
+    model = PeeringFabricType
+    nullable_fields = ["description"]
+
+
+class PeeringFabricTypeImportForm(NetBoxModelImportForm):
+    class Meta:
+        model = PeeringFabricType
+        fields = ["name", "slug", "description", "color"]
+
+
+# =============================================================================
+# PeeringFabric Forms
+# =============================================================================
+
+
+class PeeringFabricForm(NetBoxModelForm):
+    slug = SlugField()
+    type = DynamicModelChoiceField(
+        queryset=PeeringFabricType.objects.all(),
+        required=False,
+    )
+    site = DynamicModelChoiceField(
+        queryset=Site.objects.all(),
+        required=False,
+    )
+    tenant = DynamicModelChoiceField(
+        queryset=Tenant.objects.all(),
+        required=False,
+    )
+    peer_group = DynamicModelChoiceField(
+        queryset=BGPPeerGroup.objects.all(),
+        required=False,
+    )
+    comments = CommentField()
+
+    class Meta:
+        model = PeeringFabric
+        fields = [
+            "name",
+            "slug",
+            "description",
+            "type",
+            "status",
+            "peeringdb_id",
+            "site",
+            "tenant",
+            "peer_group",
+            "tags",
+            "comments",
+        ]
+
+
+class PeeringFabricFilterForm(NetBoxModelFilterSetForm):
+    model = PeeringFabric
+    q = forms.CharField(required=False, label="Search")
+    type_id = DynamicModelMultipleChoiceField(
+        queryset=PeeringFabricType.objects.all(),
+        required=False,
+        label="Type",
+    )
+    status = forms.MultipleChoiceField(
+        choices=PeeringStatusChoices,
+        required=False,
+    )
+    site_id = DynamicModelMultipleChoiceField(
+        queryset=Site.objects.all(),
+        required=False,
+        label="Site",
+    )
+    tenant_id = DynamicModelMultipleChoiceField(
+        queryset=Tenant.objects.all(),
+        required=False,
+        label="Tenant",
+    )
+    tag = TagFilterField(model)
+
+
+class PeeringFabricBulkEditForm(NetBoxModelBulkEditForm):
+    type = DynamicModelChoiceField(
+        queryset=PeeringFabricType.objects.all(),
+        required=False,
+    )
+    status = forms.ChoiceField(
+        choices=add_blank_choice(PeeringStatusChoices),
+        required=False,
+    )
+    site = DynamicModelChoiceField(
+        queryset=Site.objects.all(),
+        required=False,
+    )
+    tenant = DynamicModelChoiceField(
+        queryset=Tenant.objects.all(),
+        required=False,
+    )
+    description = forms.CharField(max_length=200, required=False)
+
+    model = PeeringFabric
+    nullable_fields = ["type", "site", "tenant", "description", "peeringdb_id"]
+
+
+class PeeringFabricImportForm(NetBoxModelImportForm):
+    type = CSVModelChoiceField(
+        queryset=PeeringFabricType.objects.all(),
+        required=False,
+        to_field_name="name",
+    )
+    status = CSVChoiceField(choices=PeeringStatusChoices, required=False)
+    site = CSVModelChoiceField(
+        queryset=Site.objects.all(),
+        required=False,
+        to_field_name="name",
+    )
+    tenant = CSVModelChoiceField(
+        queryset=Tenant.objects.all(),
+        required=False,
+        to_field_name="name",
+    )
+
+    class Meta:
+        model = PeeringFabric
+        fields = ["name", "slug", "description", "type", "status", "peeringdb_id", "site", "tenant"]
+
+
+# =============================================================================
+# PeeringNetwork Forms
+# =============================================================================
+
+
+class PeeringNetworkForm(NetBoxModelForm):
+    fabric = DynamicModelChoiceField(
+        queryset=PeeringFabric.objects.all(),
+    )
+    prefix = DynamicModelChoiceField(
+        queryset=Prefix.objects.all(),
+    )
+    vlan = DynamicModelChoiceField(
+        queryset=VLAN.objects.all(),
+        required=False,
+    )
+    comments = CommentField()
+
+    class Meta:
+        model = PeeringNetwork
+        fields = ["fabric", "name", "prefix", "vlan", "status", "description", "tags", "comments"]
+
+
+class PeeringNetworkFilterForm(NetBoxModelFilterSetForm):
+    model = PeeringNetwork
+    q = forms.CharField(required=False, label="Search")
+    fabric_id = DynamicModelMultipleChoiceField(
+        queryset=PeeringFabric.objects.all(),
+        required=False,
+        label="Fabric",
+    )
+    status = forms.MultipleChoiceField(
+        choices=PeeringStatusChoices,
+        required=False,
+    )
+    tag = TagFilterField(model)
+
+
+class PeeringNetworkBulkEditForm(NetBoxModelBulkEditForm):
+    fabric = DynamicModelChoiceField(
+        queryset=PeeringFabric.objects.all(),
+        required=False,
+    )
+    status = forms.ChoiceField(
+        choices=add_blank_choice(PeeringStatusChoices),
+        required=False,
+    )
+    description = forms.CharField(max_length=200, required=False)
+
+    model = PeeringNetwork
+    nullable_fields = ["vlan", "description"]
+
+
+class PeeringNetworkImportForm(NetBoxModelImportForm):
+    fabric = CSVModelChoiceField(
+        queryset=PeeringFabric.objects.all(),
+        to_field_name="name",
+    )
+    prefix = CSVModelChoiceField(
+        queryset=Prefix.objects.all(),
+        to_field_name="prefix",
+    )
+    vlan = CSVModelChoiceField(
+        queryset=VLAN.objects.all(),
+        required=False,
+        to_field_name="vid",
+    )
+    status = CSVChoiceField(choices=PeeringStatusChoices, required=False)
+
+    class Meta:
+        model = PeeringNetwork
+        fields = ["fabric", "name", "prefix", "vlan", "status", "description"]
+
+
+# =============================================================================
+# PeeringConnection Forms
+# =============================================================================
+
+
+class PeeringConnectionForm(NetBoxModelForm):
+    peering_network = DynamicModelChoiceField(
+        queryset=PeeringNetwork.objects.all(),
+    )
+    device = DynamicModelChoiceField(
+        queryset=Device.objects.all(),
+        required=False,
+        label="Device",
+    )
+    interface = DynamicModelChoiceField(
+        queryset=Interface.objects.all(),
+        query_params={"device_id": "$device"},
+    )
+
+    class Meta:
+        model = PeeringConnection
+        fields = ["peering_network", "device", "interface", "status", "description", "tags"]
+
+    fieldsets = (
+        FieldSet("peering_network", "device", "interface", "status", "description", name="Connection"),
+        FieldSet("tags", name="Tags"),
+    )
+
+
+class PeeringConnectionFilterForm(NetBoxModelFilterSetForm):
+    model = PeeringConnection
+    q = forms.CharField(required=False, label="Search")
+    peering_network_id = DynamicModelMultipleChoiceField(
+        queryset=PeeringNetwork.objects.all(),
+        required=False,
+        label="Peering Network",
+    )
+    device_id = DynamicModelMultipleChoiceField(
+        queryset=Device.objects.all(),
+        required=False,
+        label="Device",
+    )
+    status = forms.MultipleChoiceField(
+        choices=PeeringStatusChoices,
+        required=False,
+    )
+    tag = TagFilterField(model)
+
+
+class PeeringConnectionBulkEditForm(NetBoxModelBulkEditForm):
+    status = forms.ChoiceField(
+        choices=add_blank_choice(PeeringStatusChoices),
+        required=False,
+    )
+    description = forms.CharField(max_length=200, required=False)
+
+    model = PeeringConnection
+    nullable_fields = ["description"]
+
+
+class PeeringConnectionImportForm(NetBoxModelImportForm):
+    peering_network = CSVModelChoiceField(
+        queryset=PeeringNetwork.objects.all(),
+        to_field_name="name",
+    )
+
+    class Meta:
+        model = PeeringConnection
+        fields = ["peering_network", "interface", "status", "description"]
