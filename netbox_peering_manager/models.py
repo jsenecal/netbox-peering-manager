@@ -6,7 +6,7 @@ from ipam.fields import IPNetworkField
 from netbox.models import NetBoxModel
 from utilities.fields import ColorField
 
-from .choices import ActionChoices, CommunityStatusChoices, IPAddressFamilyChoices, SessionStatusChoices
+from .choices import ActionChoices, CommunityStatusChoices, IPAddressFamilyChoices, PeeringStatusChoices, SessionStatusChoices
 
 
 class Relationship(NetBoxModel):
@@ -29,6 +29,29 @@ class Relationship(NetBoxModel):
 
     def get_absolute_url(self):
         return reverse("plugins:netbox_peering_manager:relationship", args=[self.pk])
+
+
+class PeeringFabricType(NetBoxModel):
+    """
+    Organizational model for classifying peering fabric types.
+    Examples: Internet Exchange, Cloud Exchange, Private Peering LAN.
+    """
+
+    name = models.CharField(max_length=100, unique=True)
+    slug = models.SlugField(max_length=100, unique=True)
+    description = models.CharField(max_length=200, blank=True)
+    color = ColorField(default="9e9e9e")
+
+    class Meta:
+        ordering = ["name"]
+        verbose_name = "Peering Fabric Type"
+        verbose_name_plural = "Peering Fabric Types"
+
+    def __str__(self):
+        return self.name
+
+    def get_absolute_url(self):
+        return reverse("plugins:netbox_peering_manager:peeringfabrictype", args=[self.pk])
 
 
 class BFD(NetBoxModel):
