@@ -13,6 +13,7 @@ from netbox_peering_manager.graphql.enums import (
     NetBoxBGPActionEnum,
     NetBoxBGPCommunityStatusEnum,
     NetBoxBGPIPAddressFamilyEnum,
+    NetBoxBGPPeeringStatusEnum,
     NetBoxBGPSessionStatusEnum,
 )
 from netbox_peering_manager.models import (
@@ -24,6 +25,10 @@ from netbox_peering_manager.models import (
     Community,
     CommunityList,
     CommunityListRule,
+    PeeringConnection,
+    PeeringFabric,
+    PeeringFabricType,
+    PeeringNetwork,
     PrefixList,
     PrefixListRule,
     Relationship,
@@ -45,6 +50,10 @@ __all__ = (
     "NetBoxBGPCommunityListRuleFilter",
     "NetBoxBGPASPathListFilter",
     "NetBoxBGPASPathListRuleFilter",
+    "NetBoxBGPPeeringFabricTypeFilter",
+    "NetBoxBGPPeeringFabricFilter",
+    "NetBoxBGPPeeringNetworkFilter",
+    "NetBoxBGPPeeringConnectionFilter",
 )
 
 
@@ -203,3 +212,56 @@ class NetBoxBGPCommunityListRuleFilter(NetBoxModelFilterMixin):
         Annotated["NetBoxBGPCommunityListFilter", strawberry.lazy("netbox_peering_manager.graphql.filters")] | None
     ) = strawberry_django.filter_field()
     community_list_id: ID | None = strawberry_django.filter_field()
+
+
+# =============================================================================
+# Peering Fabric Filters
+# =============================================================================
+
+
+@strawberry_django.filter_type(PeeringFabricType, lookups=True)
+class NetBoxBGPPeeringFabricTypeFilter(NetBoxModelFilterMixin):
+    name: FilterLookup[str] | None = strawberry_django.filter_field()
+    slug: FilterLookup[str] | None = strawberry_django.filter_field()
+    description: FilterLookup[str] | None = strawberry_django.filter_field()
+
+
+@strawberry_django.filter_type(PeeringFabric, lookups=True)
+class NetBoxBGPPeeringFabricFilter(TenancyFilterMixin, NetBoxModelFilterMixin):
+    name: FilterLookup[str] | None = strawberry_django.filter_field()
+    slug: FilterLookup[str] | None = strawberry_django.filter_field()
+    description: FilterLookup[str] | None = strawberry_django.filter_field()
+    status: Annotated["NetBoxBGPPeeringStatusEnum", strawberry.lazy("netbox_peering_manager.graphql.enums")] | None = (
+        strawberry_django.filter_field()
+    )
+    peeringdb_id: FilterLookup[int] | None = strawberry_django.filter_field()
+    type: (
+        Annotated["NetBoxBGPPeeringFabricTypeFilter", strawberry.lazy("netbox_peering_manager.graphql.filters")] | None
+    ) = strawberry_django.filter_field()
+    type_id: ID | None = strawberry_django.filter_field()
+
+
+@strawberry_django.filter_type(PeeringNetwork, lookups=True)
+class NetBoxBGPPeeringNetworkFilter(NetBoxModelFilterMixin):
+    name: FilterLookup[str] | None = strawberry_django.filter_field()
+    description: FilterLookup[str] | None = strawberry_django.filter_field()
+    status: Annotated["NetBoxBGPPeeringStatusEnum", strawberry.lazy("netbox_peering_manager.graphql.enums")] | None = (
+        strawberry_django.filter_field()
+    )
+    fabric: (
+        Annotated["NetBoxBGPPeeringFabricFilter", strawberry.lazy("netbox_peering_manager.graphql.filters")] | None
+    ) = strawberry_django.filter_field()
+    fabric_id: ID | None = strawberry_django.filter_field()
+
+
+@strawberry_django.filter_type(PeeringConnection, lookups=True)
+class NetBoxBGPPeeringConnectionFilter(NetBoxModelFilterMixin):
+    description: FilterLookup[str] | None = strawberry_django.filter_field()
+    status: Annotated["NetBoxBGPPeeringStatusEnum", strawberry.lazy("netbox_peering_manager.graphql.enums")] | None = (
+        strawberry_django.filter_field()
+    )
+    peering_network: (
+        Annotated["NetBoxBGPPeeringNetworkFilter", strawberry.lazy("netbox_peering_manager.graphql.filters")] | None
+    ) = strawberry_django.filter_field()
+    peering_network_id: ID | None = strawberry_django.filter_field()
+    interface_id: ID | None = strawberry_django.filter_field()

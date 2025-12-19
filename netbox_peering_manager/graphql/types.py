@@ -14,6 +14,10 @@ from netbox_peering_manager.models import (
     Community,
     CommunityList,
     CommunityListRule,
+    PeeringConnection,
+    PeeringFabric,
+    PeeringFabricType,
+    PeeringNetwork,
     PrefixList,
     PrefixListRule,
     Relationship,
@@ -29,6 +33,10 @@ from .filters import (
     NetBoxBGPCommunityFilter,
     NetBoxBGPCommunityListFilter,
     NetBoxBGPCommunityListRuleFilter,
+    NetBoxBGPPeeringConnectionFilter,
+    NetBoxBGPPeeringFabricFilter,
+    NetBoxBGPPeeringFabricTypeFilter,
+    NetBoxBGPPeeringNetworkFilter,
     NetBoxBGPPrefixListFilter,
     NetBoxBGPPrefixListRuleFilter,
     NetBoxBGPRelationshipFilter,
@@ -169,3 +177,50 @@ class CommunityListRuleType(NetBoxObjectType):
     action: str
     community: Annotated["CommunityType", strawberry.lazy("netbox_peering_manager.graphql.types")]
     description: str
+
+
+# =============================================================================
+# Peering Fabric Types
+# =============================================================================
+
+
+@strawberry_django.type(PeeringFabricType, fields="__all__", filters=NetBoxBGPPeeringFabricTypeFilter)
+class PeeringFabricTypeType(NetBoxObjectType):
+    name: str
+    slug: str
+    description: str
+    color: str
+    fabrics: list[Annotated["PeeringFabricGraphQLType", strawberry.lazy("netbox_peering_manager.graphql.types")]]
+
+
+@strawberry_django.type(PeeringFabric, fields="__all__", filters=NetBoxBGPPeeringFabricFilter)
+class PeeringFabricGraphQLType(NetBoxObjectType):
+    name: str
+    slug: str
+    description: str
+    status: str
+    peeringdb_id: int | None
+    type: Annotated["PeeringFabricTypeType", strawberry.lazy("netbox_peering_manager.graphql.types")] | None
+    site: Annotated["SiteType", strawberry.lazy("dcim.graphql.types")] | None
+    tenant: Annotated["TenantType", strawberry.lazy("tenancy.graphql.types")] | None
+    peer_group: Annotated["BGPPeerGroupType", strawberry.lazy("netbox_peering_manager.graphql.types")] | None
+    networks: list[Annotated["PeeringNetworkGraphQLType", strawberry.lazy("netbox_peering_manager.graphql.types")]]
+
+
+@strawberry_django.type(PeeringNetwork, fields="__all__", filters=NetBoxBGPPeeringNetworkFilter)
+class PeeringNetworkGraphQLType(NetBoxObjectType):
+    name: str
+    description: str
+    status: str
+    fabric: Annotated["PeeringFabricGraphQLType", strawberry.lazy("netbox_peering_manager.graphql.types")]
+    prefix: Annotated["PrefixType", strawberry.lazy("ipam.graphql.types")]
+    vlan: Annotated["VLANType", strawberry.lazy("ipam.graphql.types")] | None
+    connections: list[Annotated["PeeringConnectionGraphQLType", strawberry.lazy("netbox_peering_manager.graphql.types")]]
+
+
+@strawberry_django.type(PeeringConnection, fields="__all__", filters=NetBoxBGPPeeringConnectionFilter)
+class PeeringConnectionGraphQLType(NetBoxObjectType):
+    description: str
+    status: str
+    peering_network: Annotated["PeeringNetworkGraphQLType", strawberry.lazy("netbox_peering_manager.graphql.types")]
+    interface: Annotated["InterfaceType", strawberry.lazy("dcim.graphql.types")]

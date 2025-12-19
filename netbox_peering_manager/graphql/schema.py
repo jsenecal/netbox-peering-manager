@@ -10,6 +10,10 @@ from .types import (
     CommunityListRuleType,
     CommunityListType,
     CommunityType,
+    PeeringConnectionGraphQLType,
+    PeeringFabricGraphQLType,
+    PeeringFabricTypeType,
+    PeeringNetworkGraphQLType,
     PrefixListRuleType,
     PrefixListType,
     RelationshipType,
@@ -58,3 +62,16 @@ class NetBoxBGPQuery:
 
     netbox_peering_manager_aspathlist_rule: ASPathListRuleType = strawberry_django.field()
     netbox_peering_manager_aspathlist_rule_list: list[ASPathListRuleType] = strawberry_django.field()
+
+    # Peering Fabric queries
+    netbox_peering_manager_peering_fabric_type: PeeringFabricTypeType = strawberry_django.field()
+    netbox_peering_manager_peering_fabric_type_list: list[PeeringFabricTypeType] = strawberry_django.field()
+
+    netbox_peering_manager_peering_fabric: PeeringFabricGraphQLType = strawberry_django.field()
+    netbox_peering_manager_peering_fabric_list: list[PeeringFabricGraphQLType] = strawberry_django.field()
+
+    netbox_peering_manager_peering_network: PeeringNetworkGraphQLType = strawberry_django.field()
+    netbox_peering_manager_peering_network_list: list[PeeringNetworkGraphQLType] = strawberry_django.field()
+
+    netbox_peering_manager_peering_connection: PeeringConnectionGraphQLType = strawberry_django.field()
+    netbox_peering_manager_peering_connection_list: list[PeeringConnectionGraphQLType] = strawberry_django.field()

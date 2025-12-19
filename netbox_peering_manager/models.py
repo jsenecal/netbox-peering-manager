@@ -6,7 +6,13 @@ from ipam.fields import IPNetworkField
 from netbox.models import NetBoxModel
 from utilities.fields import ColorField
 
-from .choices import ActionChoices, CommunityStatusChoices, IPAddressFamilyChoices, PeeringStatusChoices, SessionStatusChoices
+from .choices import (
+    ActionChoices,
+    CommunityStatusChoices,
+    IPAddressFamilyChoices,
+    PeeringStatusChoices,
+    SessionStatusChoices,
+)
 
 
 class Relationship(NetBoxModel):
