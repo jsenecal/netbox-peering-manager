@@ -12,6 +12,10 @@ from .models import (
     Community,
     CommunityList,
     CommunityListRule,
+    PeeringConnection,
+    PeeringFabric,
+    PeeringFabricType,
+    PeeringNetwork,
     PrefixList,
     PrefixListRule,
     Relationship,
@@ -268,3 +272,95 @@ class PrefixListRuleTable(NetBoxTable):
     class Meta(NetBoxTable.Meta):
         model = PrefixListRule
         fields = ("pk", "prefix_list", "index", "action", "network", "ge", "le")
+
+
+# =============================================================================
+# Peering Fabric Tables
+# =============================================================================
+
+
+class PeeringFabricTypeTable(NetBoxTable):
+    name = tables.LinkColumn()
+    color = ColorColumn()
+    tags = TagColumn(url_name="plugins:netbox_peering_manager:peeringfabrictype_list")
+    fabric_count = tables.Column(verbose_name="Fabrics")
+
+    class Meta(NetBoxTable.Meta):
+        model = PeeringFabricType
+        fields = ("pk", "name", "slug", "color", "description", "fabric_count", "tags", "actions")
+        default_columns = ("pk", "name", "color", "fabric_count", "description")
+
+
+class PeeringFabricTable(NetBoxTable):
+    name = tables.LinkColumn()
+    type = tables.Column(linkify=True)
+    status = ChoiceFieldColumn()
+    site = tables.Column(linkify=True)
+    tenant = tables.Column(linkify=True)
+    network_count = tables.Column(verbose_name="Networks")
+    tags = TagColumn(url_name="plugins:netbox_peering_manager:peeringfabric_list")
+
+    class Meta(NetBoxTable.Meta):
+        model = PeeringFabric
+        fields = (
+            "pk",
+            "name",
+            "slug",
+            "type",
+            "status",
+            "site",
+            "tenant",
+            "peeringdb_id",
+            "network_count",
+            "tags",
+            "actions",
+        )
+        default_columns = ("pk", "name", "type", "status", "site", "network_count")
+
+
+class PeeringNetworkTable(NetBoxTable):
+    name = tables.LinkColumn()
+    fabric = tables.Column(linkify=True)
+    prefix = tables.Column(linkify=True)
+    vlan = tables.Column(linkify=True)
+    status = ChoiceFieldColumn()
+    connection_count = tables.Column(verbose_name="Connections")
+    tags = TagColumn(url_name="plugins:netbox_peering_manager:peeringnetwork_list")
+
+    class Meta(NetBoxTable.Meta):
+        model = PeeringNetwork
+        fields = (
+            "pk",
+            "name",
+            "fabric",
+            "prefix",
+            "vlan",
+            "status",
+            "connection_count",
+            "description",
+            "tags",
+            "actions",
+        )
+        default_columns = ("pk", "name", "fabric", "prefix", "status", "connection_count")
+
+
+class PeeringConnectionTable(NetBoxTable):
+    peering_network = tables.Column(linkify=True)
+    interface = tables.Column(linkify=True)
+    device = tables.Column(accessor="interface__device", linkify=True)
+    status = ChoiceFieldColumn()
+    tags = TagColumn(url_name="plugins:netbox_peering_manager:peeringconnection_list")
+
+    class Meta(NetBoxTable.Meta):
+        model = PeeringConnection
+        fields = (
+            "pk",
+            "peering_network",
+            "device",
+            "interface",
+            "status",
+            "description",
+            "tags",
+            "actions",
+        )
+        default_columns = ("pk", "peering_network", "device", "interface", "status")
