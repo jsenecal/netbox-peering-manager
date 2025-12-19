@@ -1,4 +1,4 @@
-from django.db.models import Q
+from django.db.models import Count, Q
 from netbox.views import generic
 from utilities.views import ViewTab, register_model_view
 from virtualization.models import VirtualMachine
@@ -13,6 +13,10 @@ from .models import (
     Community,
     CommunityList,
     CommunityListRule,
+    PeeringConnection,
+    PeeringFabric,
+    PeeringFabricType,
+    PeeringNetwork,
     PrefixList,
     PrefixListRule,
     Relationship,
@@ -746,3 +750,227 @@ class ASPathListRuleBulkImportView(generic.BulkImportView):
 class ASPathListRuleView(generic.ObjectView):
     queryset = ASPathListRule.objects.all()
     template_name = "netbox_peering_manager/aspathlistrule.html"
+
+
+# =============================================================================
+# PeeringFabricType Views
+# =============================================================================
+
+
+@register_model_view(PeeringFabricType, "list", path="", detail=False)
+class PeeringFabricTypeListView(generic.ObjectListView):
+    queryset = PeeringFabricType.objects.annotate(fabric_count=Count("fabrics"))
+    filterset = filtersets.PeeringFabricTypeFilterSet
+    filterset_form = forms.PeeringFabricTypeFilterForm
+    table = tables.PeeringFabricTypeTable
+
+
+@register_model_view(PeeringFabricType)
+class PeeringFabricTypeView(generic.ObjectView):
+    queryset = PeeringFabricType.objects.all()
+
+    def get_extra_context(self, _request, instance):
+        fabrics = PeeringFabric.objects.filter(type=instance)
+        fabrics_table = tables.PeeringFabricTable(fabrics)
+        return {"fabrics_table": fabrics_table}
+
+
+@register_model_view(PeeringFabricType, "add", detail=False)
+@register_model_view(PeeringFabricType, "edit")
+class PeeringFabricTypeEditView(generic.ObjectEditView):
+    queryset = PeeringFabricType.objects.all()
+    form = forms.PeeringFabricTypeForm
+
+
+@register_model_view(PeeringFabricType, "bulk_delete", path="delete", detail=False)
+class PeeringFabricTypeBulkDeleteView(generic.BulkDeleteView):
+    queryset = PeeringFabricType.objects.all()
+    table = tables.PeeringFabricTypeTable
+
+
+@register_model_view(PeeringFabricType, "bulk_edit", path="edit", detail=False)
+class PeeringFabricTypeBulkEditView(generic.BulkEditView):
+    queryset = PeeringFabricType.objects.all()
+    filterset = filtersets.PeeringFabricTypeFilterSet
+    table = tables.PeeringFabricTypeTable
+    form = forms.PeeringFabricTypeBulkEditForm
+
+
+@register_model_view(PeeringFabricType, "delete")
+class PeeringFabricTypeDeleteView(generic.ObjectDeleteView):
+    queryset = PeeringFabricType.objects.all()
+    default_return_url = "plugins:netbox_peering_manager:peeringfabrictype_list"
+
+
+@register_model_view(PeeringFabricType, "bulk_import", path="import", detail=False)
+class PeeringFabricTypeBulkImportView(generic.BulkImportView):
+    queryset = PeeringFabricType.objects.all()
+    model_form = forms.PeeringFabricTypeImportForm
+
+
+# =============================================================================
+# PeeringFabric Views
+# =============================================================================
+
+
+@register_model_view(PeeringFabric, "list", path="", detail=False)
+class PeeringFabricListView(generic.ObjectListView):
+    queryset = PeeringFabric.objects.annotate(network_count=Count("networks"))
+    filterset = filtersets.PeeringFabricFilterSet
+    filterset_form = forms.PeeringFabricFilterForm
+    table = tables.PeeringFabricTable
+
+
+@register_model_view(PeeringFabric)
+class PeeringFabricView(generic.ObjectView):
+    queryset = PeeringFabric.objects.all()
+
+    def get_extra_context(self, _request, instance):
+        networks = PeeringNetwork.objects.filter(fabric=instance)
+        networks_table = tables.PeeringNetworkTable(networks)
+        return {"networks_table": networks_table}
+
+
+@register_model_view(PeeringFabric, "add", detail=False)
+@register_model_view(PeeringFabric, "edit")
+class PeeringFabricEditView(generic.ObjectEditView):
+    queryset = PeeringFabric.objects.all()
+    form = forms.PeeringFabricForm
+
+
+@register_model_view(PeeringFabric, "bulk_delete", path="delete", detail=False)
+class PeeringFabricBulkDeleteView(generic.BulkDeleteView):
+    queryset = PeeringFabric.objects.all()
+    table = tables.PeeringFabricTable
+
+
+@register_model_view(PeeringFabric, "bulk_edit", path="edit", detail=False)
+class PeeringFabricBulkEditView(generic.BulkEditView):
+    queryset = PeeringFabric.objects.all()
+    filterset = filtersets.PeeringFabricFilterSet
+    table = tables.PeeringFabricTable
+    form = forms.PeeringFabricBulkEditForm
+
+
+@register_model_view(PeeringFabric, "delete")
+class PeeringFabricDeleteView(generic.ObjectDeleteView):
+    queryset = PeeringFabric.objects.all()
+    default_return_url = "plugins:netbox_peering_manager:peeringfabric_list"
+
+
+@register_model_view(PeeringFabric, "bulk_import", path="import", detail=False)
+class PeeringFabricBulkImportView(generic.BulkImportView):
+    queryset = PeeringFabric.objects.all()
+    model_form = forms.PeeringFabricImportForm
+
+
+# =============================================================================
+# PeeringNetwork Views
+# =============================================================================
+
+
+@register_model_view(PeeringNetwork, "list", path="", detail=False)
+class PeeringNetworkListView(generic.ObjectListView):
+    queryset = PeeringNetwork.objects.annotate(connection_count=Count("connections"))
+    filterset = filtersets.PeeringNetworkFilterSet
+    filterset_form = forms.PeeringNetworkFilterForm
+    table = tables.PeeringNetworkTable
+
+
+@register_model_view(PeeringNetwork)
+class PeeringNetworkView(generic.ObjectView):
+    queryset = PeeringNetwork.objects.all()
+
+    def get_extra_context(self, _request, instance):
+        connections = PeeringConnection.objects.filter(peering_network=instance)
+        connections_table = tables.PeeringConnectionTable(connections)
+        sessions = BGPSession.objects.filter(peering_network=instance)
+        sessions_table = tables.BGPSessionTable(sessions)
+        return {
+            "connections_table": connections_table,
+            "sessions_table": sessions_table,
+        }
+
+
+@register_model_view(PeeringNetwork, "add", detail=False)
+@register_model_view(PeeringNetwork, "edit")
+class PeeringNetworkEditView(generic.ObjectEditView):
+    queryset = PeeringNetwork.objects.all()
+    form = forms.PeeringNetworkForm
+
+
+@register_model_view(PeeringNetwork, "bulk_delete", path="delete", detail=False)
+class PeeringNetworkBulkDeleteView(generic.BulkDeleteView):
+    queryset = PeeringNetwork.objects.all()
+    table = tables.PeeringNetworkTable
+
+
+@register_model_view(PeeringNetwork, "bulk_edit", path="edit", detail=False)
+class PeeringNetworkBulkEditView(generic.BulkEditView):
+    queryset = PeeringNetwork.objects.all()
+    filterset = filtersets.PeeringNetworkFilterSet
+    table = tables.PeeringNetworkTable
+    form = forms.PeeringNetworkBulkEditForm
+
+
+@register_model_view(PeeringNetwork, "delete")
+class PeeringNetworkDeleteView(generic.ObjectDeleteView):
+    queryset = PeeringNetwork.objects.all()
+    default_return_url = "plugins:netbox_peering_manager:peeringnetwork_list"
+
+
+@register_model_view(PeeringNetwork, "bulk_import", path="import", detail=False)
+class PeeringNetworkBulkImportView(generic.BulkImportView):
+    queryset = PeeringNetwork.objects.all()
+    model_form = forms.PeeringNetworkImportForm
+
+
+# =============================================================================
+# PeeringConnection Views
+# =============================================================================
+
+
+@register_model_view(PeeringConnection, "list", path="", detail=False)
+class PeeringConnectionListView(generic.ObjectListView):
+    queryset = PeeringConnection.objects.all()
+    filterset = filtersets.PeeringConnectionFilterSet
+    filterset_form = forms.PeeringConnectionFilterForm
+    table = tables.PeeringConnectionTable
+
+
+@register_model_view(PeeringConnection)
+class PeeringConnectionView(generic.ObjectView):
+    queryset = PeeringConnection.objects.all()
+
+
+@register_model_view(PeeringConnection, "add", detail=False)
+@register_model_view(PeeringConnection, "edit")
+class PeeringConnectionEditView(generic.ObjectEditView):
+    queryset = PeeringConnection.objects.all()
+    form = forms.PeeringConnectionForm
+
+
+@register_model_view(PeeringConnection, "bulk_delete", path="delete", detail=False)
+class PeeringConnectionBulkDeleteView(generic.BulkDeleteView):
+    queryset = PeeringConnection.objects.all()
+    table = tables.PeeringConnectionTable
+
+
+@register_model_view(PeeringConnection, "bulk_edit", path="edit", detail=False)
+class PeeringConnectionBulkEditView(generic.BulkEditView):
+    queryset = PeeringConnection.objects.all()
+    filterset = filtersets.PeeringConnectionFilterSet
+    table = tables.PeeringConnectionTable
+    form = forms.PeeringConnectionBulkEditForm
+
+
+@register_model_view(PeeringConnection, "delete")
+class PeeringConnectionDeleteView(generic.ObjectDeleteView):
+    queryset = PeeringConnection.objects.all()
+    default_return_url = "plugins:netbox_peering_manager:peeringconnection_list"
+
+
+@register_model_view(PeeringConnection, "bulk_import", path="import", detail=False)
+class PeeringConnectionBulkImportView(generic.BulkImportView):
+    queryset = PeeringConnection.objects.all()
+    model_form = forms.PeeringConnectionImportForm
