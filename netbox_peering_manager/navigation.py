@@ -477,6 +477,85 @@ _prefix_list_menu = (
     ),
 )
 
+_fabrics_menu = (
+    PluginMenuItem(
+        link="plugins:netbox_peering_manager:peeringfabrictype_list",
+        link_text="Fabric Types",
+        permissions=["netbox_peering_manager.view_peeringfabrictype"],
+        buttons=(
+            PluginMenuButton(
+                link="plugins:netbox_peering_manager:peeringfabrictype_add",
+                title="Add",
+                icon_class="mdi mdi-plus-thick",
+                permissions=["netbox_peering_manager.add_peeringfabrictype"],
+            ),
+            PluginMenuButton(
+                link="plugins:netbox_peering_manager:peeringfabrictype_bulk_import",
+                title="Import",
+                icon_class="mdi mdi-upload",
+                permissions=["netbox_peering_manager.add_peeringfabrictype"],
+            ),
+        ),
+    ),
+    PluginMenuItem(
+        link="plugins:netbox_peering_manager:peeringfabric_list",
+        link_text="Fabrics",
+        permissions=["netbox_peering_manager.view_peeringfabric"],
+        buttons=(
+            PluginMenuButton(
+                link="plugins:netbox_peering_manager:peeringfabric_add",
+                title="Add",
+                icon_class="mdi mdi-plus-thick",
+                permissions=["netbox_peering_manager.add_peeringfabric"],
+            ),
+            PluginMenuButton(
+                link="plugins:netbox_peering_manager:peeringfabric_bulk_import",
+                title="Import",
+                icon_class="mdi mdi-upload",
+                permissions=["netbox_peering_manager.add_peeringfabric"],
+            ),
+        ),
+    ),
+    PluginMenuItem(
+        link="plugins:netbox_peering_manager:peeringnetwork_list",
+        link_text="Networks",
+        permissions=["netbox_peering_manager.view_peeringnetwork"],
+        buttons=(
+            PluginMenuButton(
+                link="plugins:netbox_peering_manager:peeringnetwork_add",
+                title="Add",
+                icon_class="mdi mdi-plus-thick",
+                permissions=["netbox_peering_manager.add_peeringnetwork"],
+            ),
+            PluginMenuButton(
+                link="plugins:netbox_peering_manager:peeringnetwork_bulk_import",
+                title="Import",
+                icon_class="mdi mdi-upload",
+                permissions=["netbox_peering_manager.add_peeringnetwork"],
+            ),
+        ),
+    ),
+    PluginMenuItem(
+        link="plugins:netbox_peering_manager:peeringconnection_list",
+        link_text="Connections",
+        permissions=["netbox_peering_manager.view_peeringconnection"],
+        buttons=(
+            PluginMenuButton(
+                link="plugins:netbox_peering_manager:peeringconnection_add",
+                title="Add",
+                icon_class="mdi mdi-plus-thick",
+                permissions=["netbox_peering_manager.add_peeringconnection"],
+            ),
+            PluginMenuButton(
+                link="plugins:netbox_peering_manager:peeringconnection_bulk_import",
+                title="Import",
+                icon_class="mdi mdi-upload",
+                permissions=["netbox_peering_manager.add_peeringconnection"],
+            ),
+        ),
+    ),
+)
+
 plugin_settings = settings.PLUGINS_CONFIG.get("netbox_peering_manager", {})
 
 if plugin_settings.get("top_level_menu"):
@@ -484,6 +563,7 @@ if plugin_settings.get("top_level_menu"):
         label="Peering",
         groups=(
             ("BGP", _menu_items_grouped),
+            ("Fabrics", _fabrics_menu),
             ("Prefix Lists", _prefix_list_menu),
             ("Routing Policies", _routing_policy_menu),
             ("AS Path Lists", _aspath_list_menu),
