@@ -87,3 +87,17 @@ class IPAddressFamilyChoices(ChoiceSet):
         (FAMILY_4, "IPv4"),
         (FAMILY_6, "IPv6"),
     )
+
+
+class PeeringStatusChoices(ChoiceSet):
+    key = "PeeringStatus.status"
+
+    STATUS_ACTIVE = "active"
+    STATUS_PLANNED = "planned"
+    STATUS_DECOMMISSIONED = "decommissioned"
+
+    CHOICES = [
+        (STATUS_ACTIVE, "Active", "green"),
+        (STATUS_PLANNED, "Planned", "cyan"),
+        (STATUS_DECOMMISSIONED, "Decommissioned", "gray"),
+    ]
