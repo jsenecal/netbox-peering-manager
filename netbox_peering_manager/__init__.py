@@ -17,6 +17,10 @@ class BGPConfig(PluginConfig):
     default_settings = {
         "device_ext_page": "right",
         "top_level_menu": False,
+        "peeringdb_url": None,
+        "peeringdb_api_key": None,
+        "peeringdb_timeout": None,
+        "peeringdb_local_asns": [],
     }
     jobs = [
         "netbox_peering_manager.jobs.SyncPrefixListJob",
