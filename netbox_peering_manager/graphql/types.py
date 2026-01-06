@@ -129,6 +129,9 @@ class BGPSessionType(NetBoxObjectType):
     export_policies: list[Annotated["RoutingPolicyType", strawberry.lazy("netbox_peering_manager.graphql.types")]]
     prefix_list_in: Annotated["PrefixListType", strawberry.lazy("netbox_peering_manager.graphql.types")] | None
     prefix_list_out: Annotated["PrefixListType", strawberry.lazy("netbox_peering_manager.graphql.types")] | None
+    peering_network: (
+        Annotated["PeeringNetworkGraphQLType", strawberry.lazy("netbox_peering_manager.graphql.types")] | None
+    )
 
 
 @strawberry_django.type(BGPPeerGroup, fields="__all__", filters=NetBoxBGPBGPPeerGroupFilter)

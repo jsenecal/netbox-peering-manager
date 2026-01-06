@@ -479,7 +479,7 @@ class PrefixListAPITestCase(
 ):
     model = PrefixList
     view_namespace = "plugins-api:netbox_peering_manager"
-    brief_fields = ["description", "display", "id", "name", "url"]
+    brief_fields = ["description", "display", "family", "id", "name", "url"]
     graphql_base_name = "netbox_peering_manager_prefixlist"
 
     create_data = [
