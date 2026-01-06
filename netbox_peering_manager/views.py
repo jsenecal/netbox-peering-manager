@@ -1,6 +1,9 @@
 from django.contrib import messages
 from django.db.models import Count, Q
-from django.shortcuts import get_object_or_404, redirect
+from django.http import JsonResponse
+from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
+from django.utils.text import slugify
 from django.views import View
 from netbox.views import generic
 from utilities.views import ViewTab, register_model_view
@@ -19,6 +22,7 @@ from .models import (
     CommunityListRule,
     IRRSource,
     PeeringConnection,
+    PeeringDBPeer,
     PeeringFabric,
     PeeringFabricType,
     PeeringNetwork,
@@ -28,6 +32,7 @@ from .models import (
     RoutingPolicy,
     RoutingPolicyRule,
 )
+from .services import PeeringDBClient, PeeringDBSyncService, link_fabric_to_peeringdb
 
 # =============================================================================
 # Relationship Views
@@ -1052,3 +1057,120 @@ class PeeringConnectionDeleteView(generic.ObjectDeleteView):
 class PeeringConnectionBulkImportView(generic.BulkImportView):
     queryset = PeeringConnection.objects.all()
     model_form = forms.PeeringConnectionImportForm
+
+
+# =============================================================================
+# PeeringDB Integration Views
+# =============================================================================
+
+
+class PeeringDBIXSearchView(View):
+    """AJAX endpoint for searching PeeringDB IXes."""
+
+    def get(self, request):
+        query = request.GET.get("q", "")
+        if len(query) < 2:
+            return JsonResponse({"results": []})
+
+        client = PeeringDBClient()
+        try:
+            results = client.search_ix(query)
+            formatted = [
+                {
+                    "id": ix["id"],
+                    "text": f"{ix['name']} ({ix.get('city', 'Unknown')}, {ix.get('country', 'XX')})",
+                    "name": ix["name"],
+                    "city": ix.get("city", ""),
+                    "country": ix.get("country", ""),
+                }
+                for ix in results[:20]
+            ]
+            return JsonResponse({"results": formatted})
+        except Exception as e:
+            return JsonResponse({"error": str(e)}, status=500)
+
+
+class PeeringFabricCreateFromPeeringDBView(View):
+    """Create new PeeringFabric from PeeringDB IX."""
+
+    def get(self, request):
+        return render(
+            request,
+            "netbox_peering_manager/peeringfabric_create_from_peeringdb.html",
+            {},
+        )
+
+    def post(self, request):
+        ix_id = request.POST.get("ix_id")
+        if not ix_id:
+            messages.error(request, "Please select an IX from PeeringDB")
+            return redirect("plugins:netbox_peering_manager:peeringfabric_create_from_peeringdb")
+
+        try:
+            ix_id = int(ix_id)
+            client = PeeringDBClient()
+            ix_data = client.get_ix(ix_id)
+
+            name = ix_data.get("name", f"IX {ix_id}")
+            fabric = PeeringFabric.objects.create(
+                name=name,
+                slug=slugify(name)[:100],
+                description=f"Imported from PeeringDB (IX ID: {ix_id})",
+            )
+
+            link_fabric_to_peeringdb(fabric, ix_id, sync=True)
+
+            messages.success(request, f"Created and synced fabric: {fabric}")
+            return redirect(fabric.get_absolute_url())
+
+        except Exception as e:
+            messages.error(request, f"Error creating fabric: {e}")
+            return redirect("plugins:netbox_peering_manager:peeringfabric_create_from_peeringdb")
+
+
+@register_model_view(PeeringFabric, "sync_peeringdb")
+class PeeringFabricSyncPeeringDBView(View):
+    """Trigger PeeringDB sync for a fabric."""
+
+    def post(self, request, pk):
+        fabric = get_object_or_404(PeeringFabric, pk=pk)
+
+        if not hasattr(fabric, "peeringdb") or not fabric.peeringdb:
+            messages.error(request, "Fabric has no PeeringDB link")
+            return redirect(fabric.get_absolute_url())
+
+        service = PeeringDBSyncService()
+        result = service.sync_fabric(fabric)
+
+        if result.success:
+            messages.success(
+                request,
+                f"Synced: {result.networks_created} networks created, "
+                f"{result.networks_updated} updated, {result.peers_synced} peers",
+            )
+        else:
+            messages.error(request, f"Sync errors: {', '.join(result.errors)}")
+
+        return redirect(fabric.get_absolute_url())
+
+
+@register_model_view(PeeringFabric, "create_session_from_peer")
+class CreateSessionFromPeerView(View):
+    """Redirect to BGPSession form with pre-filled peer data."""
+
+    def get(self, _request, pk, peer_pk):
+        fabric = get_object_or_404(PeeringFabric, pk=pk)
+        peer = get_object_or_404(PeeringDBPeer, pk=peer_pk, fabric=fabric)
+
+        params = {
+            "name": peer.name,
+            "remote_as": peer.asn,
+        }
+        if peer.ipv4_addr:
+            params["remote_address"] = peer.ipv4_addr
+        elif peer.ipv6_addr:
+            params["remote_address"] = peer.ipv6_addr
+
+        url = reverse("plugins:netbox_peering_manager:bgpsession_add")
+        query_string = "&".join(f"{k}={v}" for k, v in params.items())
+        return redirect(f"{url}?{query_string}")
