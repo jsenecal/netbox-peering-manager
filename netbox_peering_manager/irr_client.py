@@ -7,6 +7,13 @@ import time
 from typing import Any
 
 import httpx
+from tenacity import (
+    before_sleep_log,
+    retry,
+    retry_if_exception_type,
+    stop_after_attempt,
+    wait_exponential,
+)
 
 from netbox_peering_manager.models import IRRSource
 
@@ -16,6 +23,11 @@ logger = logging.getLogger(__name__)
 DEFAULT_TIMEOUT = 30.0
 POLL_INTERVAL = 2.0
 MAX_POLL_ATTEMPTS = 150  # 5 minutes max with 2s interval
+
+# Retry configuration
+MAX_RETRIES = 3
+RETRY_MIN_WAIT = 1  # seconds
+RETRY_MAX_WAIT = 10  # seconds
 
 
 class IRRClientError(Exception):
@@ -29,6 +41,21 @@ class IRRClient:
     def __init__(self, irr_source: IRRSource):
         self.irr_source = irr_source
         self.base_url = irr_source.url.rstrip("/")
+
+    @retry(
+        retry=retry_if_exception_type((httpx.TransportError, httpx.TimeoutException)),
+        stop=stop_after_attempt(MAX_RETRIES),
+        wait=wait_exponential(multiplier=1, min=RETRY_MIN_WAIT, max=RETRY_MAX_WAIT),
+        before_sleep=before_sleep_log(logger, logging.WARNING),
+        reraise=True,
+    )
+    def _request_with_retry(
+        self, client: httpx.Client, url: str, params: dict[str, Any] | None = None
+    ) -> httpx.Response:
+        """Make an HTTP GET request with retry logic for transient failures."""
+        response = client.get(url, params=params)
+        response.raise_for_status()
+        return response
 
     def _build_params(self, as_set: str, family: str) -> dict[str, Any]:
         """Build query parameters for fastbgpq4 API."""
@@ -70,6 +97,19 @@ class IRRClient:
 
         return prefixes
 
+    @retry(
+        retry=retry_if_exception_type((httpx.TransportError, httpx.TimeoutException)),
+        stop=stop_after_attempt(MAX_RETRIES),
+        wait=wait_exponential(multiplier=1, min=RETRY_MIN_WAIT, max=RETRY_MAX_WAIT),
+        before_sleep=before_sleep_log(logger, logging.WARNING),
+        reraise=True,
+    )
+    def _initial_request(
+        self, client: httpx.Client, url: str, params: dict[str, Any]
+    ) -> httpx.Response:
+        """Make initial request with retry logic. Does not raise on 202."""
+        return client.get(url, params=params)
+
     def _fetch_family(self, as_set: str, family: str) -> list[str]:
         """Fetch prefixes for a specific address family."""
         params = self._build_params(as_set, family)
@@ -78,7 +118,7 @@ class IRRClient:
         logger.info(f"Fetching {family} prefixes for {as_set} from {url}")
 
         with httpx.Client(timeout=DEFAULT_TIMEOUT) as client:
-            response = client.get(url, params=params)
+            response = self._initial_request(client, url, params)
 
             if response.status_code == 202:
                 # Async mode - poll for results
@@ -103,8 +143,7 @@ class IRRClient:
 
         for attempt in range(MAX_POLL_ATTEMPTS):
             time.sleep(POLL_INTERVAL)
-            response = client.get(poll_url)
-            response.raise_for_status()
+            response = self._request_with_retry(client, poll_url)
 
             job_data = response.json()
             status = job_data.get("status")
