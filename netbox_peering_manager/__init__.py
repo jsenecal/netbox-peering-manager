@@ -8,8 +8,8 @@ class BGPConfig(PluginConfig):
     verbose_name = "BGP"
     description = "Subsystem for tracking bgp related objects"
     version = __version__
-    author = "Nikolay Yuzefovich"
-    author_email = "mgk.kolek@gmail.com"
+    author = "Jonathan Senecal"
+    author_email = "jonathan.senecal@metrooptic.com"
     base_url = "bgp"
     required_settings = []
     min_version = "4.4.0"
