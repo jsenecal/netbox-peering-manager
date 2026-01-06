@@ -1,10 +1,13 @@
 from django.db import migrations, models
 import django.db.models.deletion
+import taggit.managers
+import utilities.json
 
 
 class Migration(migrations.Migration):
 
     dependencies = [
+        ('extras', '0122_charfield_null_choices'),
         ("netbox_peering_manager", "0039_peering_fabric"),
     ]
 
@@ -15,7 +18,7 @@ class Migration(migrations.Migration):
                 ("id", models.BigAutoField(auto_created=True, primary_key=True, serialize=False)),
                 ("created", models.DateTimeField(auto_now_add=True, null=True)),
                 ("last_updated", models.DateTimeField(auto_now=True, null=True)),
-                ("custom_field_data", models.JSONField(blank=True, default=dict, encoder=None)),
+                ('custom_field_data', models.JSONField(blank=True, default=dict, encoder=utilities.json.CustomFieldJSONEncoder)),
                 ("name", models.CharField(max_length=100, unique=True)),
                 ("slug", models.SlugField(max_length=100, unique=True)),
                 ("url", models.URLField(help_text="fastbgpq4 API base URL (e.g., http://fastbgpq4:8000)")),
@@ -25,7 +28,7 @@ class Migration(migrations.Migration):
                 ("enabled", models.BooleanField(default=True)),
                 ("description", models.CharField(blank=True, max_length=200)),
                 ("comments", models.TextField(blank=True)),
-                ("tags", models.ManyToManyField(blank=True, related_name="+", to="extras.tag")),
+                ('tags', taggit.managers.TaggableManager(through='extras.TaggedItem', to='extras.Tag')),
             ],
             options={
                 "verbose_name": "IRR Source",
