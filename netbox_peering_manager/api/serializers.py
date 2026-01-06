@@ -21,6 +21,7 @@ from netbox_peering_manager.models import (
     IRRSource,
     PeeringConnection,
     PeeringFabric,
+    PeeringFabricPeeringDB,
     PeeringFabricType,
     PeeringNetwork,
     PrefixList,
@@ -490,6 +491,12 @@ class PeeringFabricTypeSerializer(NetBoxModelSerializer):
         brief_fields = ("id", "url", "display", "name", "slug", "color")
 
 
+class PeeringFabricPeeringDBSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PeeringFabricPeeringDB
+        fields = ["ix_id", "name", "city", "country", "website", "last_sync"]
+
+
 class PeeringFabricSerializer(NetBoxModelSerializer):
     url = HyperlinkedIdentityField(view_name="plugins-api:netbox_peering_manager-api:peeringfabric-detail")
     status = ChoiceField(choices=PeeringStatusChoices, required=False)
@@ -497,6 +504,7 @@ class PeeringFabricSerializer(NetBoxModelSerializer):
     site = SiteSerializer(nested=True, required=False, allow_null=True)
     tenant = TenantSerializer(nested=True, required=False, allow_null=True)
     peer_group = BGPPeerGroupSerializer(nested=True, required=False, allow_null=True)
+    peeringdb = PeeringFabricPeeringDBSerializer(read_only=True)
 
     class Meta:
         model = PeeringFabric
@@ -512,6 +520,7 @@ class PeeringFabricSerializer(NetBoxModelSerializer):
             "site",
             "tenant",
             "peer_group",
+            "peeringdb",
             "tags",
             "custom_fields",
             "comments",
