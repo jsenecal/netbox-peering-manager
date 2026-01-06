@@ -44,7 +44,7 @@ class PeeringDBSyncService:
         """Initialize sync service with optional PeeringDB client."""
         self.client = client or PeeringDBClient()
 
-    def sync_fabric(self, fabric: PeeringFabric) -> SyncResult:
+    def sync_fabric(self, fabric: PeeringFabric, peers_only: bool = False) -> SyncResult:
         """
         Sync PeeringDB data for a fabric.
 
@@ -53,6 +53,7 @@ class PeeringDBSyncService:
 
         Args:
             fabric: The PeeringFabric to sync.
+            peers_only: If True, only refresh peer cache without network changes.
 
         Returns:
             SyncResult with sync outcomes and any errors.
@@ -65,17 +66,19 @@ class PeeringDBSyncService:
             return result
 
         ix_id = fabric.peeringdb.ix_id
-        logger.info(f"Starting PeeringDB sync for fabric {fabric.name} (IX ID: {ix_id})")
+        mode = "peers only" if peers_only else "full"
+        logger.info(f"Starting PeeringDB sync for fabric {fabric.name} (IX ID: {ix_id}, mode: {mode})")
 
         try:
             with transaction.atomic():
-                # Sync IX details
-                self._sync_ix_details(fabric, ix_id, result)
+                if not peers_only:
+                    # Sync IX details
+                    self._sync_ix_details(fabric, ix_id, result)
 
-                # Sync IXLANs to PeeringNetworks
-                self._sync_ixlans(fabric, ix_id, result)
+                    # Sync IXLANs to PeeringNetworks
+                    self._sync_ixlans(fabric, ix_id, result)
 
-                # Sync peers
+                # Sync peers (always)
                 self._sync_peers(fabric, ix_id, result)
 
         except Exception as e:

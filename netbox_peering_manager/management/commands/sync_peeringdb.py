@@ -28,15 +28,16 @@ class Command(BaseCommand):
 
     def handle(self, **options):
         service = PeeringDBSyncService()
+        peers_only = options.get("discover_only", False)
 
         if options["ix_id"]:
-            self._sync_by_ix_id(options["ix_id"], service)
+            self._sync_by_ix_id(options["ix_id"], service, peers_only)
         elif options["fabric"]:
-            self._sync_by_fabric_pk(options["fabric"], service)
+            self._sync_by_fabric_pk(options["fabric"], service, peers_only)
         else:
-            self._sync_all(service)
+            self._sync_all(service, peers_only)
 
-    def _sync_by_ix_id(self, ix_id: int, service: PeeringDBSyncService):
+    def _sync_by_ix_id(self, ix_id: int, service: PeeringDBSyncService, peers_only: bool = False):
         """Sync fabric by PeeringDB IX ID."""
         try:
             pdb_info = PeeringFabricPeeringDB.objects.get(ix_id=ix_id)
@@ -45,9 +46,9 @@ class Command(BaseCommand):
             msg = f"No fabric linked to PeeringDB IX ID {ix_id}. Create a fabric and link it first."
             raise CommandError(msg) from err
 
-        self._sync_fabric(fabric, service)
+        self._sync_fabric(fabric, service, peers_only)
 
-    def _sync_by_fabric_pk(self, pk: int, service: PeeringDBSyncService):
+    def _sync_by_fabric_pk(self, pk: int, service: PeeringDBSyncService, peers_only: bool = False):
         """Sync specific fabric by PK."""
         try:
             fabric = PeeringFabric.objects.get(pk=pk)
@@ -59,9 +60,9 @@ class Command(BaseCommand):
             msg = f"Fabric {fabric} has no PeeringDB link"
             raise CommandError(msg)
 
-        self._sync_fabric(fabric, service)
+        self._sync_fabric(fabric, service, peers_only)
 
-    def _sync_all(self, service: PeeringDBSyncService):
+    def _sync_all(self, service: PeeringDBSyncService, peers_only: bool = False):
         """Sync all fabrics with PeeringDB links."""
         fabrics = PeeringFabric.objects.filter(peeringdb__isnull=False)
 
@@ -70,13 +71,14 @@ class Command(BaseCommand):
             return
 
         for fabric in fabrics:
-            self._sync_fabric(fabric, service)
+            self._sync_fabric(fabric, service, peers_only)
 
-    def _sync_fabric(self, fabric: PeeringFabric, service: PeeringDBSyncService):
+    def _sync_fabric(self, fabric: PeeringFabric, service: PeeringDBSyncService, peers_only: bool = False):
         """Sync a single fabric and report results."""
-        self.stdout.write(f"Syncing {fabric}...")
+        mode = " (peers only)" if peers_only else ""
+        self.stdout.write(f"Syncing {fabric}{mode}...")
 
-        result = service.sync_fabric(fabric)
+        result = service.sync_fabric(fabric, peers_only=peers_only)
 
         if result.success:
             self.stdout.write(
