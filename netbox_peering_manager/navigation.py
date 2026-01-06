@@ -555,6 +555,12 @@ _fabrics_menu = (
         ),
     ),
     PluginMenuItem(
+        link="plugins:netbox_peering_manager:peeringfabric_create_from_peeringdb",
+        link_text="Create from PeeringDB",
+        permissions=["netbox_peering_manager.add_peeringfabric"],
+        buttons=(),
+    ),
+    PluginMenuItem(
         link="plugins:netbox_peering_manager:peeringnetwork_list",
         link_text="Networks",
         permissions=["netbox_peering_manager.view_peeringnetwork"],
