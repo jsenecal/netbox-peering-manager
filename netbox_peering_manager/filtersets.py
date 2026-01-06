@@ -18,6 +18,7 @@ from .models import (
     Community,
     CommunityList,
     CommunityListRule,
+    IRRSource,
     PeeringConnection,
     PeeringFabric,
     PeeringFabricType,
@@ -368,6 +369,29 @@ class BGPPeerGroupFilterSet(NetBoxModelFilterSet):
         return queryset.filter(qs_filter)
 
 
+class IRRSourceFilterSet(NetBoxModelFilterSet):
+    class Meta:
+        model = IRRSource
+        fields = (
+            "id",
+            "name",
+            "slug",
+            "url",
+            "enabled",
+        )
+
+    def search(self, queryset, _name, value):
+        if not value.strip():
+            return queryset
+        qs_filter = (
+            Q(name__icontains=value)
+            | Q(slug__icontains=value)
+            | Q(description__icontains=value)
+            | Q(url__icontains=value)
+        )
+        return queryset.filter(qs_filter)
+
+
 class PrefixListFilterSet(NetBoxModelFilterSet):
     class Meta:
         model = PrefixList
@@ -376,6 +400,8 @@ class PrefixListFilterSet(NetBoxModelFilterSet):
             "name",
             "description",
             "family",
+            "source_as_set",
+            "irr_source",
         )
 
     def search(self, queryset, _name, value):
