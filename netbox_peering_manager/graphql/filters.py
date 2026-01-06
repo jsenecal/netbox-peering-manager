@@ -25,6 +25,7 @@ from netbox_peering_manager.models import (
     Community,
     CommunityList,
     CommunityListRule,
+    IRRSource,
     PeeringConnection,
     PeeringFabric,
     PeeringFabricType,
@@ -39,6 +40,7 @@ from netbox_peering_manager.models import (
 __all__ = (
     "NetBoxBGPRelationshipFilter",
     "NetBoxBGPBFDFilter",
+    "NetBoxBGPIRRSourceFilter",
     "NetBoxBGPCommunityFilter",
     "NetBoxBGPSessionFilter",
     "NetBoxBGPBGPPeerGroupFilter",
@@ -68,6 +70,14 @@ class NetBoxBGPRelationshipFilter(NetBoxModelFilterMixin):
 class NetBoxBGPBFDFilter(NetBoxModelFilterMixin):
     name: FilterLookup[str] | None = strawberry_django.filter_field()
     description: FilterLookup[str] | None = strawberry_django.filter_field()
+
+
+@strawberry_django.filter_type(IRRSource, lookups=True)
+class NetBoxBGPIRRSourceFilter(NetBoxModelFilterMixin):
+    name: FilterLookup[str] | None = strawberry_django.filter_field()
+    slug: FilterLookup[str] | None = strawberry_django.filter_field()
+    description: FilterLookup[str] | None = strawberry_django.filter_field()
+    enabled: FilterLookup[bool] | None = strawberry_django.filter_field()
 
 
 @strawberry_django.filter_type(ASPathList, lookups=True)
@@ -183,6 +193,11 @@ class NetBoxBGPPrefixListFilter(NetBoxModelFilterMixin):
     family: (
         Annotated["NetBoxBGPIPAddressFamilyEnum", strawberry.lazy("netbox_peering_manager.graphql.enums")] | None
     ) = strawberry_django.filter_field()
+    source_as_set: FilterLookup[str] | None = strawberry_django.filter_field()
+    irr_source: (
+        Annotated["NetBoxBGPIRRSourceFilter", strawberry.lazy("netbox_peering_manager.graphql.filters")] | None
+    ) = strawberry_django.filter_field()
+    irr_source_id: ID | None = strawberry_django.filter_field()
 
 
 @strawberry_django.filter_type(PrefixListRule, lookups=True)

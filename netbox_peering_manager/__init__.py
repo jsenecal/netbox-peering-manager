@@ -18,6 +18,10 @@ class BGPConfig(PluginConfig):
         "device_ext_page": "right",
         "top_level_menu": False,
     }
+    jobs = [
+        "netbox_peering_manager.jobs.SyncPrefixListJob",
+        "netbox_peering_manager.jobs.SyncAllPrefixListsJob",
+    ]
 
     def ready(self):
         super().ready()

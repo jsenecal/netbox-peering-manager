@@ -14,6 +14,7 @@ from netbox_peering_manager.models import (
     Community,
     CommunityList,
     CommunityListRule,
+    IRRSource,
     PeeringConnection,
     PeeringFabric,
     PeeringFabricType,
@@ -33,6 +34,7 @@ from .filters import (
     NetBoxBGPCommunityFilter,
     NetBoxBGPCommunityListFilter,
     NetBoxBGPCommunityListRuleFilter,
+    NetBoxBGPIRRSourceFilter,
     NetBoxBGPPeeringConnectionFilter,
     NetBoxBGPPeeringFabricFilter,
     NetBoxBGPPeeringFabricTypeFilter,
@@ -64,6 +66,19 @@ class BFDType(NetBoxObjectType):
     detect_multiplier: int
     hold_time: int | None
     sessions: list[Annotated["BGPSessionType", strawberry.lazy("netbox_peering_manager.graphql.types")]]
+
+
+@strawberry_django.type(IRRSource, fields="__all__", filters=NetBoxBGPIRRSourceFilter)
+class IRRSourceType(NetBoxObjectType):
+    name: str
+    slug: str
+    url: str
+    sources: str
+    cache_ttl: int | None
+    sync_interval: int
+    enabled: bool
+    description: str
+    prefix_lists: list[Annotated["PrefixListType", strawberry.lazy("netbox_peering_manager.graphql.types")]]
 
 
 @strawberry_django.type(ASPathList, fields="__all__", filters=NetBoxBGPASPathListFilter)
@@ -149,6 +164,8 @@ class PrefixListType(NetBoxObjectType):
     name: str
     description: str
     family: str
+    source_as_set: str
+    irr_source: Annotated["IRRSourceType", strawberry.lazy("netbox_peering_manager.graphql.types")] | None
     prefrules: list[Annotated["PrefixListRuleType", strawberry.lazy("netbox_peering_manager.graphql.types")]]
 
 

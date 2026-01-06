@@ -41,6 +41,25 @@ _menu_items_primary = (
         ),
     ),
     PluginMenuItem(
+        link="plugins:netbox_peering_manager:irrsource_list",
+        link_text="IRR Sources",
+        permissions=["netbox_peering_manager.view_irrsource"],
+        buttons=(
+            PluginMenuButton(
+                link="plugins:netbox_peering_manager:irrsource_add",
+                title="Add",
+                icon_class="mdi mdi-plus-thick",
+                permissions=["netbox_peering_manager.add_irrsource"],
+            ),
+            PluginMenuButton(
+                link="plugins:netbox_peering_manager:irrsource_bulk_import",
+                title="Import",
+                icon_class="mdi mdi-upload",
+                permissions=["netbox_peering_manager.add_irrsource"],
+            ),
+        ),
+    ),
+    PluginMenuItem(
         link="plugins:netbox_peering_manager:community_list",
         link_text="Communities",
         permissions=["netbox_peering_manager.view_community"],
@@ -348,6 +367,25 @@ _config_menu = (
                 title="Import",
                 icon_class="mdi mdi-upload",
                 permissions=["netbox_peering_manager.add_bfd"],
+            ),
+        ),
+    ),
+    PluginMenuItem(
+        link="plugins:netbox_peering_manager:irrsource_list",
+        link_text="IRR Sources",
+        permissions=["netbox_peering_manager.view_irrsource"],
+        buttons=(
+            PluginMenuButton(
+                link="plugins:netbox_peering_manager:irrsource_add",
+                title="Add",
+                icon_class="mdi mdi-plus-thick",
+                permissions=["netbox_peering_manager.add_irrsource"],
+            ),
+            PluginMenuButton(
+                link="plugins:netbox_peering_manager:irrsource_bulk_import",
+                title="Import",
+                icon_class="mdi mdi-upload",
+                permissions=["netbox_peering_manager.add_irrsource"],
             ),
         ),
     ),

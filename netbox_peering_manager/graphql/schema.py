@@ -10,6 +10,7 @@ from .types import (
     CommunityListRuleType,
     CommunityListType,
     CommunityType,
+    IRRSourceType,
     PeeringConnectionGraphQLType,
     PeeringFabricGraphQLType,
     PeeringFabricTypeType,
@@ -29,6 +30,9 @@ class NetBoxBGPQuery:
 
     netbox_peering_manager_bfd: BFDType = strawberry_django.field()
     netbox_peering_manager_bfd_list: list[BFDType] = strawberry_django.field()
+
+    netbox_peering_manager_irr_source: IRRSourceType = strawberry_django.field()
+    netbox_peering_manager_irr_source_list: list[IRRSourceType] = strawberry_django.field()
 
     netbox_peering_manager_community: CommunityType = strawberry_django.field()
     netbox_peering_manager_community_list: list[CommunityType] = strawberry_django.field()

@@ -52,6 +52,11 @@ class IRRSource(NetBoxModel):
     def get_absolute_url(self):
         return reverse("plugins:netbox_peering_manager:irrsource", args=[self.pk])
 
+    @property
+    def prefix_list_count(self):
+        """Return the count of PrefixLists using this IRRSource."""
+        return self.prefix_lists.count()
+
 
 class Relationship(NetBoxModel):
     """

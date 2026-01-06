@@ -10,6 +10,7 @@ from netbox_peering_manager.filtersets import (
     CommunityFilterSet,
     CommunityListFilterSet,
     CommunityListRuleFilterSet,
+    IRRSourceFilterSet,
     PeeringConnectionFilterSet,
     PeeringFabricFilterSet,
     PeeringFabricTypeFilterSet,
@@ -29,6 +30,7 @@ from netbox_peering_manager.models import (
     Community,
     CommunityList,
     CommunityListRule,
+    IRRSource,
     PeeringConnection,
     PeeringFabric,
     PeeringFabricType,
@@ -49,6 +51,7 @@ from .serializers import (
     CommunityListRuleSerializer,
     CommunityListSerializer,
     CommunitySerializer,
+    IRRSourceSerializer,
     PeeringConnectionSerializer,
     PeeringFabricSerializer,
     PeeringFabricTypeSerializer,
@@ -76,6 +79,12 @@ class BFDViewSet(NetBoxModelViewSet):
     queryset = BFD.objects.all()
     serializer_class = BFDSerializer
     filterset_class = BFDFilterSet
+
+
+class IRRSourceViewSet(NetBoxModelViewSet):
+    queryset = IRRSource.objects.all()
+    serializer_class = IRRSourceSerializer
+    filterset_class = IRRSourceFilterSet
 
 
 class BGPSessionViewSet(NetBoxModelViewSet):

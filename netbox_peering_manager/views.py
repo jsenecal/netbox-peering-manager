@@ -1,9 +1,13 @@
+from django.contrib import messages
 from django.db.models import Count, Q
+from django.shortcuts import get_object_or_404, redirect
+from django.views import View
 from netbox.views import generic
 from utilities.views import ViewTab, register_model_view
 from virtualization.models import VirtualMachine
 
 from . import filtersets, forms, tables
+from .jobs import SyncPrefixListJob
 from .models import (
     BFD,
     ASPathList,
@@ -13,6 +17,7 @@ from .models import (
     Community,
     CommunityList,
     CommunityListRule,
+    IRRSource,
     PeeringConnection,
     PeeringFabric,
     PeeringFabricType,
@@ -134,6 +139,63 @@ class BFDDeleteView(generic.ObjectDeleteView):
 class BFDBulkImportView(generic.BulkImportView):
     queryset = BFD.objects.all()
     model_form = forms.BFDImportForm
+
+
+# =============================================================================
+# IRRSource Views
+# =============================================================================
+
+
+@register_model_view(IRRSource, "list", path="", detail=False)
+class IRRSourceListView(generic.ObjectListView):
+    queryset = IRRSource.objects.annotate(prefix_list_count=Count("prefix_lists"))
+    filterset = filtersets.IRRSourceFilterSet
+    filterset_form = forms.IRRSourceFilterForm
+    table = tables.IRRSourceTable
+
+
+@register_model_view(IRRSource)
+class IRRSourceView(generic.ObjectView):
+    queryset = IRRSource.objects.all()
+
+    def get_extra_context(self, _request, instance):
+        prefix_lists = PrefixList.objects.filter(irr_source=instance)
+        prefix_lists_table = tables.PrefixListTable(prefix_lists)
+        return {"prefix_lists_table": prefix_lists_table}
+
+
+@register_model_view(IRRSource, "add", detail=False)
+@register_model_view(IRRSource, "edit")
+class IRRSourceEditView(generic.ObjectEditView):
+    queryset = IRRSource.objects.all()
+    form = forms.IRRSourceForm
+
+
+@register_model_view(IRRSource, "bulk_delete", path="delete", detail=False)
+class IRRSourceBulkDeleteView(generic.BulkDeleteView):
+    queryset = IRRSource.objects.all()
+    table = tables.IRRSourceTable
+
+
+@register_model_view(IRRSource, "bulk_edit", path="edit", detail=False)
+class IRRSourceBulkEditView(generic.BulkEditView):
+    queryset = IRRSource.objects.all()
+    filterset = filtersets.IRRSourceFilterSet
+    table = tables.IRRSourceTable
+    form = forms.IRRSourceBulkEditForm
+
+
+@register_model_view(IRRSource, "delete")
+class IRRSourceDeleteView(generic.ObjectDeleteView):
+    queryset = IRRSource.objects.all()
+    default_return_url = "plugins:netbox_peering_manager:irrsource_list"
+
+
+@register_model_view(IRRSource, "bulk_import", path="import", detail=False)
+class IRRSourceBulkImportView(generic.BulkImportView):
+    queryset = IRRSource.objects.all()
+    model_form = forms.IRRSourceImportForm
+
 
 # Community
 
@@ -592,6 +654,22 @@ class PrefixListDeleteView(generic.ObjectDeleteView):
 class PrefixListBulkImportView(generic.BulkImportView):
     queryset = PrefixList.objects.all()
     model_form = forms.PrefixListImportForm
+
+
+@register_model_view(PrefixList, "sync", path="sync")
+class PrefixListSyncView(View):
+    """Trigger IRR sync for a PrefixList."""
+
+    def post(self, request, pk):
+        prefix_list = get_object_or_404(PrefixList, pk=pk)
+
+        if not prefix_list.is_irr_managed:
+            messages.error(request, "This prefix list is not IRR-managed.")
+            return redirect(prefix_list.get_absolute_url())
+
+        SyncPrefixListJob.enqueue(instance=prefix_list, user=request.user)
+        messages.success(request, f"Sync job enqueued for {prefix_list.name}")
+        return redirect(prefix_list.get_absolute_url())
 
 
 # Prefix List Rule

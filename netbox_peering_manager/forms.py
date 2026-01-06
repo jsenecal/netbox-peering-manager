@@ -41,6 +41,7 @@ from .models import (
     Community,
     CommunityList,
     CommunityListRule,
+    IRRSource,
     PeeringConnection,
     PeeringFabric,
     PeeringFabricType,
@@ -137,6 +138,53 @@ class BFDImportForm(NetBoxModelImportForm):
             "hold_time",
             "tags",
         ]
+
+
+# =============================================================================
+# IRRSource Forms
+# =============================================================================
+
+
+class IRRSourceForm(NetBoxModelForm):
+    slug = SlugField()
+    comments = CommentField()
+
+    class Meta:
+        model = IRRSource
+        fields = ["name", "slug", "url", "sources", "cache_ttl", "sync_interval", "enabled", "description", "tags", "comments"]
+
+
+class IRRSourceFilterForm(NetBoxModelFilterSetForm):
+    model = IRRSource
+    q = forms.CharField(required=False, label="Search")
+    enabled = forms.NullBooleanField(
+        required=False,
+        label=_("Enabled"),
+        widget=forms.Select(choices=[("", "---------"), (True, "Yes"), (False, "No")]),
+    )
+    tag = TagFilterField(model)
+
+
+class IRRSourceBulkEditForm(NetBoxModelBulkEditForm):
+    url = forms.URLField(required=False)
+    sources = forms.CharField(max_length=200, required=False)
+    cache_ttl = forms.IntegerField(required=False, min_value=0)
+    sync_interval = forms.IntegerField(required=False, min_value=1)
+    enabled = forms.NullBooleanField(
+        required=False,
+        label=_("Enabled"),
+        widget=forms.Select(choices=[("", "---------"), (True, "Yes"), (False, "No")]),
+    )
+    description = forms.CharField(max_length=200, required=False)
+
+    model = IRRSource
+    nullable_fields = ["sources", "cache_ttl", "description"]
+
+
+class IRRSourceImportForm(NetBoxModelImportForm):
+    class Meta:
+        model = IRRSource
+        fields = ["name", "slug", "url", "sources", "cache_ttl", "sync_interval", "enabled", "description", "tags"]
 
 
 # =============================================================================
@@ -904,39 +952,72 @@ class RoutingPolicyRuleImportForm(NetBoxModelImportForm):
 class PrefixListFilterForm(NetBoxModelFilterSetForm):
     model = PrefixList
     q = forms.CharField(required=False, label="Search")
-
+    family = forms.MultipleChoiceField(
+        choices=IPAddressFamilyChoices,
+        required=False,
+    )
+    irr_source_id = DynamicModelMultipleChoiceField(
+        queryset=IRRSource.objects.all(),
+        required=False,
+        label="IRR Source",
+    )
     tag = TagFilterField(model)
 
 
 class PrefixListForm(NetBoxModelForm):
+    irr_source = DynamicModelChoiceField(
+        queryset=IRRSource.objects.all(),
+        required=False,
+        label=_("IRR Source"),
+        help_text=_("IRR source for AS-SET queries"),
+    )
     comments = CommentField()
+
+    fieldsets = (
+        FieldSet("name", "description", "family", "tags", name="Prefix List"),
+        FieldSet("source_as_set", "irr_source", name="IRR Sync"),
+    )
 
     class Meta:
         model = PrefixList
-        fields = ["name", "description", "family", "tags", "comments"]
+        fields = ["name", "description", "family", "source_as_set", "irr_source", "tags", "comments"]
 
 
 class PrefixListImportForm(NetBoxModelImportForm):
     family = CSVChoiceField(choices=IPAddressFamilyChoices, required=True, help_text=_("Family address"))
+    irr_source = CSVModelChoiceField(
+        queryset=IRRSource.objects.all(),
+        required=False,
+        to_field_name="name",
+        help_text=_("IRR source for AS-SET queries"),
+    )
 
     class Meta:
         model = PrefixList
-        fields = ("name", "description", "family", "tags")
+        fields = ("name", "description", "family", "source_as_set", "irr_source", "tags")
 
 
 class PrefixListBulkEditForm(NetBoxModelBulkEditForm):
     description = forms.CharField(max_length=200, required=False)
-
     family = forms.ChoiceField(
         label=_("Family"),
         required=False,
         choices=IPAddressFamilyChoices,
     )
+    source_as_set = forms.CharField(
+        max_length=100,
+        required=False,
+        label=_("Source AS-SET"),
+        help_text=_("AS-SET to sync from IRR"),
+    )
+    irr_source = DynamicModelChoiceField(
+        queryset=IRRSource.objects.all(),
+        required=False,
+        label=_("IRR Source"),
+    )
 
     model = PrefixList
-    nullable_fields = [
-        "description",
-    ]
+    nullable_fields = ["description", "source_as_set", "irr_source"]
 
 
 class PrefixListRuleImportForm(NetBoxModelImportForm):

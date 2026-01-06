@@ -9,6 +9,7 @@ from .views import (
     CommunityListRuleViewSet,
     CommunityListViewSet,
     CommunityViewSet,
+    IRRSourceViewSet,
     PeeringConnectionViewSet,
     PeeringFabricTypeViewSet,
     PeeringFabricViewSet,
@@ -25,6 +26,7 @@ router = NetBoxRouter()
 router.APIRootView = RootView
 router.register("relationship", RelationshipViewSet)
 router.register("bfd", BFDViewSet)
+router.register("irr-source", IRRSourceViewSet)
 router.register("session", BGPSessionViewSet, "session")
 router.register("bgpsession", BGPSessionViewSet, "bgpsession")
 router.register("routing-policy", RoutingPolicyViewSet)

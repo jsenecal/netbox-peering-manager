@@ -1,0 +1,88 @@
+{% extends 'generic/object.html' %}
+{% load buttons %}
+{% load custom_links %}
+{% load helpers %}
+{% load plugins %}
+{% load render_table from django_tables2 %}
+
+{% block breadcrumbs %}
+<li class="breadcrumb-item"><a href="{% url 'plugins:netbox_peering_manager:irrsource_list' %}">IRR Sources</a></li>
+{% endblock %}
+
+
+{% block content %}
+<div class="row mb-3">
+    <div class="col-md-6">
+        <div class="card">
+            <h5 class="card-header">
+                IRR Source
+            </h5>
+            <div class="card-body">
+                <table class="table table-hover attr-table">
+                    <tr>
+                        <td>Name</td>
+                        <td>{{ object.name }}</td>
+                    </tr>
+                    <tr>
+                        <td>Slug</td>
+                        <td>{{ object.slug }}</td>
+                    </tr>
+                    <tr>
+                        <td>URL</td>
+                        <td><a href="{{ object.url }}">{{ object.url }}</a></td>
+                    </tr>
+                    <tr>
+                        <td>Sources</td>
+                        <td>{{ object.sources|placeholder }}</td>
+                    </tr>
+                    <tr>
+                        <td>Enabled</td>
+                        <td>{% checkmark object.enabled %}</td>
+                    </tr>
+                    <tr>
+                        <td>Description</td>
+                        <td>{{ object.description|placeholder }}</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+        <div class="card">
+            <h5 class="card-header">
+                Sync Settings
+            </h5>
+            <div class="card-body">
+                <table class="table table-hover attr-table">
+                    <tr>
+                        <td>Cache TTL</td>
+                        <td>{{ object.cache_ttl|default:"Default"|placeholder }} seconds</td>
+                    </tr>
+                    <tr>
+                        <td>Sync Interval</td>
+                        <td>{{ object.sync_interval }} minutes</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+        {% include 'inc/panels/custom_fields.html' %}
+        {% include 'inc/panels/tags.html' %}
+        {% include 'inc/panels/comments.html' %}
+        {% plugin_left_page object %}
+    </div>
+    <div class="col-md-6">
+        {% plugin_right_page object %}
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <h5 class="card-header">
+                Related Prefix Lists
+            </h5>
+            <div class="card-body">
+                {% render_table prefix_lists_table 'inc/table.html' %}
+            </div>
+        </div>
+        {% plugin_full_width_page object %}
+    </div>
+</div>
+{% endblock %}

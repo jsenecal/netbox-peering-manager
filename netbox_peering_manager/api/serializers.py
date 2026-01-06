@@ -3,6 +3,7 @@ from ipam.api.field_serializers import IPNetworkField
 from ipam.api.serializers import ASNSerializer, IPAddressSerializer, PrefixSerializer, VLANSerializer
 from netbox.api.fields import ChoiceField, SerializedPKRelatedField
 from netbox.api.serializers import NetBoxModelSerializer
+from rest_framework import serializers
 from rest_framework.serializers import HyperlinkedIdentityField
 from tenancy.api.serializers import TenantSerializer
 from virtualization.api.serializers import VirtualMachineSerializer
@@ -17,6 +18,7 @@ from netbox_peering_manager.models import (
     Community,
     CommunityList,
     CommunityListRule,
+    IRRSource,
     PeeringConnection,
     PeeringFabric,
     PeeringFabricType,
@@ -111,6 +113,31 @@ class BFDSerializer(NetBoxModelSerializer):
         brief_fields = ("id", "url", "display", "name", "description")
 
 
+class IRRSourceSerializer(NetBoxModelSerializer):
+    url = HyperlinkedIdentityField(view_name="plugins-api:netbox_peering_manager-api:irrsource-detail")
+    api_endpoint = serializers.URLField(source="url", read_only=False)
+
+    class Meta:
+        model = IRRSource
+        fields = (
+            "id",
+            "url",
+            "display",
+            "name",
+            "slug",
+            "description",
+            "api_endpoint",
+            "sources",
+            "cache_ttl",
+            "sync_interval",
+            "enabled",
+            "tags",
+            "custom_fields",
+            "comments",
+        )
+        brief_fields = ("id", "url", "display", "name", "slug", "enabled")
+
+
 class RoutingPolicySerializer(NetBoxModelSerializer):
     url = HyperlinkedIdentityField(view_name="plugins-api:netbox_peering_manager-api:routingpolicy-detail")
 
@@ -131,6 +158,7 @@ class RoutingPolicySerializer(NetBoxModelSerializer):
 
 class PrefixListSerializer(NetBoxModelSerializer):
     url = HyperlinkedIdentityField(view_name="plugins-api:netbox_peering_manager-api:prefixlist-detail")
+    irr_source = IRRSourceSerializer(nested=True, required=False, allow_null=True)
 
     class Meta:
         model = PrefixList
@@ -141,11 +169,13 @@ class PrefixListSerializer(NetBoxModelSerializer):
             "display",
             "description",
             "family",
+            "source_as_set",
+            "irr_source",
             "tags",
             "custom_fields",
             "comments",
         )
-        brief_fields = ("id", "url", "display", "name", "description")
+        brief_fields = ("id", "url", "display", "name", "description", "family")
 
 
 class BGPPeerGroupSerializer(NetBoxModelSerializer):

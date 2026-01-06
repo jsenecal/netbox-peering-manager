@@ -22,6 +22,15 @@ urlpatterns = (
         "bfd/<int:pk>/",
         include(get_model_urls("netbox_peering_manager", "bfd")),
     ),
+    # IRR Sources
+    path(
+        "irr-source/",
+        include(get_model_urls("netbox_peering_manager", "irrsource", detail=False)),
+    ),
+    path(
+        "irr-source/<int:pk>/",
+        include(get_model_urls("netbox_peering_manager", "irrsource")),
+    ),
     # AS Path Lists
     path(
         "aspath-list/",

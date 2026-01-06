@@ -32,7 +32,7 @@ setup(
     url="https://github.com/jsenecal/netbox-peering-manager",
     author="Nikolay Yuzefovich",
     author_email="mgk.kolek@gmail.com",
-    install_requires=[],
+    install_requires=["httpx"],
     packages=find_packages(),
     include_package_data=True,
     classifiers=[

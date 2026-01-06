@@ -12,6 +12,7 @@ from .models import (
     Community,
     CommunityList,
     CommunityListRule,
+    IRRSource,
     PeeringConnection,
     PeeringFabric,
     PeeringFabricType,
@@ -55,6 +56,36 @@ class RelationshipTable(NetBoxTable):
         model = Relationship
         fields = ("pk", "name", "slug", "color", "description", "tags", "actions")
         default_columns = ("pk", "name", "color", "description")
+
+
+# =============================================================================
+# IRRSource Table
+# =============================================================================
+
+
+class IRRSourceTable(NetBoxTable):
+    name = tables.LinkColumn()
+    enabled = BooleanColumn()
+    sync_interval = tables.Column(verbose_name="Sync Interval (min)")
+    prefix_list_count = tables.Column(verbose_name="Prefix Lists")
+    tags = TagColumn(url_name="plugins:netbox_peering_manager:irrsource_list")
+
+    class Meta(NetBoxTable.Meta):
+        model = IRRSource
+        fields = (
+            "pk",
+            "name",
+            "slug",
+            "url",
+            "sources",
+            "sync_interval",
+            "enabled",
+            "prefix_list_count",
+            "description",
+            "tags",
+            "actions",
+        )
+        default_columns = ("pk", "name", "url", "enabled", "sync_interval", "prefix_list_count")
 
 
 # =============================================================================
@@ -254,10 +285,13 @@ class RoutingPolicyRuleTable(NetBoxTable):
 class PrefixListTable(NetBoxTable):
     name = tables.LinkColumn()
     family = ChoiceFieldColumn()
+    source_as_set = tables.Column(verbose_name="AS-SET")
+    irr_source = tables.Column(linkify=True, verbose_name="IRR Source")
 
     class Meta(NetBoxTable.Meta):
         model = PrefixList
-        fields = ("pk", "name", "description", "family", "actions")
+        fields = ("pk", "name", "description", "family", "source_as_set", "irr_source", "actions")
+        default_columns = ("pk", "name", "description", "family", "source_as_set")
 
 
 class PrefixListRuleTable(NetBoxTable):

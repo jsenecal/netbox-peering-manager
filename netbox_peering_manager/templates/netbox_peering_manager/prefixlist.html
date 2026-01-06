@@ -10,6 +10,14 @@
 {% endblock %}
 {% block extra_controls %}
 <div class="pull-right noprint">
+    {% if object.is_irr_managed and perms.netbox_peering_manager.change_prefixlist %}
+    <form method="post" action="{% url 'plugins:netbox_peering_manager:prefixlist_sync' pk=object.pk %}" class="d-inline">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-primary">
+            <span class="mdi mdi-sync" aria-hidden="true"></span> Sync from IRR
+        </button>
+    </form>
+    {% endif %}
     {% if perms.netbox_peering_manager.change_prefixlist %}
     <a href="{% url 'plugins:netbox_peering_manager:prefixlistrule_add' %}?prefix_list={{ object.pk }}" class="btn btn-success">
         <span class="mdi mdi-plus-thick" aria-hidden="true"></span> Rule
@@ -38,6 +46,20 @@
                     <tr>
                         <td>Description</td>
                         <td>{{ object.description|placeholder }}</td>
+                    </tr>
+                    <tr>
+                        <td>IRR Source</td>
+                        <td>
+                            {% if object.irr_source %}
+                            <a href="{{ object.irr_source.get_absolute_url }}">{{ object.irr_source }}</a>
+                            {% else %}
+                            {{ ''|placeholder }}
+                            {% endif %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Source AS-SET</td>
+                        <td>{{ object.source_as_set|placeholder }}</td>
                     </tr>
                 </table>
             </div>
