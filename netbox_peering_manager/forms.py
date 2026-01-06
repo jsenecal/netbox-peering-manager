@@ -1139,6 +1139,11 @@ class PeeringFabricForm(NetBoxModelForm):
         queryset=BGPPeerGroup.objects.all(),
         required=False,
     )
+    peeringdb_ix_id = forms.IntegerField(
+        required=False,
+        label="PeeringDB IX ID",
+        help_text="Enter PeeringDB IX ID to link and enable sync",
+    )
     comments = CommentField()
 
     class Meta:
@@ -1152,9 +1157,30 @@ class PeeringFabricForm(NetBoxModelForm):
             "site",
             "tenant",
             "peer_group",
+            "peeringdb_ix_id",
             "tags",
             "comments",
         ]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Pre-populate peeringdb_ix_id if fabric has PeeringDB link
+        if self.instance and self.instance.pk and hasattr(self.instance, "peeringdb") and self.instance.peeringdb:
+            self.fields["peeringdb_ix_id"].initial = self.instance.peeringdb.ix_id
+
+    def save(self, commit=True):
+        instance = super().save(commit)
+        ix_id = self.cleaned_data.get("peeringdb_ix_id")
+
+        if ix_id:
+            from netbox_peering_manager.services import link_fabric_to_peeringdb
+
+            link_fabric_to_peeringdb(instance, ix_id, sync=False)
+        elif hasattr(instance, "peeringdb") and instance.peeringdb:
+            # Remove link if IX ID cleared
+            instance.peeringdb.delete()
+
+        return instance
 
 
 class PeeringFabricFilterForm(NetBoxModelFilterSetForm):
