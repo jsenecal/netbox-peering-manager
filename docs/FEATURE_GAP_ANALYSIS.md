@@ -8,9 +8,9 @@ netbox-peering-manager is a NetBox plugin that leverages NetBox's existing infra
 
 **Key Advantage of netbox-peering-manager:** Tight integration with NetBox eliminates data duplication and provides a single source of truth for network infrastructure.
 
-**Key Gaps:** PeeringDB integration, configuration templating, and session state monitoring.
+**Key Gaps:** Configuration templating and session state monitoring.
 
-**Recently Completed:** Internet Exchange support via Peering Fabric models (Phase 2), IRR prefix list synchronization (Phase 1.5).
+**Recently Completed:** PeeringDB selective sync integration (Phase 3), Internet Exchange support via Peering Fabric models (Phase 2), IRR prefix list synchronization (Phase 1.5).
 
 ---
 
@@ -58,7 +58,7 @@ netbox-peering-manager is a NetBox plugin that leverages NetBox's existing infra
 | **Peer Groups** |
 | Basic Peer Groups | ✅ BGPGroup | ✅ BGPPeerGroup | ✅ Equivalent |
 | **External Integrations** |
-| PeeringDB Sync | ✅ Full | ❌ Missing | 🔴 Gap |
+| PeeringDB Sync | ✅ Full | ✅ Selective sync | ✅ Implemented |
 | IRR Integration | ✅ | ✅ IRRSource + PrefixList sync | ✅ Implemented |
 | IX-API | ✅ | ❌ Missing | 🟡 Future |
 | NetBox Integration | ✅ Reference only | ✅ Native | ✅ Better |
@@ -140,21 +140,32 @@ BGPSession (extended)
 2. Create a `PeerASN` model that extends/references `ipam.ASN`
 3. Request upstream NetBox changes
 
-### 3. PeeringDB Integration (HIGH PRIORITY)
+### 3. PeeringDB Integration ✅ COMPLETED
 
-**Current State:** No PeeringDB integration.
+**Current State:** Selective sync approach implemented - only sync IXes you're connected to.
 
-**Required Features:**
-- Sync AS information (name, IRR AS-SET, max prefixes)
-- Discover available peers at IXes
-- Import IX information and peering LANs
-- Periodic sync via background jobs
+**Implemented Features:**
+- `PeeringFabricPeeringDB` - One-to-one complement model storing IX metadata from PeeringDB
+- `PeeringNetworkPeeringDB` - One-to-one complement model storing IXLAN metadata
+- `PeeringDBPeer` - Cached peer data for discovery at each fabric
+- `PeeringDBClient` - API client with tenacity retry logic (3 attempts, exponential backoff)
+- `PeeringDBSyncService` - Orchestrates sync operations with SyncResult tracking
+- Management command: `sync_peeringdb` with `--fabric`, `--ix-id`, `--discover-only` options
+- Views for searching PeeringDB IXes, creating fabrics from PeeringDB, syncing
+- API serializers with nested PeeringDB info
+- AJAX-powered IX search in UI
 
-**Implementation Approach:**
-- Use `peeringdb` Python library
-- Create management commands for sync
-- Add background job support (NetBox's job framework)
-- Store PeeringDB IDs on relevant models
+**Configuration:**
+```python
+PLUGINS_CONFIG = {
+    'netbox_peering_manager': {
+        'peeringdb_url': None,           # Falls back to default
+        'peeringdb_api_key': None,       # Optional for contact info
+        'peeringdb_timeout': None,       # Falls back to 30s
+        'peeringdb_local_asns': [],      # Your ASN(s) for filtering
+    }
+}
+```
 
 ### 4. MD5 Password Support (MEDIUM PRIORITY)
 
@@ -259,20 +270,25 @@ BGPSession (extended)
 - [x] Add initializer support
 - [x] Write tests
 
-### Phase 3: PeeringDB Integration
+### Phase 3: PeeringDB Integration ✅ COMPLETED
 
 **Priority:** HIGH
 **Estimated Effort:** Medium
 
+**Design Decision:** Selective sync approach - only sync IXes you're connected to, not the entire PeeringDB database. This enables peer discovery without the overhead of full data caching.
+
 **Tasks:**
-- [ ] Add peeringdb library dependency
-- [ ] Create PeeringDB sync service
-- [ ] Add `peeringdb_id` field to InternetExchange
-- [ ] Create management command: `sync_peeringdb`
-- [ ] Add background job for periodic sync
-- [ ] Sync AS information to custom fields or PeerASN model
-- [ ] Discover IX peers feature
-- [ ] UI for triggering sync and viewing status
+- [x] Add plugin configuration for PeeringDB (url, api_key, timeout, local_asns)
+- [x] Create PeeringDB complement models (PeeringFabricPeeringDB, PeeringNetworkPeeringDB, PeeringDBPeer)
+- [x] Create PeeringDB exception classes
+- [x] Create PeeringDB API client with tenacity retry logic
+- [x] Create PeeringDB sync service with SyncResult tracking
+- [x] Create management command: `sync_peeringdb` (--fabric, --ix-id, --discover-only)
+- [x] Discover IX peers feature via PeeringDBPeer cache
+- [x] UI for searching PeeringDB IXes and triggering sync
+- [x] Create fabric from PeeringDB view
+- [x] API serializers with nested PeeringDB info
+- [x] Tests for PeeringDB client and sync service
 
 ### Phase 4: Session Security & Policy Enhancements
 
@@ -374,8 +390,8 @@ BGPSession (extended)
 ## Dependencies and Prerequisites
 
 ### External Libraries
-- `tenacity` - Retry logic for IRR queries ✅ Added
-- `peeringdb` - PeeringDB API client (Phase 3)
+- `tenacity` - Retry logic for IRR queries and PeeringDB API ✅ Added
+- `requests` - HTTP client for PeeringDB REST API (already in NetBox) ✅ Used
 - `napalm` - Device connectivity (Phase 7)
 
 ### NetBox Version Requirements
