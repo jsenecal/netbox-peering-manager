@@ -75,8 +75,40 @@
                         <td>Description</td>
                         <td>{{ object.description|placeholder }}</td>
                     </tr>
+                    {% if object.peeringdb %}
+                    <tr>
+                        <th scope="row">PeeringDB IX ID</th>
+                        <td>
+                            <a href="https://www.peeringdb.com/ix/{{ object.peeringdb.ix_id }}" target="_blank">
+                                {{ object.peeringdb.ix_id }}
+                            </a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">PeeringDB Name</th>
+                        <td>{{ object.peeringdb.name|placeholder }}</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">PeeringDB Location</th>
+                        <td>{{ object.peeringdb.city }}, {{ object.peeringdb.country }}</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Last Sync</th>
+                        <td>{{ object.peeringdb.last_sync|placeholder }}</td>
+                    </tr>
+                    {% endif %}
                 </table>
             </div>
+            {% if object.peeringdb %}
+            <div class="card-footer">
+                <form method="post" action="{% url 'plugins:netbox_peering_manager:peeringfabric_sync_peeringdb' pk=object.pk %}" style="display: inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-primary btn-sm">
+                        <i class="mdi mdi-sync"></i> Sync from PeeringDB
+                    </button>
+                </form>
+            </div>
+            {% endif %}
         </div>
         {% include 'inc/panels/custom_fields.html' %}
         {% include 'inc/panels/tags.html' %}

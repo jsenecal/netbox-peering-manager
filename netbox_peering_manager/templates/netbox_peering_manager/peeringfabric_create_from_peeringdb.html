@@ -1,0 +1,77 @@
+{% extends 'generic/object_edit.html' %}
+{% load form_helpers %}
+
+{% block title %}Create Peering Fabric from PeeringDB{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8 offset-md-2">
+        <div class="card">
+            <h5 class="card-header">Search PeeringDB</h5>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="peeringdb-search" class="form-label">Search for Internet Exchange</label>
+                        <input type="text" class="form-control" id="peeringdb-search" placeholder="Type IX name...">
+                    </div>
+                    <div id="search-results" class="mb-3" style="display: none;">
+                        <label class="form-label">Select IX</label>
+                        <div id="results-list"></div>
+                    </div>
+                    <input type="hidden" name="ix_id" id="selected-ix-id">
+                    <button type="submit" class="btn btn-primary" id="submit-btn" disabled>Create Fabric</button>
+                    <a href="{% url 'plugins:netbox_peering_manager:peeringfabric_list' %}" class="btn btn-secondary">Cancel</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('peeringdb-search');
+    const resultsDiv = document.getElementById('search-results');
+    const resultsList = document.getElementById('results-list');
+    const selectedIxId = document.getElementById('selected-ix-id');
+    const submitBtn = document.getElementById('submit-btn');
+    let debounceTimer;
+
+    searchInput.addEventListener('input', function() {
+        clearTimeout(debounceTimer);
+        const query = this.value.trim();
+
+        if (query.length < 2) {
+            resultsDiv.style.display = 'none';
+            return;
+        }
+
+        debounceTimer = setTimeout(function() {
+            fetch(`{% url 'plugins:netbox_peering_manager:peeringdb_ix_search' %}?q=${encodeURIComponent(query)}`)
+                .then(response => response.json())
+                .then(data => {
+                    resultsList.innerHTML = '';
+                    if (data.results && data.results.length > 0) {
+                        data.results.forEach(ix => {
+                            const btn = document.createElement('button');
+                            btn.type = 'button';
+                            btn.className = 'btn btn-outline-secondary btn-sm m-1';
+                            btn.textContent = ix.text;
+                            btn.onclick = function() {
+                                selectedIxId.value = ix.id;
+                                submitBtn.disabled = false;
+                                document.querySelectorAll('#results-list button').forEach(b => b.classList.remove('active'));
+                                this.classList.add('active');
+                            };
+                            resultsList.appendChild(btn);
+                        });
+                        resultsDiv.style.display = 'block';
+                    } else {
+                        resultsDiv.style.display = 'none';
+                    }
+                });
+        }, 300);
+    });
+});
+</script>
+{% endblock %}
