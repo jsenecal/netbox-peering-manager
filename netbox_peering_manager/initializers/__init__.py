@@ -8,6 +8,6 @@ try:
     from .relationships import RelationshipInitializer
     from .routing_policies import RoutingPolicyInitializer
     from .sessions import BGPSessionInitializer
-except ImportError:
-    # netbox-initializers not installed
+except (ImportError, Exception):
+    # netbox-initializers not installed or database not ready
     pass

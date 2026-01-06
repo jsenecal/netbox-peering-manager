@@ -509,7 +509,6 @@ class PeeringFabricSerializer(NetBoxModelSerializer):
             "description",
             "type",
             "status",
-            "peeringdb_id",
             "site",
             "tenant",
             "peer_group",

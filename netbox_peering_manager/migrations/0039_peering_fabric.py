@@ -9,10 +9,10 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('dcim', '0201_virtual_chassis_member_ordering'),
-        ('extras', '0122_charfield_null_choices'),
-        ('ipam', '0078_ipaddress_assigned_object_type'),
-        ('tenancy', '0016_charfield_null_choices'),
+        ('dcim', '0215_rackreservation_status'),
+        ('extras', '0133_make_cf_minmax_decimal'),
+        ('ipam', '0083_vlangroup_populate_total_vlan_ids'),
+        ('tenancy', '0020_remove_contactgroupmembership'),
         ('netbox_peering_manager', '0038_alter_bfd_hold_time_alter_relationship_color'),
     ]
 

@@ -344,7 +344,6 @@ class PeeringFabricTable(NetBoxTable):
             "status",
             "site",
             "tenant",
-            "peeringdb_id",
             "network_count",
             "tags",
             "actions",

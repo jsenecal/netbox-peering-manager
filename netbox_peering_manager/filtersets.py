@@ -56,7 +56,14 @@ class RelationshipFilterSet(NetBoxModelFilterSet):
 class BFDFilterSet(NetBoxModelFilterSet):
     class Meta:
         model = BFD
-        fields = ("id", "name", "description", "minimum_transmit_interval", "minimum_receive_interval", "detect_multiplier")
+        fields = (
+            "id",
+            "name",
+            "description",
+            "minimum_transmit_interval",
+            "minimum_receive_interval",
+            "detect_multiplier",
+        )
 
     def search(self, queryset, _name, value):
         """Perform the filtered search."""
@@ -474,7 +481,7 @@ class PeeringFabricFilterSet(NetBoxModelFilterSet, TenancyFilterSet):
 
     class Meta:
         model = PeeringFabric
-        fields = ("id", "name", "slug", "status", "peeringdb_id")
+        fields = ("id", "name", "slug", "status")
 
     def search(self, queryset, _name, value):
         if not value.strip():

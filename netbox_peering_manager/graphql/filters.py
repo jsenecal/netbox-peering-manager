@@ -249,7 +249,6 @@ class NetBoxBGPPeeringFabricFilter(TenancyFilterMixin, NetBoxModelFilterMixin):
     status: Annotated["NetBoxBGPPeeringStatusEnum", strawberry.lazy("netbox_peering_manager.graphql.enums")] | None = (
         strawberry_django.filter_field()
     )
-    peeringdb_id: FilterLookup[int] | None = strawberry_django.filter_field()
     type: (
         Annotated["NetBoxBGPPeeringFabricTypeFilter", strawberry.lazy("netbox_peering_manager.graphql.filters")] | None
     ) = strawberry_django.filter_field()

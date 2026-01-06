@@ -216,7 +216,6 @@ class PeeringFabricGraphQLType(NetBoxObjectType):
     slug: str
     description: str
     status: str
-    peeringdb_id: int | None
     type: Annotated["PeeringFabricTypeType", strawberry.lazy("netbox_peering_manager.graphql.types")] | None
     site: Annotated["SiteType", strawberry.lazy("dcim.graphql.types")] | None
     tenant: Annotated["TenantType", strawberry.lazy("tenancy.graphql.types")] | None
@@ -232,7 +231,9 @@ class PeeringNetworkGraphQLType(NetBoxObjectType):
     fabric: Annotated["PeeringFabricGraphQLType", strawberry.lazy("netbox_peering_manager.graphql.types")]
     prefix: Annotated["PrefixType", strawberry.lazy("ipam.graphql.types")]
     vlan: Annotated["VLANType", strawberry.lazy("ipam.graphql.types")] | None
-    connections: list[Annotated["PeeringConnectionGraphQLType", strawberry.lazy("netbox_peering_manager.graphql.types")]]
+    connections: list[
+        Annotated["PeeringConnectionGraphQLType", strawberry.lazy("netbox_peering_manager.graphql.types")]
+    ]
 
 
 @strawberry_django.type(PeeringConnection, fields="__all__", filters=NetBoxBGPPeeringConnectionFilter)

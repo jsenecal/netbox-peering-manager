@@ -151,7 +151,18 @@ class IRRSourceForm(NetBoxModelForm):
 
     class Meta:
         model = IRRSource
-        fields = ["name", "slug", "url", "sources", "cache_ttl", "sync_interval", "enabled", "description", "tags", "comments"]
+        fields = [
+            "name",
+            "slug",
+            "url",
+            "sources",
+            "cache_ttl",
+            "sync_interval",
+            "enabled",
+            "description",
+            "tags",
+            "comments",
+        ]
 
 
 class IRRSourceFilterForm(NetBoxModelFilterSetForm):
@@ -1138,7 +1149,6 @@ class PeeringFabricForm(NetBoxModelForm):
             "description",
             "type",
             "status",
-            "peeringdb_id",
             "site",
             "tenant",
             "peer_group",
@@ -1192,7 +1202,7 @@ class PeeringFabricBulkEditForm(NetBoxModelBulkEditForm):
     description = forms.CharField(max_length=200, required=False)
 
     model = PeeringFabric
-    nullable_fields = ["type", "site", "tenant", "description", "peeringdb_id"]
+    nullable_fields = ["type", "site", "tenant", "description"]
 
 
 class PeeringFabricImportForm(NetBoxModelImportForm):
@@ -1215,7 +1225,7 @@ class PeeringFabricImportForm(NetBoxModelImportForm):
 
     class Meta:
         model = PeeringFabric
-        fields = ["name", "slug", "description", "type", "status", "peeringdb_id", "site", "tenant"]
+        fields = ["name", "slug", "description", "type", "status", "site", "tenant"]
 
 
 # =============================================================================

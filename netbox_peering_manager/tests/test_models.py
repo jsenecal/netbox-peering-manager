@@ -186,7 +186,6 @@ class PeeringFabricTestCase(TestCase):
             type=self.fabric_type,
             site=self.site,
             tenant=self.tenant,
-            peeringdb_id=26,
         )
 
     def test_create_fabric(self):
