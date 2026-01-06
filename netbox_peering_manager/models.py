@@ -15,6 +15,44 @@ from .choices import (
 )
 
 
+class IRRSource(NetBoxModel):
+    """
+    Configuration for an IRR query source (fastbgpq4 instance).
+    """
+
+    name = models.CharField(max_length=100, unique=True)
+    slug = models.SlugField(max_length=100, unique=True)
+    url = models.URLField(help_text="fastbgpq4 API base URL (e.g., http://fastbgpq4:8000)")
+    sources = models.CharField(
+        max_length=200,
+        blank=True,
+        help_text="Comma-separated IRR sources (e.g., RIPE,RADB,ARIN). Leave blank for default.",
+    )
+    cache_ttl = models.PositiveIntegerField(
+        null=True,
+        blank=True,
+        help_text="Override default cache TTL in seconds",
+    )
+    sync_interval = models.PositiveIntegerField(
+        default=1440,
+        help_text="Minutes between automatic syncs (default: 1440 = 24 hours)",
+    )
+    enabled = models.BooleanField(default=True)
+    description = models.CharField(max_length=200, blank=True)
+    comments = models.TextField(blank=True)
+
+    class Meta:
+        ordering = ["name"]
+        verbose_name = "IRR Source"
+        verbose_name_plural = "IRR Sources"
+
+    def __str__(self):
+        return self.name
+
+    def get_absolute_url(self):
+        return reverse("plugins:netbox_peering_manager:irrsource", args=[self.pk])
+
+
 class Relationship(NetBoxModel):
     """
     Defines the type of BGP session relationship (e.g., transit, customer, peer, IXP).
@@ -456,6 +494,19 @@ class PrefixList(NetBoxModel):
     description = models.CharField(max_length=200, blank=True)
     family = models.CharField(max_length=10, choices=IPAddressFamilyChoices)
     comments = models.TextField(blank=True)
+    source_as_set = models.CharField(
+        max_length=100,
+        blank=True,
+        help_text="AS-SET to sync from IRR (e.g., AS-HURRICANE). When set, rules are managed by IRR sync.",
+    )
+    irr_source = models.ForeignKey(
+        to="IRRSource",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="prefix_lists",
+        help_text="IRR source for AS-SET queries",
+    )
 
     class Meta:
         verbose_name_plural = "Prefix Lists"
@@ -467,6 +518,18 @@ class PrefixList(NetBoxModel):
 
     def get_absolute_url(self):
         return reverse("plugins:netbox_peering_manager:prefixlist", args=[self.pk])
+
+    def clean(self):
+        super().clean()
+        if self.source_as_set and not self.irr_source:
+            raise ValidationError({"irr_source": "IRR source is required when source_as_set is specified."})
+        if self.irr_source and not self.source_as_set:
+            raise ValidationError({"source_as_set": "Source AS-SET is required when IRR source is specified."})
+
+    @property
+    def is_irr_managed(self):
+        """Return True if this PrefixList is managed by IRR sync."""
+        return bool(self.source_as_set and self.irr_source)
 
 
 class PrefixListRule(NetBoxModel):
