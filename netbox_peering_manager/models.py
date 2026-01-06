@@ -124,11 +124,6 @@ class PeeringFabric(NetBoxModel):
         choices=PeeringStatusChoices,
         default=PeeringStatusChoices.STATUS_ACTIVE,
     )
-    peeringdb_id = models.PositiveIntegerField(
-        blank=True,
-        null=True,
-        help_text="PeeringDB IX ID for integration",
-    )
     site = models.ForeignKey(
         to="dcim.Site",
         on_delete=models.SET_NULL,
@@ -215,6 +210,122 @@ class PeeringNetwork(NetBoxModel):
 
     def get_status_color(self):
         return PeeringStatusChoices.colors.get(self.status)
+
+
+class PeeringFabricPeeringDB(models.Model):
+    """PeeringDB metadata for a PeeringFabric - populated by sync."""
+
+    fabric = models.OneToOneField(
+        to="PeeringFabric",
+        on_delete=models.CASCADE,
+        related_name="peeringdb",
+    )
+    ix_id = models.PositiveIntegerField(
+        unique=True,
+        help_text="PeeringDB IX ID",
+    )
+    name = models.CharField(max_length=200, blank=True)
+    city = models.CharField(max_length=100, blank=True)
+    country = models.CharField(
+        max_length=2,
+        blank=True,
+        help_text="ISO 3166-1 alpha-2 country code",
+    )
+    website = models.URLField(blank=True)
+    tech_email = models.EmailField(blank=True)
+    last_sync = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "PeeringDB Info"
+        verbose_name_plural = "PeeringDB Info"
+
+    def __str__(self):
+        return f"PeeringDB:{self.ix_id} ({self.name})"
+
+
+class PeeringNetworkPeeringDB(models.Model):
+    """PeeringDB IXLAN metadata for a PeeringNetwork - populated by sync."""
+
+    network = models.OneToOneField(
+        to="PeeringNetwork",
+        on_delete=models.CASCADE,
+        related_name="peeringdb",
+    )
+    ixlan_id = models.PositiveIntegerField(
+        unique=True,
+        help_text="PeeringDB IXLAN ID",
+    )
+    name = models.CharField(max_length=200, blank=True)
+    mtu = models.PositiveIntegerField(null=True, blank=True)
+    rs_asn = models.PositiveBigIntegerField(
+        null=True,
+        blank=True,
+        help_text="Route server ASN",
+    )
+    dot1q_support = models.BooleanField(default=False)
+    last_sync = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "PeeringDB IXLAN Info"
+        verbose_name_plural = "PeeringDB IXLAN Info"
+
+    def __str__(self):
+        return f"PeeringDB IXLAN:{self.ixlan_id}"
+
+
+class PeeringDBPeer(models.Model):
+    """
+    Cached peer presence at a fabric - refreshed on sync.
+
+    Each record represents a unique network connection at an exchange,
+    identified by the combination of fabric, ASN, and IP addresses.
+    At least one IP address (IPv4 or IPv6) must be provided.
+    """
+
+    fabric = models.ForeignKey(
+        to="PeeringFabric",
+        on_delete=models.CASCADE,
+        related_name="peeringdb_peers",
+    )
+    asn = models.PositiveBigIntegerField()
+    name = models.CharField(max_length=200)
+    ipv4_addr = models.GenericIPAddressField(
+        protocol="IPv4",
+        null=True,
+        blank=True,
+    )
+    ipv6_addr = models.GenericIPAddressField(
+        protocol="IPv6",
+        null=True,
+        blank=True,
+    )
+    is_rs_peer = models.BooleanField(
+        default=False,
+        help_text="Route server peer",
+    )
+    speed = models.PositiveIntegerField(
+        default=0,
+        help_text="Port speed in Mbps",
+    )
+    last_updated = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        # Note: unique_together with nullable fields allows NULL duplicates in SQL.
+        # The clean() method ensures at least one IP is always present,
+        # making the constraint effective.
+        unique_together = ["fabric", "asn", "ipv4_addr", "ipv6_addr"]
+        verbose_name = "PeeringDB Peer"
+        verbose_name_plural = "PeeringDB Peers"
+        ordering = ["asn", "name"]
+
+    def __str__(self):
+        return f"AS{self.asn} - {self.name}"
+
+    def clean(self):
+        super().clean()
+        if not self.ipv4_addr and not self.ipv6_addr:
+            msg = "At least one IP address (IPv4 or IPv6) must be provided."
+            raise ValidationError(msg)
 
 
 class PeeringConnection(NetBoxModel):
