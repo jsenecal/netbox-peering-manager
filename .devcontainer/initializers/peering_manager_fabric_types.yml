@@ -1,0 +1,22 @@
+## Peering Manager - Peering Fabric Types
+## Classifies different types of peering environments
+
+- name: Internet Exchange
+  slug: internet-exchange
+  description: Public Internet Exchange Point
+  color: 2196f3
+
+- name: Cloud Exchange
+  slug: cloud-exchange
+  description: Cloud provider peering fabric (AWS, Azure, GCP, etc.)
+  color: ff9800
+
+- name: Private Peering LAN
+  slug: private-peering-lan
+  description: Private peering between specific parties
+  color: 4caf50
+
+- name: Carrier Neutral Facility
+  slug: cnf
+  description: Meet-me room or carrier neutral facility peering
+  color: 9c27b0

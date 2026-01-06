@@ -8,7 +8,9 @@ netbox-peering-manager is a NetBox plugin that leverages NetBox's existing infra
 
 **Key Advantage of netbox-peering-manager:** Tight integration with NetBox eliminates data duplication and provides a single source of truth for network infrastructure.
 
-**Key Gaps:** Internet Exchange management, PeeringDB integration, configuration templating, and session state monitoring.
+**Key Gaps:** PeeringDB integration, configuration templating, and session state monitoring.
+
+**Recently Completed:** Internet Exchange support via Peering Fabric models (Phase 2), IRR prefix list synchronization (Phase 1.5).
 
 ---
 
@@ -33,9 +35,9 @@ netbox-peering-manager is a NetBox plugin that leverages NetBox's existing infra
 | Service Reference | ✅ | ✅ | ✅ Implemented |
 | Enabled Flag | ✅ | ✅ | ✅ Implemented |
 | **Internet Exchanges** |
-| IX Model | ✅ | ❌ Missing | 🔴 Gap |
-| IX Connections | ✅ | ❌ Missing | 🔴 Gap |
-| IX Peering LAN | ✅ | ❌ Missing | 🔴 Gap |
+| IX Model | ✅ | ✅ PeeringFabric + PeeringFabricType | ✅ Implemented |
+| IX Connections | ✅ | ✅ PeeringConnection | ✅ Implemented |
+| IX Peering LAN | ✅ | ✅ PeeringNetwork | ✅ Implemented |
 | **Routing Policy** |
 | Basic Policies | ✅ | ✅ | ✅ Equivalent |
 | Policy Rules | ✅ | ✅ | ✅ Equivalent |
@@ -57,7 +59,7 @@ netbox-peering-manager is a NetBox plugin that leverages NetBox's existing infra
 | Basic Peer Groups | ✅ BGPGroup | ✅ BGPPeerGroup | ✅ Equivalent |
 | **External Integrations** |
 | PeeringDB Sync | ✅ Full | ❌ Missing | 🔴 Gap |
-| IRR Integration | ✅ | ❌ Missing | 🔴 Gap |
+| IRR Integration | ✅ | ✅ IRRSource + PrefixList sync | ✅ Implemented |
 | IX-API | ✅ | ❌ Missing | 🟡 Future |
 | NetBox Integration | ✅ Reference only | ✅ Native | ✅ Better |
 | **Configuration Management** |
@@ -80,40 +82,47 @@ netbox-peering-manager is a NetBox plugin that leverages NetBox's existing infra
 
 ## Detailed Gap Analysis
 
-### 1. Internet Exchange Management (HIGH PRIORITY)
+### 1. Internet Exchange Management ✅ COMPLETED
 
-**Current State:** No IX-specific models exist.
+**Current State:** Fully implemented via Peering Fabric models.
 
-**Peering Manager Features:**
-- `InternetExchange` model with name, slug, status, PeeringDB ID, local AS
-- `Connection` model for IX port details (VLAN, MAC, IPv4/IPv6, router, interface)
-- `InternetExchangePeeringSession` for IX-based BGP sessions
-- Route server session support
+**Implementation:**
+- `PeeringFabricType` - Classifies fabric types (IX, Cloud Exchange, Private LAN)
+- `PeeringFabric` - Represents IX or peering environment with PeeringDB ID support
+- `PeeringNetwork` - Specific peering LAN with prefix and VLAN
+- `PeeringConnection` - Router interface attachment to peering network
+- `BGPSession.peering_network` - Optional link to peering network for IX sessions
 
-**Required Implementation:**
+**Model Structure:**
 
 ```
-InternetExchange
-├── name, slug, status
-├── local_as (FK to ipam.ASN)
-├── peeringdb_id
-├── import_policies, export_policies
+PeeringFabricType
+├── name, slug, description, color
+
+PeeringFabric
+├── name, slug, description
+├── type (FK to PeeringFabricType)
+├── status, peeringdb_id
+├── site (FK to dcim.Site)
+├── tenant (FK to tenancy.Tenant)
+├── peer_group (FK to BGPPeerGroup)
 └── comments, tags
 
-IXConnection
-├── internet_exchange (FK)
-├── router (FK to dcim.Device)
-├── interface (FK to dcim.Interface)
-├── vlan (int)
-├── mac_address
-├── ipv4_address, ipv6_address (FK to ipam.IPAddress)
-└── status
+PeeringNetwork
+├── fabric (FK to PeeringFabric)
+├── name, status, description
+├── prefix (FK to ipam.Prefix)
+├── vlan (FK to ipam.VLAN)
+└── comments, tags
 
-IXPeeringSession (extends BGPSession or separate)
-├── internet_exchange (FK)
-├── connection (FK to IXConnection)
-├── is_route_server (bool)
-└── ... standard session fields
+PeeringConnection
+├── peering_network (FK to PeeringNetwork)
+├── interface (FK to dcim.Interface)
+├── status, description
+└── device (property from interface)
+
+BGPSession (extended)
+└── peering_network (optional FK to PeeringNetwork)
 ```
 
 ### 2. ASN Enhancements (MEDIUM PRIORITY)
@@ -213,27 +222,42 @@ IXPeeringSession (extends BGPSession or separate)
 - [x] API and GraphQL support
 - [x] Migrations
 
-### Phase 2: Internet Exchange Support
+### Phase 1.5: IRR Prefix List Sync ✅ COMPLETED
+
+- [x] IRRSource model for configuring IRR servers (RADB, RIPE, etc.)
+- [x] Automatic prefix list synchronization from IRR AS-SETs
+- [x] Background job support for periodic sync
+- [x] Tenacity retry logic for resilient IRR queries
+- [x] Filtersets for IRRSource and PrefixList
+- [x] API and GraphQL support
+
+### Phase 2: Internet Exchange Support ✅ COMPLETED
 
 **Priority:** HIGH
 **Estimated Effort:** Large
 
-**Models to create:**
-1. `InternetExchange` - IX definition
-2. `IXConnection` - Physical/logical connection to IX
-3. `IXPeeringSession` - BGP session over IX (or extend BGPSession)
+**Models created:**
+1. `PeeringFabricType` - Classification of fabric types (IX, Cloud Exchange, etc.)
+2. `PeeringFabric` - Peering environment (IX, cloud exchange, private LAN)
+3. `PeeringNetwork` - Specific peering LAN within a fabric
+4. `PeeringConnection` - Router attachment to a peering network
+
+**Design Decision:** Extended `BGPSession` with optional `peering_network` field instead of creating a separate `IXPeeringSession` model. This provides flexibility while maintaining a single session model.
 
 **Tasks:**
-- [ ] Design and create InternetExchange model
-- [ ] Design and create IXConnection model
-- [ ] Decide: separate IXPeeringSession vs extending BGPSession
-- [ ] Create forms, tables, filtersets, views
-- [ ] Create API serializers and viewsets
-- [ ] Create GraphQL types
-- [ ] Add navigation menu items
-- [ ] Create migrations
-- [ ] Add initializer support
-- [ ] Write tests
+- [x] Design and create PeeringFabricType model
+- [x] Design and create PeeringFabric model
+- [x] Design and create PeeringNetwork model
+- [x] Design and create PeeringConnection model
+- [x] Extend BGPSession with peering_network field
+- [x] Create forms, tables, filtersets, views
+- [x] Create API serializers and viewsets
+- [x] Create GraphQL types
+- [x] Add navigation menu items
+- [x] Create migrations
+- [x] Add URL patterns
+- [x] Add initializer support
+- [x] Write tests
 
 ### Phase 3: PeeringDB Integration
 
@@ -349,8 +373,9 @@ IXPeeringSession (extends BGPSession or separate)
 
 ## Dependencies and Prerequisites
 
-### External Libraries to Add
-- `peeringdb` - PeeringDB API client
+### External Libraries
+- `tenacity` - Retry logic for IRR queries ✅ Added
+- `peeringdb` - PeeringDB API client (Phase 3)
 - `napalm` - Device connectivity (Phase 7)
 
 ### NetBox Version Requirements

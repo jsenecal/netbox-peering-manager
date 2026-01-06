@@ -1,0 +1,37 @@
+## Peering Manager - Peering Fabrics
+## Example Internet Exchanges and peering environments
+## Note: Requires peering_manager_fabric_types.yml to be loaded first
+
+- name: AMS-IX
+  slug: ams-ix
+  description: Amsterdam Internet Exchange
+  type: Internet Exchange
+  status: active
+  peeringdb_id: 26
+
+- name: DE-CIX Frankfurt
+  slug: de-cix-fra
+  description: DE-CIX Frankfurt Internet Exchange
+  type: Internet Exchange
+  status: active
+  peeringdb_id: 31
+
+- name: LINX LON1
+  slug: linx-lon1
+  description: London Internet Exchange - Juniper LAN
+  type: Internet Exchange
+  status: active
+  peeringdb_id: 18
+
+- name: Equinix Ashburn
+  slug: eqix-ash
+  description: Equinix IX Ashburn
+  type: Internet Exchange
+  status: active
+  peeringdb_id: 1
+
+- name: AWS Direct Connect
+  slug: aws-dx
+  description: AWS Direct Connect peering fabric
+  type: Cloud Exchange
+  status: active

@@ -130,4 +130,40 @@ urlpatterns = (
         "prefix-list-rule/<int:pk>/",
         include(get_model_urls("netbox_peering_manager", "prefixlistrule")),
     ),
+    # Peering Fabric Types
+    path(
+        "peering-fabric-type/",
+        include(get_model_urls("netbox_peering_manager", "peeringfabrictype", detail=False)),
+    ),
+    path(
+        "peering-fabric-type/<int:pk>/",
+        include(get_model_urls("netbox_peering_manager", "peeringfabrictype")),
+    ),
+    # Peering Fabrics
+    path(
+        "peering-fabric/",
+        include(get_model_urls("netbox_peering_manager", "peeringfabric", detail=False)),
+    ),
+    path(
+        "peering-fabric/<int:pk>/",
+        include(get_model_urls("netbox_peering_manager", "peeringfabric")),
+    ),
+    # Peering Networks
+    path(
+        "peering-network/",
+        include(get_model_urls("netbox_peering_manager", "peeringnetwork", detail=False)),
+    ),
+    path(
+        "peering-network/<int:pk>/",
+        include(get_model_urls("netbox_peering_manager", "peeringnetwork")),
+    ),
+    # Peering Connections
+    path(
+        "peering-connection/",
+        include(get_model_urls("netbox_peering_manager", "peeringconnection", detail=False)),
+    ),
+    path(
+        "peering-connection/<int:pk>/",
+        include(get_model_urls("netbox_peering_manager", "peeringconnection")),
+    ),
 )

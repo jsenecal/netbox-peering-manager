@@ -1,0 +1,25 @@
+## Peering Manager - Peering Networks
+## Specific peering LANs within peering fabrics
+## Note: Requires peering_manager_fabrics.yml and prefixes to be loaded first
+## Prefix references must match existing prefixes in NetBox
+
+# Example peering networks - customize based on your actual IX connections
+# Uncomment and modify as needed
+
+# - fabric: AMS-IX
+#   name: AMS-IX Peering LAN I
+#   prefix: 80.249.208.0/21
+#   status: active
+#   description: Primary AMS-IX peering LAN
+
+# - fabric: DE-CIX Frankfurt
+#   name: DE-CIX Peering LAN
+#   prefix: 80.81.192.0/21
+#   status: active
+#   description: DE-CIX Frankfurt peering LAN
+
+# - fabric: LINX LON1
+#   name: LINX Juniper LAN
+#   prefix: 195.66.224.0/21
+#   status: active
+#   description: LINX LON1 Juniper peering LAN
