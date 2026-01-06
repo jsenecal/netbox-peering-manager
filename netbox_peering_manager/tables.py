@@ -14,6 +14,7 @@ from .models import (
     CommunityListRule,
     IRRSource,
     PeeringConnection,
+    PeeringDBPeer,
     PeeringFabric,
     PeeringFabricType,
     PeeringNetwork,
@@ -332,6 +333,10 @@ class PeeringFabricTable(NetBoxTable):
     site = tables.Column(linkify=True)
     tenant = tables.Column(linkify=True)
     network_count = tables.Column(verbose_name="Networks")
+    peeringdb_linked = BooleanColumn(
+        accessor="peeringdb",
+        verbose_name="PeeringDB",
+    )
     tags = TagColumn(url_name="plugins:netbox_peering_manager:peeringfabric_list")
 
     class Meta(NetBoxTable.Meta):
@@ -345,10 +350,11 @@ class PeeringFabricTable(NetBoxTable):
             "site",
             "tenant",
             "network_count",
+            "peeringdb_linked",
             "tags",
             "actions",
         )
-        default_columns = ("pk", "name", "type", "status", "site", "network_count")
+        default_columns = ("pk", "name", "type", "status", "site", "network_count", "peeringdb_linked")
 
 
 class PeeringNetworkTable(NetBoxTable):
@@ -397,3 +403,22 @@ class PeeringConnectionTable(NetBoxTable):
             "actions",
         )
         default_columns = ("pk", "peering_network", "device", "interface", "status")
+
+
+# =============================================================================
+# PeeringDB Peer Table
+# =============================================================================
+
+
+class PeeringDBPeerTable(NetBoxTable):
+    asn = tables.Column()
+    name = tables.Column()
+    ipv4_addr = tables.Column(verbose_name="IPv4")
+    ipv6_addr = tables.Column(verbose_name="IPv6")
+    speed = tables.Column(verbose_name="Speed (Mbps)")
+    is_rs_peer = BooleanColumn(verbose_name="RS Peer")
+
+    class Meta(NetBoxTable.Meta):
+        model = PeeringDBPeer
+        fields = ("asn", "name", "ipv4_addr", "ipv6_addr", "speed", "is_rs_peer")
+        default_columns = ("asn", "name", "ipv4_addr", "ipv6_addr", "speed", "is_rs_peer")
