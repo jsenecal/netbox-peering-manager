@@ -1,6 +1,8 @@
 from django.urls import include, path
 from utilities.urls import get_model_urls
 
+from . import views
+
 app_name = "netbox_peering_manager"
 
 urlpatterns = (
@@ -165,5 +167,26 @@ urlpatterns = (
     path(
         "peering-connection/<int:pk>/",
         include(get_model_urls("netbox_peering_manager", "peeringconnection")),
+    ),
+    # PeeringDB Integration
+    path(
+        "peeringdb/search/",
+        views.PeeringDBIXSearchView.as_view(),
+        name="peeringdb_ix_search",
+    ),
+    path(
+        "peering-fabric/create-from-peeringdb/",
+        views.PeeringFabricCreateFromPeeringDBView.as_view(),
+        name="peeringfabric_create_from_peeringdb",
+    ),
+    path(
+        "peering-fabric/<int:pk>/sync-peeringdb/",
+        views.PeeringFabricSyncPeeringDBView.as_view(),
+        name="peeringfabric_sync_peeringdb",
+    ),
+    path(
+        "peering-fabric/<int:pk>/create-session-from-peer/<int:peer_pk>/",
+        views.CreateSessionFromPeerView.as_view(),
+        name="peeringfabric_create_session_from_peer",
     ),
 )
