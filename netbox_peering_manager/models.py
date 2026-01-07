@@ -2,6 +2,7 @@ from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.urls import reverse
+from ipam.choices import IPAddressFamilyChoices as CoreIPAddressFamilyChoices
 from ipam.fields import IPNetworkField
 from netbox.models import NetBoxModel
 from utilities.fields import ColorField
@@ -489,10 +490,22 @@ class RoutingPolicy(NetBoxModel):
     description = models.CharField(max_length=200, blank=True)
     comments = models.TextField(blank=True)
 
+    # Phase 4: Policy enhancements
+    weight = models.PositiveIntegerField(
+        default=0,
+        help_text="Higher weight policies are evaluated first",
+    )
+    address_family = models.PositiveSmallIntegerField(
+        choices=CoreIPAddressFamilyChoices,
+        blank=True,
+        null=True,
+        help_text="Restrict policy to specific address family",
+    )
+
     class Meta:
         verbose_name_plural = "Routing Policies"
         unique_together = ["name", "description"]
-        ordering = ["name"]
+        ordering = ["-weight", "name"]
 
     def __str__(self):
         return self.name
