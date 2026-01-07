@@ -15,6 +15,7 @@ from netbox_peering_manager.models import (
     Community,
     CommunityList,
     CommunityListRule,
+    PeerASN,
     PrefixList,
     PrefixListRule,
     RoutingPolicy,
@@ -214,6 +215,46 @@ class BGPPeerGroupAPITestCase(
         BGPPeerGroup.objects.bulk_create(peer_groups)
 
 
+class PeerASNAPITestCase(
+    APIViewTestCases.GetObjectViewTestCase,
+    APIViewTestCases.ListObjectsViewTestCase,
+    APIViewTestCases.CreateObjectViewTestCase,
+    APIViewTestCases.UpdateObjectViewTestCase,
+    APIViewTestCases.DeleteObjectViewTestCase,
+    APIViewTestCases.GraphQLTestCase,
+):
+    model = PeerASN
+    view_namespace = "plugins-api:netbox_peering_manager"
+    brief_fields = ["affiliated", "asn", "display", "id", "url"]
+    graphql_base_name = "netbox_peering_manager_peer_asn"
+
+    bulk_update_data = {
+        "affiliated": True,
+    }
+    user_permissions = ["ipam.view_asn"]
+
+    @classmethod
+    def setUpTestData(cls):
+        rir = RIR.objects.create(name="Test RIR API", slug="test-rir-api")
+        asns = [
+            ASN.objects.create(asn=65100, rir=rir),
+            ASN.objects.create(asn=65101, rir=rir),
+            ASN.objects.create(asn=65102, rir=rir),
+            ASN.objects.create(asn=65103, rir=rir),
+            ASN.objects.create(asn=65104, rir=rir),
+            ASN.objects.create(asn=65105, rir=rir),
+        ]
+        PeerASN.objects.create(asn=asns[0])
+        PeerASN.objects.create(asn=asns[1])
+        PeerASN.objects.create(asn=asns[2])
+
+        cls.create_data = [
+            {"asn": asns[3].pk},
+            {"asn": asns[4].pk},
+            {"asn": asns[5].pk},
+        ]
+
+
 class BGPSessionAPITestCase(
     APIViewTestCases.GetObjectViewTestCase,
     APIViewTestCases.ListObjectsViewTestCase,
@@ -230,7 +271,7 @@ class BGPSessionAPITestCase(
     bulk_update_data = {
         "description": "Test BGP session desc",
     }
-    user_permissions = ["ipam.view_ipaddress", "ipam.view_asn"]
+    user_permissions = ["ipam.view_ipaddress", "ipam.view_asn", "netbox_peering_manager.view_peerasn"]
 
     @classmethod
     def setUpTestData(cls):
@@ -248,7 +289,8 @@ class BGPSessionAPITestCase(
         intf.ip_addresses.add(local_ip)
         rir = RIR.objects.create(name="rir")
         local_as = ASN.objects.create(asn=65002, rir=rir, description="local_as")
-        remote_as = ASN.objects.create(asn=65003, rir=rir, description="remote_as")
+        remote_as_asn = ASN.objects.create(asn=65003, rir=rir, description="remote_as")
+        remote_as = PeerASN.objects.create(asn=remote_as_asn)
         peer_group = BGPPeerGroup.objects.create(name="peer_group", description="peer_group_description")
         rp = RoutingPolicy.objects.create(name="rp1", description="test_rp", comments="comments_routing_policy")
         pl1 = PrefixList.objects.create(
@@ -651,7 +693,8 @@ class RenderConfigAPITest(APITestCase):
 
         rir = RIR.objects.create(name="RIPE NCC", slug="ripe-ncc")
         local_asn = ASN.objects.create(asn=65000, rir=rir)
-        peer_asn = ASN.objects.create(asn=65001, rir=rir)
+        peer_asn_asn = ASN.objects.create(asn=65001, rir=rir)
+        peer_asn = PeerASN.objects.create(asn=peer_asn_asn)
         local_ip = IPAddress.objects.create(address="10.0.0.1/30")
         remote_ip = IPAddress.objects.create(address="10.0.0.2/30")
 
