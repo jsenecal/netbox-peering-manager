@@ -42,6 +42,7 @@ from .models import (
     CommunityList,
     CommunityListRule,
     IRRSource,
+    PeerASN,
     PeeringConnection,
     PeeringFabric,
     PeeringFabricType,
@@ -85,6 +86,78 @@ class RelationshipImportForm(NetBoxModelImportForm):
     class Meta:
         model = Relationship
         fields = ["name", "slug", "description", "color", "tags"]
+
+
+# =============================================================================
+# Peer ASN Forms
+# =============================================================================
+
+
+class PeerASNForm(NetBoxModelForm):
+    asn = DynamicModelChoiceField(
+        queryset=ASN.objects.all(),
+        help_text="Select the NetBox ASN to extend",
+    )
+    comments = CommentField()
+
+    class Meta:
+        model = PeerASN
+        fields = [
+            "asn",
+            "affiliated",
+            "irr_as_set",
+            "ipv4_max_prefixes",
+            "ipv6_max_prefixes",
+            "peeringdb_id",
+            "tags",
+            "comments",
+        ]
+
+
+class PeerASNFilterForm(NetBoxModelFilterSetForm):
+    model = PeerASN
+    q = forms.CharField(required=False, label="Search")
+    affiliated = forms.NullBooleanField(
+        required=False,
+        widget=forms.Select(
+            choices=[
+                ("", "---------"),
+                ("true", "Yes"),
+                ("false", "No"),
+            ]
+        ),
+    )
+    tag = TagFilterField(model)
+
+
+class PeerASNBulkEditForm(NetBoxModelBulkEditForm):
+    affiliated = forms.NullBooleanField(required=False)
+    irr_as_set = forms.CharField(max_length=100, required=False)
+    ipv4_max_prefixes = forms.IntegerField(required=False, min_value=0)
+    ipv6_max_prefixes = forms.IntegerField(required=False, min_value=0)
+
+    model = PeerASN
+    nullable_fields = ["irr_as_set", "ipv4_max_prefixes", "ipv6_max_prefixes", "peeringdb_id"]
+
+
+class PeerASNImportForm(NetBoxModelImportForm):
+    asn = CSVModelChoiceField(
+        queryset=ASN.objects.all(),
+        to_field_name="asn",
+        help_text="ASN number",
+    )
+
+    class Meta:
+        model = PeerASN
+        fields = [
+            "asn",
+            "affiliated",
+            "irr_as_set",
+            "ipv4_max_prefixes",
+            "ipv6_max_prefixes",
+            "peeringdb_id",
+            "tags",
+        ]
 
 
 # =============================================================================
@@ -369,7 +442,11 @@ class BGPSessionForm(NetBoxModelForm):
         query_params={"site_id": "$site"},
         label=_("Local AS"),
     )
-    remote_as = DynamicModelChoiceField(queryset=ASN.objects.all(), label=_("Remote AS"))
+    remote_as = DynamicModelChoiceField(
+        queryset=PeerASN.objects.all(),
+        help_text="Peer ASN for this session",
+        label=_("Remote AS"),
+    )
     local_address = DynamicModelChoiceField(
         queryset=IPAddress.objects.all(),
         query_params={"device_id": "$device"},
@@ -549,8 +626,8 @@ class BGPSessionImportForm(NetBoxModelImportForm):
         help_text=_("Local ASN"),
     )
     remote_as = CSVModelChoiceField(
-        queryset=ASN.objects.all(),
-        to_field_name="asn",
+        queryset=PeerASN.objects.all(),
+        to_field_name="asn__asn",
         help_text=_("Remote ASN"),
     )
     peer_group = CSVModelChoiceField(
@@ -628,7 +705,7 @@ class BGPSessionImportForm(NetBoxModelImportForm):
 class BGPSessionFilterForm(NetBoxModelFilterSetForm):
     model = BGPSession
     q = forms.CharField(required=False, label="Search")
-    remote_as_id = DynamicModelMultipleChoiceField(queryset=ASN.objects.all(), required=False, label=_("Remote AS"))
+    remote_as_id = DynamicModelMultipleChoiceField(queryset=PeerASN.objects.all(), required=False, label=_("Remote AS"))
     local_as_id = DynamicModelMultipleChoiceField(queryset=ASN.objects.all(), required=False, label=_("Local AS"))
     by_local_address = forms.CharField(required=False, label="Local Address")
     by_remote_address = forms.CharField(required=False, label="Remote Address")
@@ -714,7 +791,7 @@ class BGPSessionBulkEditForm(NetBoxModelBulkEditForm):
     description = forms.CharField(label=_("Description"), max_length=200, required=False)
     tenant = DynamicModelChoiceField(label=_("Tenant"), queryset=Tenant.objects.all(), required=False)
     local_as = DynamicModelChoiceField(queryset=ASN.objects.all(), required=False)
-    remote_as = DynamicModelChoiceField(queryset=ASN.objects.all(), required=False)
+    remote_as = DynamicModelChoiceField(queryset=PeerASN.objects.all(), required=False)
     relationship = DynamicModelChoiceField(
         queryset=Relationship.objects.all(),
         required=False,
