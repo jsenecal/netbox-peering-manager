@@ -352,21 +352,27 @@ class RoutingPolicyAPITestCase(
             "name": "test_routing_policy",
             "description": "routing_policy_desc",
             "comments": "routing_policy_comment1",
+            "weight": 100,
+            "address_family": 4,
         },
         {
             "name": "test_routing_policy2",
             "description": "routing_policy_desc2",
             "comments": "routing_policy_comment2",
+            "weight": 200,
+            "address_family": 6,
         },
         {
             "name": "test_routing_policy3",
             "description": "routing_policy_desc3",
             "comments": "routing_policy_comment3",
+            "weight": 50,
         },
     ]
 
     bulk_update_data = {
         "description": "Test Routing policy desc",
+        "weight": 150,
     }
 
     @classmethod
