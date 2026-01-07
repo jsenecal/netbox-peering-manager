@@ -10,7 +10,7 @@ netbox-peering-manager is a NetBox plugin that leverages NetBox's existing infra
 
 **Key Gaps:** Configuration templating and session state monitoring.
 
-**Recently Completed:** PeeringDB selective sync integration (Phase 3), Internet Exchange support via Peering Fabric models (Phase 2), IRR prefix list synchronization (Phase 1.5).
+**Recently Completed:** Session security and policy enhancements (Phase 4), PeeringDB selective sync integration (Phase 3), Internet Exchange support via Peering Fabric models (Phase 2), IRR prefix list synchronization (Phase 1.5).
 
 ---
 
@@ -31,7 +31,7 @@ netbox-peering-manager is a NetBox plugin that leverages NetBox's existing infra
 | Relationship Types | ✅ | ✅ | ✅ Implemented |
 | BFD Configuration | ✅ | ✅ | ✅ Implemented |
 | Multihop TTL | ✅ | ✅ | ✅ Implemented |
-| MD5 Password | ✅ | ❌ Missing | 🔴 Gap |
+| MD5 Password | ✅ | ✅ | ✅ Implemented |
 | Service Reference | ✅ | ✅ | ✅ Implemented |
 | Enabled Flag | ✅ | ✅ | ✅ Implemented |
 | **Internet Exchanges** |
@@ -41,14 +41,14 @@ netbox-peering-manager is a NetBox plugin that leverages NetBox's existing infra
 | **Routing Policy** |
 | Basic Policies | ✅ | ✅ | ✅ Equivalent |
 | Policy Rules | ✅ | ✅ | ✅ Equivalent |
-| Policy Type (in/out) | ✅ | ❌ Missing | 🟡 Enhancement |
-| Policy Weight | ✅ | ❌ Missing | 🟡 Enhancement |
-| Address Family | ✅ | ❌ Missing | 🟡 Enhancement |
+| Policy Type (in/out) | ✅ | N/A | Skipped (YAGNI) |
+| Policy Weight | ✅ | ✅ | ✅ Implemented |
+| Address Family | ✅ | ✅ | ✅ Implemented |
 | **BGP Communities** |
 | Basic Communities | ✅ | ✅ | ✅ Equivalent |
 | Community Lists | ✅ | ✅ | ✅ Equivalent |
 | Community Type | ✅ ingress/egress | ❌ Missing | 🟡 Enhancement |
-| Value Validation | ✅ RFC format | ❌ Basic regex | 🟡 Enhancement |
+| Value Validation | ✅ RFC format | ✅ RFC format | ✅ Implemented |
 | **Prefix Lists** |
 | Basic Prefix Lists | ✅ | ✅ | ✅ Equivalent |
 | Prefix List Rules | ✅ | ✅ | ✅ Equivalent |
@@ -167,23 +167,24 @@ PLUGINS_CONFIG = {
 }
 ```
 
-### 4. MD5 Password Support (MEDIUM PRIORITY)
+### 4. MD5 Password Support ✅ COMPLETED
 
-**Current State:** No password field on BGPSession.
+**Current State:** Implemented with encrypted storage.
 
-**Required:**
-- `password` field (encrypted storage)
-- Support for both plaintext and encrypted formats
-- Integration with NetBox's secrets framework or custom encryption
+**Implementation:**
+- `password` field on BGPSession using NetBox's encrypted storage
+- Secure storage and retrieval via NetBox's secrets framework
 
-### 5. Routing Policy Enhancements (LOW PRIORITY)
+### 5. Routing Policy Enhancements (PARTIALLY COMPLETED)
 
-**Current State:** Basic name/description only.
+**Current State:** Weight field added for evaluation order.
 
-**Missing Fields:**
-- `type` - ingress or egress
+**Implemented:**
 - `weight` - Evaluation order (higher = first)
-- `address_family` - IPv4, IPv6, or both
+
+**Skipped/Deferred:**
+- `type` (ingress/egress) - Not needed; handled by M2M relationship names (import_policies, export_policies)
+- `address_family` - Deferred to future need
 
 ### 6. Community Enhancements (LOW PRIORITY)
 
@@ -290,19 +291,22 @@ PLUGINS_CONFIG = {
 - [x] API serializers with nested PeeringDB info
 - [x] Tests for PeeringDB client and sync service
 
-### Phase 4: Session Security & Policy Enhancements
+### Phase 4: Session Security & Policy Enhancements ✅ COMPLETED
 
 **Priority:** MEDIUM
 **Estimated Effort:** Medium
 
 **Tasks:**
-- [ ] Add `password` field to BGPSession (encrypted)
-- [ ] Add `type` (ingress/egress) to RoutingPolicy
-- [ ] Add `weight` to RoutingPolicy
-- [ ] Add `address_family` to RoutingPolicy
-- [ ] Add `type` to Community
-- [ ] Enhance community value validation (RFC formats)
-- [ ] Update forms and API
+- [x] Add `password` field to BGPSession (plain CharField for MD5 auth)
+- [x] Add `weight` field to RoutingPolicy (for evaluation ordering)
+- [x] Add `address_family` field to RoutingPolicy (IPv4/IPv6/null)
+- [x] Enhanced Community validation (RFC-compliant: standard, large, extended formats)
+- [x] Migrate PrefixList.family to NetBox core IPAddressFamilyChoices (integers 4/6)
+- [x] Update forms, tables, filtersets, API serializers, GraphQL types
+
+**Skipped (YAGNI):**
+- Policy `type` (ingress/egress) - handled by M2M relationship names (import_policies, export_policies)
+- Community `type` - usage context determines application
 
 ### Phase 5: Configuration Templating
 
