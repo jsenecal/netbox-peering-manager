@@ -10,7 +10,6 @@ from utilities.fields import ColorField
 from .choices import (
     ActionChoices,
     CommunityStatusChoices,
-    IPAddressFamilyChoices,
     PeeringStatusChoices,
     SessionStatusChoices,
 )
@@ -622,7 +621,7 @@ class PrefixList(NetBoxModel):
 
     name = models.CharField(max_length=100)
     description = models.CharField(max_length=200, blank=True)
-    family = models.CharField(max_length=10, choices=IPAddressFamilyChoices)
+    family = models.PositiveSmallIntegerField(choices=CoreIPAddressFamilyChoices)
     comments = models.TextField(blank=True)
     source_as_set = models.CharField(
         max_length=100,
