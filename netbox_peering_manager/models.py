@@ -81,6 +81,71 @@ class Relationship(NetBoxModel):
         return reverse("plugins:netbox_peering_manager:relationship", args=[self.pk])
 
 
+class PeerASN(NetBoxModel):
+    """
+    Extended ASN information for BGP peers.
+    Stores peering-specific data that doesn't belong on the core NetBox ASN model.
+    """
+
+    asn = models.OneToOneField(
+        to="ipam.ASN",
+        on_delete=models.CASCADE,
+        related_name="peer_asn",
+        help_text="NetBox ASN this extends",
+    )
+    affiliated = models.BooleanField(
+        default=False,
+        help_text="ASN is operated by your organization (subsidiary, partner)",
+    )
+    irr_as_set = models.CharField(
+        max_length=100,
+        blank=True,
+        help_text="IRR AS-SET name, e.g., AS-CUSTOMER or RIPE::AS-EXAMPLE",
+    )
+    ipv4_max_prefixes = models.PositiveIntegerField(
+        null=True,
+        blank=True,
+        help_text="Maximum IPv4 prefixes to accept",
+    )
+    ipv6_max_prefixes = models.PositiveIntegerField(
+        null=True,
+        blank=True,
+        help_text="Maximum IPv6 prefixes to accept",
+    )
+    peeringdb_id = models.PositiveIntegerField(
+        null=True,
+        blank=True,
+        unique=True,
+        help_text="PeeringDB Network ID",
+    )
+    peeringdb_last_sync = models.DateTimeField(
+        null=True,
+        blank=True,
+    )
+    comments = models.TextField(blank=True)
+
+    class Meta:
+        ordering = ["asn__asn"]
+        verbose_name = "Peer ASN"
+        verbose_name_plural = "Peer ASNs"
+
+    def __str__(self):
+        return f"AS{self.asn.asn}"
+
+    def get_absolute_url(self):
+        return reverse("plugins:netbox_peering_manager:peerasn", args=[self.pk])
+
+    @property
+    def asn_number(self):
+        """Convenience property to get the ASN number."""
+        return self.asn.asn
+
+    @property
+    def name(self):
+        """Get the ASN description/name from the linked ASN."""
+        return self.asn.description or f"AS{self.asn.asn}"
+
+
 class PeeringFabricType(NetBoxModel):
     """
     Organizational model for classifying peering fabric types.
