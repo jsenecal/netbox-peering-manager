@@ -146,6 +146,8 @@ class BGPPeerGroupType(NetBoxObjectType):
 class RoutingPolicyType(NetBoxObjectType):
     name: str
     description: str
+    weight: int
+    address_family: int | None
     rules: list[Annotated["RoutingPolicyRuleType", strawberry.lazy("netbox_peering_manager.graphql.types")]]
 
 
