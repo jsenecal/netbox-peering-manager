@@ -15,6 +15,7 @@ from netbox_peering_manager.models import (
     CommunityList,
     CommunityListRule,
     IRRSource,
+    PeerASN,
     PeeringConnection,
     PeeringFabric,
     PeeringFabricType,
@@ -35,6 +36,7 @@ from .filters import (
     NetBoxBGPCommunityListFilter,
     NetBoxBGPCommunityListRuleFilter,
     NetBoxBGPIRRSourceFilter,
+    NetBoxBGPPeerASNFilter,
     NetBoxBGPPeeringConnectionFilter,
     NetBoxBGPPeeringFabricFilter,
     NetBoxBGPPeeringFabricTypeFilter,
@@ -81,6 +83,17 @@ class IRRSourceType(NetBoxObjectType):
     prefix_lists: list[Annotated["PrefixListType", strawberry.lazy("netbox_peering_manager.graphql.types")]]
 
 
+@strawberry_django.type(PeerASN, fields="__all__", filters=NetBoxBGPPeerASNFilter)
+class PeerASNType(NetBoxObjectType):
+    asn: Annotated["ASNType", strawberry.lazy("ipam.graphql.types")]
+    affiliated: bool
+    irr_as_set: str
+    ipv4_max_prefixes: int | None
+    ipv6_max_prefixes: int | None
+    peeringdb_id: int | None
+    sessions: list[Annotated["BGPSessionType", strawberry.lazy("netbox_peering_manager.graphql.types")]]
+
+
 @strawberry_django.type(ASPathList, fields="__all__", filters=NetBoxBGPASPathListFilter)
 class ASPathListType(NetBoxObjectType):
     name: str
@@ -116,7 +129,7 @@ class BGPSessionType(NetBoxObjectType):
     local_address: Annotated["IPAddressType", strawberry.lazy("ipam.graphql.types")]
     remote_address: Annotated["IPAddressType", strawberry.lazy("ipam.graphql.types")]
     local_as: Annotated["ASNType", strawberry.lazy("ipam.graphql.types")]
-    remote_as: Annotated["ASNType", strawberry.lazy("ipam.graphql.types")]
+    remote_as: Annotated["PeerASNType", strawberry.lazy("netbox_peering_manager.graphql.types")]
     status: str
     enabled: bool
     description: str

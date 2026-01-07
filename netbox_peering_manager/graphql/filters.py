@@ -26,6 +26,7 @@ from netbox_peering_manager.models import (
     CommunityList,
     CommunityListRule,
     IRRSource,
+    PeerASN,
     PeeringConnection,
     PeeringFabric,
     PeeringFabricType,
@@ -41,6 +42,7 @@ __all__ = (
     "NetBoxBGPRelationshipFilter",
     "NetBoxBGPBFDFilter",
     "NetBoxBGPIRRSourceFilter",
+    "NetBoxBGPPeerASNFilter",
     "NetBoxBGPCommunityFilter",
     "NetBoxBGPSessionFilter",
     "NetBoxBGPBGPPeerGroupFilter",
@@ -80,6 +82,15 @@ class NetBoxBGPIRRSourceFilter(NetBoxModelFilterMixin):
     enabled: FilterLookup[bool] | None = strawberry_django.filter_field()
 
 
+@strawberry_django.filter_type(PeerASN, lookups=True)
+class NetBoxBGPPeerASNFilter(NetBoxModelFilterMixin):
+    affiliated: FilterLookup[bool] | None = strawberry_django.filter_field()
+    irr_as_set: FilterLookup[str] | None = strawberry_django.filter_field()
+    peeringdb_id: FilterLookup[int] | None = strawberry_django.filter_field()
+    asn: Annotated["ASNFilter", strawberry.lazy("ipam.graphql.filters")] | None = strawberry_django.filter_field()
+    asn_id: ID | None = strawberry_django.filter_field()
+
+
 @strawberry_django.filter_type(ASPathList, lookups=True)
 class NetBoxBGPASPathListFilter(NetBoxModelFilterMixin):
     name: FilterLookup[str] | None = strawberry_django.filter_field()
@@ -116,7 +127,9 @@ class NetBoxBGPSessionFilter(TenancyFilterMixin, NetBoxModelFilterMixin):
     )
     enabled: FilterLookup[bool] | None = strawberry_django.filter_field()
 
-    remote_as: Annotated["ASNFilter", strawberry.lazy("ipam.graphql.filters")] | None = strawberry_django.filter_field()
+    remote_as: Annotated["NetBoxBGPPeerASNFilter", strawberry.lazy("netbox_peering_manager.graphql.filters")] | None = (
+        strawberry_django.filter_field()
+    )
     remote_as_id: ID | None = strawberry_django.filter_field()
 
     local_as: Annotated["ASNFilter", strawberry.lazy("ipam.graphql.filters")] | None = strawberry_django.filter_field()
