@@ -8,3 +8,5 @@ build
 *.env
 !.env.example
 .devcontainer/home/
+# Claude Code settings
+.claude/
