@@ -20,6 +20,7 @@ from .models import (
     CommunityList,
     CommunityListRule,
     IRRSource,
+    PeerASN,
     PeeringConnection,
     PeeringFabric,
     PeeringFabricType,
@@ -464,6 +465,31 @@ class PrefixListRuleFilterSet(NetBoxModelFilterSet):
             | Q(prefix_list_id__icontains=value)
         )
         return queryset.filter(qs_filter)
+
+
+# =============================================================================
+# PeerASN FilterSet
+# =============================================================================
+
+
+class PeerASNFilterSet(NetBoxModelFilterSet):
+    asn_id = django_filters.ModelMultipleChoiceFilter(
+        queryset=ASN.objects.all(),
+        label="ASN",
+    )
+    affiliated = django_filters.BooleanFilter()
+    peeringdb_id = django_filters.NumberFilter()
+
+    class Meta:
+        model = PeerASN
+        fields = ["id", "affiliated", "irr_as_set", "peeringdb_id"]
+
+    def search(self, queryset, _name, value):
+        if not value.strip():
+            return queryset
+        return queryset.filter(
+            Q(asn__asn__icontains=value) | Q(asn__description__icontains=value) | Q(irr_as_set__icontains=value)
+        )
 
 
 # =============================================================================

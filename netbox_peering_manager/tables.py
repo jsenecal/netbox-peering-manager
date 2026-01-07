@@ -13,6 +13,7 @@ from .models import (
     CommunityList,
     CommunityListRule,
     IRRSource,
+    PeerASN,
     PeeringConnection,
     PeeringDBPeer,
     PeeringFabric,
@@ -314,6 +315,48 @@ class PrefixListRuleTable(NetBoxTable):
     class Meta(NetBoxTable.Meta):
         model = PrefixListRule
         fields = ("pk", "prefix_list", "index", "action", "network", "ge", "le")
+
+
+# =============================================================================
+# PeerASN Table
+# =============================================================================
+
+
+class PeerASNTable(NetBoxTable):
+    asn = tables.Column(linkify=True, verbose_name="ASN")
+    affiliated = BooleanColumn()
+    ipv4_max_prefixes = tables.Column(verbose_name="IPv4 Max Prefixes")
+    ipv6_max_prefixes = tables.Column(verbose_name="IPv6 Max Prefixes")
+    peeringdb_id = tables.Column(verbose_name="PeeringDB ID")
+    session_count = tables.Column(
+        verbose_name="Sessions",
+        accessor="sessions__count",
+        orderable=False,
+    )
+    tags = TagColumn()
+
+    class Meta(NetBoxTable.Meta):
+        model = PeerASN
+        fields = (
+            "pk",
+            "id",
+            "asn",
+            "affiliated",
+            "irr_as_set",
+            "ipv4_max_prefixes",
+            "ipv6_max_prefixes",
+            "peeringdb_id",
+            "session_count",
+            "tags",
+        )
+        default_columns = (
+            "asn",
+            "affiliated",
+            "irr_as_set",
+            "ipv4_max_prefixes",
+            "ipv6_max_prefixes",
+            "session_count",
+        )
 
 
 # =============================================================================
