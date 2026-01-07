@@ -800,7 +800,12 @@ class BGPSession(NetBoxModel):
     local_address = models.ForeignKey(to="ipam.IPAddress", on_delete=models.PROTECT, related_name="local_address")
     remote_address = models.ForeignKey(to="ipam.IPAddress", on_delete=models.PROTECT, related_name="remote_address")
     local_as = models.ForeignKey(to="ipam.ASN", on_delete=models.PROTECT, related_name="local_as")
-    remote_as = models.ForeignKey(to="ipam.ASN", on_delete=models.PROTECT, related_name="remote_as")
+    remote_as = models.ForeignKey(
+        to="PeerASN",
+        on_delete=models.PROTECT,
+        related_name="sessions",
+        help_text="Peer ASN for this session",
+    )
     status = models.CharField(max_length=50, choices=SessionStatusChoices, default=SessionStatusChoices.STATUS_ACTIVE)
     description = models.CharField(max_length=200, blank=True)
     peer_group = models.ForeignKey(BGPPeerGroup, on_delete=models.SET_NULL, blank=True, null=True)
