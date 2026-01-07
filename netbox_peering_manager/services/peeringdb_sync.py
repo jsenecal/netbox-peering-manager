@@ -8,6 +8,7 @@ from django.utils import timezone
 from ipam.models import Prefix
 
 from netbox_peering_manager.models import (
+    PeerASN,
     PeeringDBPeer,
     PeeringFabric,
     PeeringFabricPeeringDB,
@@ -97,6 +98,41 @@ class PeeringDBSyncService:
             logger.warning(f"Sync completed with errors for {fabric.name}: {result.errors}")
 
         return result
+
+    def sync_peer_asn(self, peer_asn: PeerASN) -> bool:
+        """
+        Sync PeerASN data from PeeringDB.
+
+        Fetches network info from PeeringDB by ASN and updates
+        the PeerASN record with prefix limits, IRR AS-SET, etc.
+
+        Args:
+            peer_asn: The PeerASN to sync.
+
+        Returns:
+            True if sync successful, False otherwise.
+        """
+        from netbox_peering_manager.services.exceptions import PeeringDBNotFoundError
+
+        try:
+            network = self.client.get_network(peer_asn.asn.asn)
+
+            peer_asn.peeringdb_id = network["id"]
+            peer_asn.ipv4_max_prefixes = network.get("info_prefixes4")
+            peer_asn.ipv6_max_prefixes = network.get("info_prefixes6")
+            peer_asn.irr_as_set = network.get("irr_as_set", "") or ""
+            peer_asn.peeringdb_last_sync = timezone.now()
+            peer_asn.save()
+
+            logger.info(f"Synced PeerASN {peer_asn} from PeeringDB (network ID: {network['id']})")
+            return True
+
+        except PeeringDBNotFoundError:
+            logger.warning(f"No PeeringDB network found for AS{peer_asn.asn.asn}")
+            return False
+        except Exception as e:
+            logger.error(f"Failed to sync PeerASN {peer_asn}: {e}")
+            return False
 
     def _sync_ix_details(self, fabric: PeeringFabric, ix_id: int, result: SyncResult) -> None:
         """
