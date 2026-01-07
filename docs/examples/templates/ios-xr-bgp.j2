@@ -5,6 +5,10 @@
    - sessions: List of BGP session objects
    - peer_groups: List of peer group objects
    - routing_policies: List of routing policy objects
+
+   Note: IOS-XR only allows ONE route-policy per direction per neighbor.
+   If multiple policies are needed, chain them within a single RPL policy.
+   This template uses the highest-weight policy for each direction.
 #}
 
 !! BGP Configuration for {{ device.name }}
@@ -12,7 +16,7 @@
 !! Site: {{ device.site.name }}
 
 router bgp {{ sessions[0].local_asn if sessions else 'LOCAL_ASN' }}
- bgp router-id {{ device.name }}
+ bgp router-id {{ device.primary_ip4.address.ip | default('10.0.0.1') }}
 !
 {% for session in sessions %}
 {% if session.enabled %}
@@ -39,66 +43,46 @@ router bgp {{ sessions[0].local_asn if sessions else 'LOCAL_ASN' }}
 {% if afi_safi == 'ipv4-unicast' %}
   address-family ipv4 unicast
 {% if session.import_policies %}
-{% for policy in session.import_policies | sort(attribute='weight', reverse=True) %}
-   route-policy {{ policy.name }} in
-{% endfor %}
+   route-policy {{ session.import_policies | sort(attribute='weight', reverse=True) | first | attr('name') }} in
 {% endif %}
 {% if session.export_policies %}
-{% for policy in session.export_policies | sort(attribute='weight', reverse=True) %}
-   route-policy {{ policy.name }} out
-{% endfor %}
+   route-policy {{ session.export_policies | sort(attribute='weight', reverse=True) | first | attr('name') }} out
 {% endif %}
   !
 {% elif afi_safi == 'ipv6-unicast' %}
   address-family ipv6 unicast
 {% if session.import_policies %}
-{% for policy in session.import_policies | sort(attribute='weight', reverse=True) %}
-   route-policy {{ policy.name }} in
-{% endfor %}
+   route-policy {{ session.import_policies | sort(attribute='weight', reverse=True) | first | attr('name') }} in
 {% endif %}
 {% if session.export_policies %}
-{% for policy in session.export_policies | sort(attribute='weight', reverse=True) %}
-   route-policy {{ policy.name }} out
-{% endfor %}
+   route-policy {{ session.export_policies | sort(attribute='weight', reverse=True) | first | attr('name') }} out
 {% endif %}
   !
 {% elif afi_safi == 'l3vpn-ipv4-unicast' %}
   address-family vpnv4 unicast
 {% if session.import_policies %}
-{% for policy in session.import_policies | sort(attribute='weight', reverse=True) %}
-   route-policy {{ policy.name }} in
-{% endfor %}
+   route-policy {{ session.import_policies | sort(attribute='weight', reverse=True) | first | attr('name') }} in
 {% endif %}
 {% if session.export_policies %}
-{% for policy in session.export_policies | sort(attribute='weight', reverse=True) %}
-   route-policy {{ policy.name }} out
-{% endfor %}
+   route-policy {{ session.export_policies | sort(attribute='weight', reverse=True) | first | attr('name') }} out
 {% endif %}
   !
 {% elif afi_safi == 'l3vpn-ipv6-unicast' %}
   address-family vpnv6 unicast
 {% if session.import_policies %}
-{% for policy in session.import_policies | sort(attribute='weight', reverse=True) %}
-   route-policy {{ policy.name }} in
-{% endfor %}
+   route-policy {{ session.import_policies | sort(attribute='weight', reverse=True) | first | attr('name') }} in
 {% endif %}
 {% if session.export_policies %}
-{% for policy in session.export_policies | sort(attribute='weight', reverse=True) %}
-   route-policy {{ policy.name }} out
-{% endfor %}
+   route-policy {{ session.export_policies | sort(attribute='weight', reverse=True) | first | attr('name') }} out
 {% endif %}
   !
 {% elif afi_safi == 'evpn' %}
   address-family l2vpn evpn
 {% if session.import_policies %}
-{% for policy in session.import_policies | sort(attribute='weight', reverse=True) %}
-   route-policy {{ policy.name }} in
-{% endfor %}
+   route-policy {{ session.import_policies | sort(attribute='weight', reverse=True) | first | attr('name') }} in
 {% endif %}
 {% if session.export_policies %}
-{% for policy in session.export_policies | sort(attribute='weight', reverse=True) %}
-   route-policy {{ policy.name }} out
-{% endfor %}
+   route-policy {{ session.export_policies | sort(attribute='weight', reverse=True) | first | attr('name') }} out
 {% endif %}
   !
 {% endif %}

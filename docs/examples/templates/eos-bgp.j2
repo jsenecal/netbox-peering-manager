@@ -5,6 +5,9 @@
    - sessions: List of BGP session objects
    - peer_groups: List of peer group objects
    - routing_policies: List of routing policy objects
+
+   Note: EOS allows one route-map per direction per neighbor.
+   This template uses the highest-weight policy for each direction.
 #}
 
 ! BGP Configuration for {{ device.name }}
@@ -12,7 +15,7 @@
 ! Site: {{ device.site.name }}
 !
 router bgp {{ sessions[0].local_asn if sessions else 'LOCAL_ASN' }}
-   router-id {{ device.name }}
+   router-id {{ device.primary_ip4.address.ip | default('10.0.0.1') }}
    maximum-paths 16 ecmp 16
    !
 {% if peer_groups %}
@@ -47,10 +50,10 @@ router bgp {{ sessions[0].local_asn if sessions else 'LOCAL_ASN' }}
    neighbor {{ session.remote_ip }} bfd
 {% endif %}
 {% if session.import_policies %}
-   neighbor {{ session.remote_ip }} route-map {% for policy in session.import_policies | sort(attribute='weight', reverse=True) %}{{ policy.name }}{% if not loop.last %}-{% endif %}{% endfor %} in
+   neighbor {{ session.remote_ip }} route-map {{ session.import_policies | sort(attribute='weight', reverse=True) | first | attr('name') }} in
 {% endif %}
 {% if session.export_policies %}
-   neighbor {{ session.remote_ip }} route-map {% for policy in session.export_policies | sort(attribute='weight', reverse=True) %}{{ policy.name }}{% if not loop.last %}-{% endif %}{% endfor %} out
+   neighbor {{ session.remote_ip }} route-map {{ session.export_policies | sort(attribute='weight', reverse=True) | first | attr('name') }} out
 {% endif %}
 {% endif %}
 {% endfor %}

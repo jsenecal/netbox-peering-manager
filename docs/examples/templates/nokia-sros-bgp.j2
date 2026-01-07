@@ -5,6 +5,9 @@
    - sessions: List of BGP session objects
    - peer_groups: List of peer group objects
    - routing_policies: List of routing policy objects
+
+   Note: Nokia SR OS supports policy lists for import/export.
+   This template includes all policies sorted by weight.
 #}
 
 # BGP Configuration for {{ device.name }}
@@ -14,7 +17,7 @@
 configure {
     router "Base" {
         autonomous-system {{ sessions[0].local_asn if sessions else 'LOCAL_ASN' }}
-        router-id {{ device.name }}
+        router-id {{ device.primary_ip4.address.ip | default('10.0.0.1') }}
 {% if peer_groups %}
 
         # Peer Groups
