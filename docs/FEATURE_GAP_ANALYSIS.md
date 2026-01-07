@@ -10,7 +10,7 @@ netbox-peering-manager is a NetBox plugin that leverages NetBox's existing infra
 
 **Key Gaps:** Session state monitoring.
 
-**Recently Completed:** Configuration templating (Phase 5), Session security and policy enhancements (Phase 4), PeeringDB selective sync integration (Phase 3), Internet Exchange support via Peering Fabric models (Phase 2), IRR prefix list synchronization (Phase 1.5).
+**Recently Completed:** ASN extensions with PeerASN model (Phase 6), Configuration templating (Phase 5), Session security and policy enhancements (Phase 4), PeeringDB selective sync integration (Phase 3), Internet Exchange support via Peering Fabric models (Phase 2), IRR prefix list synchronization (Phase 1.5).
 
 ---
 
@@ -21,7 +21,7 @@ netbox-peering-manager is a NetBox plugin that leverages NetBox's existing infra
 | **Core Infrastructure** |
 | Sites/Locations | Own model | Uses NetBox dcim.Site | ✅ Leveraged |
 | Devices/Routers | Own Router model | Uses NetBox dcim.Device | ✅ Leveraged |
-| ASN Management | Own AS model | Uses NetBox ipam.ASN | ⚠️ Partial |
+| ASN Management | Own AS model | Uses NetBox ipam.ASN + PeerASN | ✅ Implemented |
 | IP Addresses | Own model | Uses NetBox ipam.IPAddress | ✅ Leveraged |
 | Tenants | N/A | Uses NetBox tenancy.Tenant | ✅ Leveraged |
 | **BGP Sessions** |
@@ -125,20 +125,19 @@ BGPSession (extended)
 └── peering_network (optional FK to PeeringNetwork)
 ```
 
-### 2. ASN Enhancements (MEDIUM PRIORITY)
+### 2. ASN Enhancements ✅ COMPLETED
 
-**Current State:** Uses NetBox's `ipam.ASN` model directly.
+**Current State:** Implemented via PeerASN model with OneToOne relationship to ipam.ASN.
 
-**Missing Fields (need custom fields or extended model):**
+**Implemented Fields:**
 - `affiliated` - Boolean flag for own ASNs
 - `irr_as_set` - IRR AS-SET name for prefix validation
 - `ipv4_max_prefixes` - Maximum IPv4 prefixes to accept
 - `ipv6_max_prefixes` - Maximum IPv6 prefixes to accept
+- `peeringdb_id` - PeeringDB network ID for sync
+- `peeringdb_last_sync` - Last PeeringDB sync timestamp
 
-**Options:**
-1. Use NetBox custom fields on ASN model
-2. Create a `PeerASN` model that extends/references `ipam.ASN`
-3. Request upstream NetBox changes
+**Implementation Decision:** PeerASN model approach chosen over custom fields for full control, clean separation, and easy PeeringDB sync integration. BGPSession.remote_as now references PeerASN instead of ipam.ASN directly.
 
 ### 3. PeeringDB Integration ✅ COMPLETED
 
@@ -329,28 +328,40 @@ PLUGINS_CONFIG = {
 - [x] Add example templates for major vendors
 - [x] Update documentation
 
-### Phase 6: ASN Extensions
+### Phase 6: ASN Extensions ✅ COMPLETED
 
 **Priority:** MEDIUM
 **Estimated Effort:** Small-Medium
 
-**Options to evaluate:**
-1. **Custom Fields Approach:**
-   - Add custom fields to ipam.ASN via plugin
-   - Pros: No new models, leverages NetBox
-   - Cons: Less control, migration complexity
+**Implementation Decision:** PeerASN model approach chosen for full control and clean separation.
 
-2. **PeerASN Model Approach:**
-   - Create PeerASN model referencing ipam.ASN
-   - Add: affiliated, irr_as_set, max_prefixes
-   - Pros: Full control, clean separation
-   - Cons: Some duplication
+**Model Structure:**
+```
+PeerASN
+├── asn (OneToOne to ipam.ASN)
+├── affiliated (Boolean - is this your organization's ASN)
+├── irr_as_set (CharField - IRR AS-SET name for prefix validation)
+├── ipv4_max_prefixes (PositiveIntegerField)
+├── ipv6_max_prefixes (PositiveIntegerField)
+├── peeringdb_id (PositiveIntegerField - PeeringDB network ID)
+├── peeringdb_last_sync (DateTimeField)
+└── comments, tags
+```
 
 **Tasks:**
-- [ ] Evaluate approaches with user feedback
-- [ ] Implement chosen approach
-- [ ] Add UI for managing extended ASN data
-- [ ] Integrate with PeeringDB sync
+- [x] Create PeerASN model with OneToOne to ipam.ASN
+- [x] Update BGPSession.remote_as to use PeerASN
+- [x] Create data migration for existing sessions
+- [x] Add PeerASN forms (create, edit, filter, bulk edit, import)
+- [x] Add PeerASN table and filterset
+- [x] Add PeerASN views (list, detail, edit, delete, bulk)
+- [x] Add PeerASN URL patterns and navigation menu
+- [x] Add PeerASN API serializer and viewset
+- [x] Add PeerASN GraphQL type
+- [x] Add PeeringDB network sync for PeerASN
+- [x] Update ConfigRenderer for PeerASN fields
+- [x] Create PeerASN detail template
+- [x] Update tests for PeerASN and BGPSession
 
 ### Phase 7: Operational Monitoring (FUTURE)
 
