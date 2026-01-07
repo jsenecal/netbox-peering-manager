@@ -2,6 +2,7 @@ import django_filters
 import netaddr
 from dcim.models import Device, Site
 from django.db.models import Q
+from ipam.choices import IPAddressFamilyChoices as CoreIPAddressFamilyChoices
 from ipam.models import ASN, IPAddress
 from netaddr.core import AddrFormatError
 from netbox.filtersets import NetBoxModelFilterSet
@@ -273,6 +274,10 @@ class BGPSessionFilterSet(NetBoxModelFilterSet, TenancyFilterSet):
         method="search_by_local_ip",
         label="Local Address",
     )
+    has_password = django_filters.BooleanFilter(
+        method="filter_has_password",
+        label="Has password",
+    )
 
     class Meta:
         model = BGPSession
@@ -315,8 +320,20 @@ class BGPSessionFilterSet(NetBoxModelFilterSet, TenancyFilterSet):
         except (AddrFormatError, ValueError):
             return queryset.none()
 
+    def filter_has_password(self, queryset, _name, value):
+        if value is True:
+            return queryset.exclude(password="")
+        if value is False:
+            return queryset.filter(password="")
+        return queryset
+
 
 class RoutingPolicyFilterSet(NetBoxModelFilterSet):
+    weight = django_filters.NumberFilter()
+    weight__gte = django_filters.NumberFilter(field_name="weight", lookup_expr="gte")
+    weight__lte = django_filters.NumberFilter(field_name="weight", lookup_expr="lte")
+    address_family = django_filters.MultipleChoiceFilter(choices=CoreIPAddressFamilyChoices)
+
     class Meta:
         model = RoutingPolicy
         fields = (
