@@ -88,6 +88,7 @@ class ConfigRenderer:
             "device__site",
             "local_as",
             "remote_as",
+            "remote_as__asn",  # PeerASN -> ASN
             "local_address",
             "remote_address",
             "peer_group",
@@ -166,6 +167,14 @@ class ConfigRenderer:
         Returns:
             Serialized session dict with all related data.
         """
+        # Extract PeerASN fields
+        peer_asn = session.remote_as
+        peer_asn_number = peer_asn.asn.asn if peer_asn and peer_asn.asn else None
+        peer_name = peer_asn.name if peer_asn else None
+        irr_as_set = peer_asn.irr_as_set if peer_asn else None
+        ipv4_max_prefixes = peer_asn.ipv4_max_prefixes if peer_asn else None
+        ipv6_max_prefixes = peer_asn.ipv6_max_prefixes if peer_asn else None
+
         return {
             "id": session.pk,
             "name": session.name,
@@ -173,7 +182,11 @@ class ConfigRenderer:
             "status": session.status,
             "enabled": session.enabled,
             "local_asn": session.local_as.asn if session.local_as else None,
-            "peer_asn": session.remote_as.asn if session.remote_as else None,
+            "peer_asn": peer_asn_number,
+            "peer_name": peer_name,
+            "irr_as_set": irr_as_set,
+            "ipv4_max_prefixes": ipv4_max_prefixes,
+            "ipv6_max_prefixes": ipv6_max_prefixes,
             "local_ip": str(session.local_address.address.ip) if session.local_address else None,
             "remote_ip": str(session.remote_address.address.ip) if session.remote_address else None,
             "relationship": session.relationship.name if session.relationship else None,
