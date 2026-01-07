@@ -21,6 +21,7 @@ from .models import (
     CommunityList,
     CommunityListRule,
     IRRSource,
+    PeerASN,
     PeeringConnection,
     PeeringDBPeer,
     PeeringFabric,
@@ -88,6 +89,66 @@ class RelationshipDeleteView(generic.ObjectDeleteView):
 class RelationshipBulkImportView(generic.BulkImportView):
     queryset = Relationship.objects.all()
     model_form = forms.RelationshipImportForm
+
+
+# =============================================================================
+# Peer ASN Views
+# =============================================================================
+
+
+@register_model_view(PeerASN)
+class PeerASNView(generic.ObjectView):
+    queryset = PeerASN.objects.all()
+
+    def get_extra_context(self, request, instance):
+        sessions = BGPSession.objects.filter(remote_as=instance)
+        sessions_table = tables.BGPSessionTable(sessions)
+        sessions_table.configure(request)
+        return {
+            "sessions_table": sessions_table,
+        }
+
+
+@register_model_view(PeerASN, "list", path="", detail=False)
+class PeerASNListView(generic.ObjectListView):
+    queryset = PeerASN.objects.annotate(session_count=Count("sessions"))
+    table = tables.PeerASNTable
+    filterset = filtersets.PeerASNFilterSet
+    filterset_form = forms.PeerASNFilterForm
+
+
+@register_model_view(PeerASN, "add", detail=False)
+@register_model_view(PeerASN, "edit")
+class PeerASNEditView(generic.ObjectEditView):
+    queryset = PeerASN.objects.all()
+    form = forms.PeerASNForm
+
+
+@register_model_view(PeerASN, "delete")
+class PeerASNDeleteView(generic.ObjectDeleteView):
+    queryset = PeerASN.objects.all()
+    default_return_url = "plugins:netbox_peering_manager:peerasn_list"
+
+
+@register_model_view(PeerASN, "bulk_edit", path="edit", detail=False)
+class PeerASNBulkEditView(generic.BulkEditView):
+    queryset = PeerASN.objects.all()
+    filterset = filtersets.PeerASNFilterSet
+    table = tables.PeerASNTable
+    form = forms.PeerASNBulkEditForm
+
+
+@register_model_view(PeerASN, "bulk_delete", path="delete", detail=False)
+class PeerASNBulkDeleteView(generic.BulkDeleteView):
+    queryset = PeerASN.objects.all()
+    filterset = filtersets.PeerASNFilterSet
+    table = tables.PeerASNTable
+
+
+@register_model_view(PeerASN, "bulk_import", path="import", detail=False)
+class PeerASNBulkImportView(generic.BulkImportView):
+    queryset = PeerASN.objects.all()
+    model_form = forms.PeerASNImportForm
 
 
 # =============================================================================
