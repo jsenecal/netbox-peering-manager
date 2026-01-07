@@ -1,5 +1,5 @@
 from django.core.exceptions import ValidationError
-from django.core.validators import MaxValueValidator, MinValueValidator, RegexValidator
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.urls import reverse
 from ipam.fields import IPNetworkField
@@ -13,6 +13,7 @@ from .choices import (
     PeeringStatusChoices,
     SessionStatusChoices,
 )
+from .validators import validate_community
 
 
 class IRRSource(NetBoxModel):
@@ -542,7 +543,7 @@ class BGPBase(NetBoxModel):
 class Community(BGPBase):
     """ """
 
-    value = models.CharField(max_length=64, validators=[RegexValidator(r"[\d\.\*]+:[\d\.\*]+")])
+    value = models.CharField(max_length=64, validators=[validate_community])
 
     class Meta:
         verbose_name_plural = "Communities"
