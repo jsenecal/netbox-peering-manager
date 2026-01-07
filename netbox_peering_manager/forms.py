@@ -469,7 +469,7 @@ class BGPSessionForm(NetBoxModelForm):
         FieldSet("local_as", "local_address", name="Local"),
         FieldSet("import_policies", "export_policies", name="Policies"),
         FieldSet("prefix_list_in", "prefix_list_out", name="Prefixes"),
-        FieldSet("bfd", "multihop_ttl", "service_reference", name="Advanced"),
+        FieldSet("bfd", "multihop_ttl", "password", "service_reference", name="Advanced"),
     )
 
     class Meta:
@@ -496,6 +496,7 @@ class BGPSessionForm(NetBoxModelForm):
             "prefix_list_out",
             "bfd",
             "multihop_ttl",
+            "password",
             "service_reference",
             "comments",
         ]
@@ -645,6 +646,11 @@ class BGPSessionFilterForm(NetBoxModelFilterSetForm):
         label=_("Enabled"),
         widget=forms.Select(choices=[("", "---------"), (True, "Yes"), (False, "No")]),
     )
+    has_password = forms.NullBooleanField(
+        required=False,
+        label=_("Has Password"),
+        widget=forms.Select(choices=[("", "---------"), (True, "Yes"), (False, "No")]),
+    )
     relationship = DynamicModelMultipleChoiceField(
         queryset=Relationship.objects.all(),
         required=False,
@@ -728,6 +734,7 @@ class BGPSessionBulkEditForm(NetBoxModelBulkEditForm):
         widget=APISelect(api_url="/api/plugins/bgp/bfd/"),
     )
     multihop_ttl = forms.IntegerField(required=False, min_value=1, max_value=255, label=_("Multihop TTL"))
+    password = forms.CharField(max_length=256, required=False, label=_("Password"))
     service_reference = forms.CharField(max_length=100, required=False, label=_("Service Reference"))
     import_policies = DynamicModelMultipleChoiceField(
         queryset=RoutingPolicy.objects.all(),
@@ -761,7 +768,7 @@ class BGPSessionBulkEditForm(NetBoxModelBulkEditForm):
         FieldSet("local_as", "local_address", name="Local"),
         FieldSet("import_policies", "export_policies", name="Policies"),
         FieldSet("prefix_list_in", "prefix_list_out", name="Prefixes"),
-        FieldSet("bfd", "multihop_ttl", "service_reference", name="Advanced"),
+        FieldSet("bfd", "multihop_ttl", "password", "service_reference", name="Advanced"),
     )
 
     nullable_fields = [
@@ -770,6 +777,7 @@ class BGPSessionBulkEditForm(NetBoxModelBulkEditForm):
         "relationship",
         "peer_group",
         "bfd",
+        "password",
         "service_reference",
         "import_policies",
         "export_policies",
@@ -781,16 +789,36 @@ class BGPSessionBulkEditForm(NetBoxModelBulkEditForm):
 class RoutingPolicyFilterForm(NetBoxModelFilterSetForm):
     model = RoutingPolicy
     q = forms.CharField(required=False, label="Search")
+    weight = forms.IntegerField(required=False, label=_("Weight"))
+    weight__gte = forms.IntegerField(required=False, label=_("Weight (min)"))
+    weight__lte = forms.IntegerField(required=False, label=_("Weight (max)"))
+    address_family = forms.MultipleChoiceField(
+        choices=CoreIPAddressFamilyChoices,
+        required=False,
+        label=_("Address Family"),
+    )
 
     tag = TagFilterField(model)
 
 
 class RoutingPolicyForm(NetBoxModelForm):
+    weight = forms.IntegerField(
+        required=False,
+        min_value=0,
+        label=_("Weight"),
+        help_text=_("Higher weight policies are evaluated first"),
+    )
+    address_family = forms.ChoiceField(
+        required=False,
+        choices=add_blank_choice(CoreIPAddressFamilyChoices),
+        label=_("Address Family"),
+        help_text=_("Restrict policy to specific address family"),
+    )
     comments = CommentField()
 
     class Meta:
         model = RoutingPolicy
-        fields = ["name", "description", "tags", "comments"]
+        fields = ["name", "description", "weight", "address_family", "tags", "comments"]
 
 
 class RoutingPolicyImportForm(NetBoxModelImportForm):
@@ -801,10 +829,23 @@ class RoutingPolicyImportForm(NetBoxModelImportForm):
 
 class RoutingPolicyBulkEditForm(NetBoxModelBulkEditForm):
     description = forms.CharField(max_length=200, required=False)
+    weight = forms.IntegerField(
+        required=False,
+        min_value=0,
+        label=_("Weight"),
+        help_text=_("Higher weight policies are evaluated first"),
+    )
+    address_family = forms.ChoiceField(
+        required=False,
+        choices=add_blank_choice(CoreIPAddressFamilyChoices),
+        label=_("Address Family"),
+        help_text=_("Restrict policy to specific address family"),
+    )
 
     model = RoutingPolicy
     nullable_fields = [
         "description",
+        "address_family",
     ]
 
 
