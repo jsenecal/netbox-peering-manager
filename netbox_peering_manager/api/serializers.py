@@ -21,6 +21,7 @@ from netbox_peering_manager.models import (
     CommunityList,
     CommunityListRule,
     IRRSource,
+    PeerASN,
     PeeringConnection,
     PeeringFabric,
     PeeringFabricPeeringDB,
@@ -141,6 +142,34 @@ class IRRSourceSerializer(NetBoxModelSerializer):
         brief_fields = ("id", "url", "display", "name", "slug", "enabled")
 
 
+class PeerASNSerializer(NetBoxModelSerializer):
+    url = HyperlinkedIdentityField(view_name="plugins-api:netbox_peering_manager-api:peerasn-detail")
+    asn = ASNSerializer(nested=True)
+    session_count = serializers.IntegerField(read_only=True)
+
+    class Meta:
+        model = PeerASN
+        fields = [
+            "id",
+            "url",
+            "display",
+            "asn",
+            "affiliated",
+            "irr_as_set",
+            "ipv4_max_prefixes",
+            "ipv6_max_prefixes",
+            "peeringdb_id",
+            "peeringdb_last_sync",
+            "session_count",
+            "comments",
+            "tags",
+            "custom_fields",
+            "created",
+            "last_updated",
+        ]
+        brief_fields = ["id", "url", "display", "asn", "affiliated"]
+
+
 class RoutingPolicySerializer(NetBoxModelSerializer):
     url = HyperlinkedIdentityField(view_name="plugins-api:netbox_peering_manager-api:routingpolicy-detail")
 
@@ -230,7 +259,7 @@ class BGPSessionSerializer(NetBoxModelSerializer):
     local_address = IPAddressSerializer(nested=True, required=True, allow_null=False)
     remote_address = IPAddressSerializer(nested=True, required=True, allow_null=False)
     local_as = ASNSerializer(nested=True, required=True, allow_null=False)
-    remote_as = ASNSerializer(nested=True, required=True, allow_null=False)
+    remote_as = PeerASNSerializer(nested=True, required=True, allow_null=False)
     peer_group = BGPPeerGroupSerializer(nested=True, required=False, allow_null=True)
     relationship = RelationshipSerializer(nested=True, required=False, allow_null=True)
     bfd = BFDSerializer(nested=True, required=False, allow_null=True)

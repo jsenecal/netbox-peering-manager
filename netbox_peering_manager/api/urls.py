@@ -11,6 +11,7 @@ from .views import (
     CommunityListViewSet,
     CommunityViewSet,
     IRRSourceViewSet,
+    PeerASNViewSet,
     PeeringConnectionViewSet,
     PeeringFabricTypeViewSet,
     PeeringFabricViewSet,
@@ -29,6 +30,7 @@ router.APIRootView = RootView
 router.register("relationship", RelationshipViewSet)
 router.register("bfd", BFDViewSet)
 router.register("irr-source", IRRSourceViewSet)
+router.register("peer-asn", PeerASNViewSet)
 router.register("session", BGPSessionViewSet, "session")
 router.register("bgpsession", BGPSessionViewSet, "bgpsession")
 router.register("routing-policy", RoutingPolicyViewSet)

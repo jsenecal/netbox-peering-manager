@@ -1,3 +1,4 @@
+from django.db.models import Count
 from extras.api.mixins import ConfigTemplateRenderMixin
 from netbox.api.renderers import TextRenderer
 from netbox.api.viewsets import NetBoxModelViewSet
@@ -17,6 +18,7 @@ from netbox_peering_manager.filtersets import (
     CommunityListFilterSet,
     CommunityListRuleFilterSet,
     IRRSourceFilterSet,
+    PeerASNFilterSet,
     PeeringConnectionFilterSet,
     PeeringFabricFilterSet,
     PeeringFabricTypeFilterSet,
@@ -37,6 +39,7 @@ from netbox_peering_manager.models import (
     CommunityList,
     CommunityListRule,
     IRRSource,
+    PeerASN,
     PeeringConnection,
     PeeringFabric,
     PeeringFabricType,
@@ -59,6 +62,7 @@ from .serializers import (
     CommunityListSerializer,
     CommunitySerializer,
     IRRSourceSerializer,
+    PeerASNSerializer,
     PeeringConnectionSerializer,
     PeeringFabricSerializer,
     PeeringFabricTypeSerializer,
@@ -93,6 +97,12 @@ class IRRSourceViewSet(NetBoxModelViewSet):
     queryset = IRRSource.objects.all()
     serializer_class = IRRSourceSerializer
     filterset_class = IRRSourceFilterSet
+
+
+class PeerASNViewSet(NetBoxModelViewSet):
+    queryset = PeerASN.objects.annotate(session_count=Count("sessions"))
+    serializer_class = PeerASNSerializer
+    filterset_class = PeerASNFilterSet
 
 
 class BGPSessionViewSet(NetBoxModelViewSet):
