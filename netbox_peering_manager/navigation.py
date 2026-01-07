@@ -117,6 +117,25 @@ _menu_items_primary = (
         ),
     ),
     PluginMenuItem(
+        link="plugins:netbox_peering_manager:peerasn_list",
+        link_text="Peer ASNs",
+        permissions=["netbox_peering_manager.view_peerasn"],
+        buttons=(
+            PluginMenuButton(
+                link="plugins:netbox_peering_manager:peerasn_add",
+                title="Add",
+                icon_class="mdi mdi-plus-thick",
+                permissions=["netbox_peering_manager.add_peerasn"],
+            ),
+            PluginMenuButton(
+                link="plugins:netbox_peering_manager:peerasn_bulk_import",
+                title="Import",
+                icon_class="mdi mdi-upload",
+                permissions=["netbox_peering_manager.add_peerasn"],
+            ),
+        ),
+    ),
+    PluginMenuItem(
         link="plugins:netbox_peering_manager:routingpolicy_list",
         link_text="Routing Policies",
         permissions=["netbox_peering_manager.view_routingpolicy"],
@@ -288,6 +307,25 @@ _menu_items_grouped = (
                 title="Import",
                 icon_class="mdi mdi-upload",
                 permissions=["netbox_peering_manager.add_bgppeergroup"],
+            ),
+        ),
+    ),
+    PluginMenuItem(
+        link="plugins:netbox_peering_manager:peerasn_list",
+        link_text="Peer ASNs",
+        permissions=["netbox_peering_manager.view_peerasn"],
+        buttons=(
+            PluginMenuButton(
+                link="plugins:netbox_peering_manager:peerasn_add",
+                title="Add",
+                icon_class="mdi mdi-plus-thick",
+                permissions=["netbox_peering_manager.add_peerasn"],
+            ),
+            PluginMenuButton(
+                link="plugins:netbox_peering_manager:peerasn_bulk_import",
+                title="Import",
+                icon_class="mdi mdi-upload",
+                permissions=["netbox_peering_manager.add_peerasn"],
             ),
         ),
     ),
