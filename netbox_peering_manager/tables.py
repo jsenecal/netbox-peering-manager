@@ -201,6 +201,10 @@ class BGPSessionTable(NetBoxTable):
     bfd = tables.LinkColumn()
     status = ChoiceFieldColumn(default=AVAILABLE_LABEL)
     enabled = BooleanColumn()
+    has_password = BooleanColumn(
+        accessor="password",
+        verbose_name="Password",
+    )
     tenant = tables.TemplateColumn(template_code=COL_TENANT)
 
     class Meta(NetBoxTable.Meta):
@@ -221,6 +225,7 @@ class BGPSessionTable(NetBoxTable):
             "site",
             "status",
             "enabled",
+            "has_password",
             "tenant",
             "multihop_ttl",
             "service_reference",
@@ -246,10 +251,12 @@ class BGPSessionTable(NetBoxTable):
 
 class RoutingPolicyTable(NetBoxTable):
     name = tables.LinkColumn()
+    weight = tables.Column()
+    address_family = tables.Column()
 
     class Meta(NetBoxTable.Meta):
         model = RoutingPolicy
-        fields = ("pk", "name", "description", "actions")
+        fields = ("pk", "name", "description", "weight", "address_family", "actions")
 
 
 class BGPPeerGroupTable(NetBoxTable):
