@@ -1,4 +1,6 @@
 from dcim.api.serializers import DeviceSerializer, InterfaceSerializer, SiteSerializer
+from dcim.models import Device
+from extras.models import ConfigTemplate
 from ipam.api.field_serializers import IPNetworkField
 from ipam.api.serializers import ASNSerializer, IPAddressSerializer, PrefixSerializer, VLANSerializer
 from netbox.api.fields import ChoiceField, SerializedPKRelatedField
@@ -578,3 +580,36 @@ class PeeringConnectionSerializer(NetBoxModelSerializer):
             "custom_fields",
         )
         brief_fields = ("id", "url", "display", "peering_network", "interface", "status")
+
+
+# =============================================================================
+# Configuration Templating Serializers
+# =============================================================================
+
+
+class RenderConfigRequestSerializer(serializers.Serializer):
+    """Serializer for render-config API request."""
+
+    template = serializers.PrimaryKeyRelatedField(
+        queryset=ConfigTemplate.objects.all(),
+        help_text="ID of the ConfigTemplate to render",
+    )
+    device = serializers.PrimaryKeyRelatedField(
+        queryset=Device.objects.all(),
+        required=False,
+        allow_null=True,
+        help_text="ID of the device to render config for",
+    )
+    sessions = serializers.PrimaryKeyRelatedField(
+        queryset=BGPSession.objects.all(),
+        many=True,
+        required=False,
+        help_text="List of BGP session IDs to include",
+    )
+
+    def validate(self, data):
+        """Ensure at least device or sessions is provided."""
+        if not data.get("device") and not data.get("sessions"):
+            msg = "Either 'device' or 'sessions' must be provided."
+            raise serializers.ValidationError(msg)
+        return data
