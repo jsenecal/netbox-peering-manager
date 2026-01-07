@@ -150,6 +150,8 @@ class RoutingPolicySerializer(NetBoxModelSerializer):
             "display",
             "name",
             "description",
+            "weight",
+            "address_family",
             "tags",
             "custom_fields",
             "comments",
@@ -218,6 +220,7 @@ class BGPPeerGroupSerializer(NetBoxModelSerializer):
 class BGPSessionSerializer(NetBoxModelSerializer):
     url = HyperlinkedIdentityField(view_name="plugins-api:netbox_peering_manager-api:bgpsession-detail")
     status = ChoiceField(choices=SessionStatusChoices, required=False)
+    password = serializers.CharField(write_only=True, required=False, allow_blank=True)
     site = SiteSerializer(nested=True, required=False, allow_null=True)
     tenant = TenantSerializer(nested=True, required=False, allow_null=True)
     device = DeviceSerializer(nested=True, required=False, allow_null=True)
@@ -257,6 +260,7 @@ class BGPSessionSerializer(NetBoxModelSerializer):
             "custom_fields",
             "display",
             "status",
+            "password",
             "enabled",
             "site",
             "tenant",
