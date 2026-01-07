@@ -87,6 +87,15 @@ urlpatterns = (
         "session/<int:pk>/",
         include(get_model_urls("netbox_peering_manager", "bgpsession")),
     ),
+    # Peer ASNs
+    path(
+        "peer-asn/",
+        include(get_model_urls("netbox_peering_manager", "peerasn", detail=False)),
+    ),
+    path(
+        "peer-asn/<int:pk>/",
+        include(get_model_urls("netbox_peering_manager", "peerasn")),
+    ),
     # Routing Policies
     path(
         "routing-policy/",
