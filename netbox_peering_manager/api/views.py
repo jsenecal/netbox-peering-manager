@@ -1,5 +1,11 @@
+from extras.api.mixins import ConfigTemplateRenderMixin
+from netbox.api.renderers import TextRenderer
 from netbox.api.viewsets import NetBoxModelViewSet
+from rest_framework import status
+from rest_framework.renderers import JSONRenderer
+from rest_framework.response import Response
 from rest_framework.routers import APIRootView
+from rest_framework.views import APIView
 
 from netbox_peering_manager.filtersets import (
     ASPathListFilterSet,
@@ -41,6 +47,7 @@ from netbox_peering_manager.models import (
     RoutingPolicy,
     RoutingPolicyRule,
 )
+from netbox_peering_manager.services.config_renderer import ConfigRenderer
 
 from .serializers import (
     ASPathListRuleSerializer,
@@ -59,6 +66,7 @@ from .serializers import (
     PrefixListRuleSerializer,
     PrefixListSerializer,
     RelationshipSerializer,
+    RenderConfigRequestSerializer,
     RoutingPolicyRuleSerializer,
     RoutingPolicySerializer,
 )
@@ -180,3 +188,49 @@ class PeeringConnectionViewSet(NetBoxModelViewSet):
     queryset = PeeringConnection.objects.all()
     serializer_class = PeeringConnectionSerializer
     filterset_class = PeeringConnectionFilterSet
+
+
+# =============================================================================
+# Configuration Templating Views
+# =============================================================================
+
+
+class RenderConfigView(ConfigTemplateRenderMixin, APIView):
+    """
+    Render a ConfigTemplate with BGP session context.
+    POST /api/plugins/bgp/render-config/
+    """
+
+    renderer_classes = [JSONRenderer, TextRenderer]
+    _ignore_model_permissions = True
+
+    def post(self, request):
+        serializer = RenderConfigRequestSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        template = serializer.validated_data["template"]
+        device = serializer.validated_data.get("device")
+        sessions = serializer.validated_data.get("sessions", [])
+
+        # Build context
+        renderer = ConfigRenderer()
+        context = renderer.build_context(
+            device=device,
+            sessions=sessions if sessions else None,
+        )
+
+        # Render template using NetBox's mixin
+        response = self.render_configtemplate(request, template, context)
+
+        # Add context if requested
+        if request.query_params.get("include_context") == "true" and isinstance(response.data, dict):
+            response.data["context"] = context
+
+        # Add metadata
+        if isinstance(response.data, dict):
+            if device:
+                response.data["device"] = {"id": device.pk, "name": device.name}
+            response.data["session_count"] = len(context["sessions"])
+
+        return response

@@ -1,5 +1,6 @@
 from dcim.models import Device, DeviceRole, DeviceType, Interface, Manufacturer, Site
 from django.urls import reverse
+from extras.models import ConfigTemplate
 from ipam.choices import IPAddressFamilyChoices as CoreIPAddressFamilyChoices
 from ipam.models import ASN, RIR, IPAddress, Prefix
 from utilities.testing import APITestCase, APIViewTestCases
@@ -636,3 +637,65 @@ class TestAPISchema(APITestCase):
         response = self.client.get(f"{url}?format=api", **self.header)
 
         self.assertEqual(response.status_code, 200)
+
+
+class RenderConfigAPITest(APITestCase):
+    @classmethod
+    def setUpTestData(cls):
+        # Create device, ASNs, IPs, session, template
+        site = Site.objects.create(name="Test Site", slug="test-site-render")
+        manufacturer = Manufacturer.objects.create(name="Juniper", slug="juniper")
+        device_type = DeviceType.objects.create(manufacturer=manufacturer, model="MX480", slug="mx480")
+        device_role = DeviceRole.objects.create(name="PE Router", slug="pe-router")
+        cls.device = Device.objects.create(name="pe1", device_type=device_type, role=device_role, site=site)
+
+        rir = RIR.objects.create(name="RIPE NCC", slug="ripe-ncc")
+        local_asn = ASN.objects.create(asn=65000, rir=rir)
+        peer_asn = ASN.objects.create(asn=65001, rir=rir)
+        local_ip = IPAddress.objects.create(address="10.0.0.1/30")
+        remote_ip = IPAddress.objects.create(address="10.0.0.2/30")
+
+        cls.session = BGPSession.objects.create(
+            name="Transit-Provider",
+            device=cls.device,
+            local_address=local_ip,
+            remote_address=remote_ip,
+            local_as=local_asn,
+            remote_as=peer_asn,
+        )
+        cls.template = ConfigTemplate.objects.create(
+            name="Test BGP Template",
+            template_code="{% for session in sessions %}neighbor {{ session.remote_ip }} remote-as {{ session.peer_asn }}{% endfor %}",
+        )
+
+    def test_render_config_with_device(self):
+        url = reverse("plugins-api:netbox_peering_manager-api:render_config")
+        response = self.client.post(
+            url, {"template": self.template.pk, "device": self.device.pk}, format="json", **self.header
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("content", response.data)
+        self.assertIn("10.0.0.2", response.data["content"])
+
+    def test_render_config_with_sessions(self):
+        url = reverse("plugins-api:netbox_peering_manager-api:render_config")
+        response = self.client.post(
+            url, {"template": self.template.pk, "sessions": [self.session.pk]}, format="json", **self.header
+        )
+        self.assertEqual(response.status_code, 200)
+
+    def test_render_config_missing_params(self):
+        url = reverse("plugins-api:netbox_peering_manager-api:render_config")
+        response = self.client.post(url, {"template": self.template.pk}, format="json", **self.header)
+        self.assertEqual(response.status_code, 400)
+
+    def test_render_config_include_context(self):
+        url = reverse("plugins-api:netbox_peering_manager-api:render_config")
+        response = self.client.post(
+            f"{url}?include_context=true",
+            {"template": self.template.pk, "device": self.device.pk},
+            format="json",
+            **self.header,
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("context", response.data)

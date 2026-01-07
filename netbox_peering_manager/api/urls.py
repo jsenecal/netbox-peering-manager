@@ -1,3 +1,4 @@
+from django.urls import include, path
 from netbox.api.routers import NetBoxRouter
 
 from .views import (
@@ -17,6 +18,7 @@ from .views import (
     PrefixListRuleViewSet,
     PrefixListViewSet,
     RelationshipViewSet,
+    RenderConfigView,
     RootView,
     RoutingPolicyRuleViewSet,
     RoutingPolicyViewSet,
@@ -47,4 +49,7 @@ router.register("peering-fabric", PeeringFabricViewSet)
 router.register("peering-network", PeeringNetworkViewSet)
 router.register("peering-connection", PeeringConnectionViewSet)
 
-urlpatterns = router.urls
+urlpatterns = [
+    path("render-config/", RenderConfigView.as_view(), name="render_config"),
+    path("", include(router.urls)),
+]
