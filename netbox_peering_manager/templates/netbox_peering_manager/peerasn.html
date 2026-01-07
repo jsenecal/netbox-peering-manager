@@ -1,0 +1,111 @@
+{% extends 'generic/object.html' %}
+{% load buttons %}
+{% load custom_links %}
+{% load helpers %}
+{% load plugins %}
+{% load render_table from django_tables2 %}
+
+{% block breadcrumbs %}
+<li class="breadcrumb-item"><a href="{% url 'plugins:netbox_peering_manager:peerasn_list' %}">Peer ASNs</a></li>
+{% endblock %}
+
+
+{% block content %}
+<div class="row mb-3">
+    <div class="col-md-6">
+        <div class="card">
+            <h5 class="card-header">
+                Peer ASN
+            </h5>
+            <div class="card-body">
+                <table class="table table-hover attr-table">
+                    <tr>
+                        <td>ASN</td>
+                        <td>
+                            {% if object.asn %}
+                                <a href="{{ object.asn.get_absolute_url }}">AS{{ object.asn.asn }}</a>
+                                {% if object.asn.description %}
+                                    - {{ object.asn.description }}
+                                {% endif %}
+                            {% else %}
+                                {{ ''|placeholder }}
+                            {% endif %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Affiliated</td>
+                        <td>{% checkmark object.affiliated %}</td>
+                    </tr>
+                    <tr>
+                        <td>IRR AS-SET</td>
+                        <td>{{ object.irr_as_set|placeholder }}</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+        <div class="card">
+            <h5 class="card-header">
+                Prefix Limits
+            </h5>
+            <div class="card-body">
+                <table class="table table-hover attr-table">
+                    <tr>
+                        <td>IPv4 Max Prefixes</td>
+                        <td>{{ object.ipv4_max_prefixes|placeholder }}</td>
+                    </tr>
+                    <tr>
+                        <td>IPv6 Max Prefixes</td>
+                        <td>{{ object.ipv6_max_prefixes|placeholder }}</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+        <div class="card">
+            <h5 class="card-header">
+                PeeringDB
+            </h5>
+            <div class="card-body">
+                <table class="table table-hover attr-table">
+                    <tr>
+                        <td>PeeringDB ID</td>
+                        <td>
+                            {% if object.peeringdb_id %}
+                                <a href="https://www.peeringdb.com/net/{{ object.peeringdb_id }}" target="_blank">
+                                    {{ object.peeringdb_id }}
+                                    <i class="mdi mdi-open-in-new"></i>
+                                </a>
+                            {% else %}
+                                {{ ''|placeholder }}
+                            {% endif %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Last Sync</td>
+                        <td>{{ object.peeringdb_last_sync|placeholder }}</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+        {% include 'inc/panels/custom_fields.html' %}
+        {% include 'inc/panels/tags.html' %}
+        {% include 'inc/panels/comments.html' %}
+        {% plugin_left_page object %}
+    </div>
+    <div class="col-md-6">
+        {% plugin_right_page object %}
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <h5 class="card-header">
+                BGP Sessions
+            </h5>
+            <div class="card-body">
+                {% render_table sessions_table 'inc/table.html' %}
+            </div>
+        </div>
+        {% plugin_full_width_page object %}
+    </div>
+</div>
+{% endblock %}
