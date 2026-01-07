@@ -779,6 +779,13 @@ class BGPSession(NetBoxModel):
         help_text="Peering network this session operates on (for fabric-based sessions)",
     )
 
+    # Phase 4: Session security
+    password = models.CharField(
+        max_length=256,
+        blank=True,
+        help_text="MD5 authentication password for this session",
+    )
+
     afi_safi = None  # for future use
 
     class Meta:
