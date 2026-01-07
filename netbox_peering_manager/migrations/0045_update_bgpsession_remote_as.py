@@ -5,16 +5,23 @@ from django.db import migrations, models
 
 
 def create_peer_asns_for_sessions(apps, schema_editor):
-    """Create PeerASN records for each unique remote_as in BGPSession."""
+    """Create PeerASN records and update BGPSession references."""
     BGPSession = apps.get_model("netbox_peering_manager", "BGPSession")
     PeerASN = apps.get_model("netbox_peering_manager", "PeerASN")
 
     # Get unique ASN IDs used as remote_as
     asn_ids = BGPSession.objects.values_list("remote_as_id", flat=True).distinct()
 
+    # Create PeerASN for each unique ASN and build mapping
+    asn_to_peerasn = {}
     for asn_id in asn_ids:
-        if asn_id and not PeerASN.objects.filter(asn_id=asn_id).exists():
-            PeerASN.objects.create(asn_id=asn_id)
+        if asn_id:
+            peer_asn, created = PeerASN.objects.get_or_create(asn_id=asn_id)
+            asn_to_peerasn[asn_id] = peer_asn.pk
+
+    # Update BGPSession references to point to PeerASN IDs
+    for asn_id, peer_asn_id in asn_to_peerasn.items():
+        BGPSession.objects.filter(remote_as_id=asn_id).update(remote_as_id=peer_asn_id)
 
 
 def reverse_migration(apps, schema_editor):
