@@ -19,5 +19,7 @@ __all__ = (
 NetBoxBGPCommunityStatusEnum = strawberry.enum(CommunityStatusChoices.as_enum(), name="NetBoxBGPCommunityStatusEnum")
 NetBoxBGPSessionStatusEnum = strawberry.enum(SessionStatusChoices.as_enum(), name="NetBoxBGPSessionStatusEnum")
 NetBoxBGPActionEnum = strawberry.enum(ActionChoices.as_enum(), name="NetBoxBGPActionEnum")
-NetBoxBGPIPAddressFamilyEnum = strawberry.enum(IPAddressFamilyChoices.as_enum(), name="NetBoxBGPIPAddressFamilyEnum")
+NetBoxBGPIPAddressFamilyEnum = strawberry.enum(
+    IPAddressFamilyChoices.as_enum(prefix="family"), name="NetBoxBGPIPAddressFamilyEnum"
+)
 NetBoxBGPPeeringStatusEnum = strawberry.enum(PeeringStatusChoices.as_enum(), name="NetBoxBGPPeeringStatusEnum")

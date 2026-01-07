@@ -487,19 +487,19 @@ class PrefixListAPITestCase(
             "name": "test_prefix_list",
             "description": "prefix_list_desc",
             "comments": "prefix_list_comment1",
-            "family": "ipv4",
+            "family": 4,
         },
         {
             "name": "test_prefix_list2",
             "description": "prefix_list_desc2",
             "comments": "prefix_list_comment2",
-            "family": "ipv4",
+            "family": 4,
         },
         {
             "name": "test_prefix_list3",
             "description": "prefix_list_desc3",
             "comments": "prefix_list_comment3",
-            "family": "ipv6",
+            "family": 6,
         },
     ]
 
