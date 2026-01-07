@@ -1,0 +1,128 @@
+{# Nokia SR OS (MD-CLI) BGP Configuration Template #}
+{#
+   Context Variables:
+   - device: Device object with name, platform, site
+   - sessions: List of BGP session objects
+   - peer_groups: List of peer group objects
+   - routing_policies: List of routing policy objects
+#}
+
+# BGP Configuration for {{ device.name }}
+# Platform: {{ device.platform.name }}
+# Site: {{ device.site.name }}
+
+configure {
+    router "Base" {
+        autonomous-system {{ sessions[0].local_asn if sessions else 'LOCAL_ASN' }}
+        router-id {{ device.name }}
+{% if peer_groups %}
+
+        # Peer Groups
+{% for pg in peer_groups %}
+        bgp {
+            group "{{ pg.name }}" {
+                admin-state enable
+{% if pg.description %}
+                description "{{ pg.description }}"
+{% endif %}
+            }
+        }
+{% endfor %}
+{% endif %}
+
+        bgp {
+            admin-state enable
+            rapid-withdrawal true
+
+{% for session in sessions %}
+{% if session.enabled %}
+            neighbor "{{ session.remote_ip }}" {
+                admin-state enable
+                description "{{ session.name }}{% if session.description %} - {{ session.description }}{% endif %}"
+                peer-as {{ session.peer_asn }}
+{% if session.peer_group %}
+                group "{{ session.peer_group.name }}"
+{% else %}
+                group "ebgp-peers"
+{% endif %}
+{% if session.local_ip %}
+                local-address {{ session.local_ip }}
+{% endif %}
+{% if session.password %}
+                authentication-key "{{ session.password }}"
+{% endif %}
+{% if session.multihop_ttl %}
+                multihop {{ session.multihop_ttl }}
+{% endif %}
+{% if session.bfd_profile %}
+                bfd-liveness {
+                    admin-state enable
+                    transmit-interval {{ session.bfd_profile.minimum_interval }}
+                    receive-interval {{ session.bfd_profile.minimum_interval }}
+                    multiplier {{ session.bfd_profile.multiplier }}
+                }
+{% endif %}
+{# Configure address families with import/export policies #}
+{% for afi_safi in session.afi_safis | default(['ipv4-unicast']) %}
+{% if afi_safi == 'ipv4-unicast' %}
+                family {
+                    ipv4 true
+                }
+{% elif afi_safi == 'ipv6-unicast' %}
+                family {
+                    ipv6 true
+                }
+{% elif afi_safi == 'l3vpn-ipv4-unicast' %}
+                family {
+                    vpn-ipv4 true
+                }
+{% elif afi_safi == 'l3vpn-ipv6-unicast' %}
+                family {
+                    vpn-ipv6 true
+                }
+{% elif afi_safi == 'evpn' %}
+                family {
+                    evpn true
+                }
+{% endif %}
+{% endfor %}
+{# Apply import policies sorted by weight (highest weight = highest priority) #}
+{% if session.import_policies %}
+                import {
+                    policy [{% for policy in session.import_policies | sort(attribute='weight', reverse=True) %}"{{ policy.name }}"{% if not loop.last %} {% endif %}{% endfor %}]
+                }
+{% endif %}
+{# Apply export policies sorted by weight (highest weight = highest priority) #}
+{% if session.export_policies %}
+                export {
+                    policy [{% for policy in session.export_policies | sort(attribute='weight', reverse=True) %}"{{ policy.name }}"{% if not loop.last %} {% endif %}{% endfor %}]
+                }
+{% endif %}
+            }
+{% endif %}
+{% endfor %}
+        }
+    }
+
+{# Policy configuration #}
+{% if routing_policies %}
+    policy-options {
+{% for policy in routing_policies %}
+        policy-statement "{{ policy.name }}" {
+            description "{{ policy.description | default('No description') }} (Weight: {{ policy.weight | default(1000) }})"
+            entry 10 {
+                action {
+                    action-type accept
+                }
+            }
+            default-action {
+                action-type reject
+            }
+        }
+{% endfor %}
+    }
+{% endif %}
+}
+
+{# Example commit command #}
+# To apply: commit

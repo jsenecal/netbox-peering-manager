@@ -1,0 +1,123 @@
+{# Arista EOS BGP Configuration Template #}
+{#
+   Context Variables:
+   - device: Device object with name, platform, site
+   - sessions: List of BGP session objects
+   - peer_groups: List of peer group objects
+   - routing_policies: List of routing policy objects
+#}
+
+! BGP Configuration for {{ device.name }}
+! Platform: {{ device.platform.name }}
+! Site: {{ device.site.name }}
+!
+router bgp {{ sessions[0].local_asn if sessions else 'LOCAL_ASN' }}
+   router-id {{ device.name }}
+   maximum-paths 16 ecmp 16
+   !
+{% if peer_groups %}
+   ! Peer Groups
+{% for pg in peer_groups %}
+   neighbor {{ pg.name }} peer group
+{% if pg.description %}
+   neighbor {{ pg.name }} description {{ pg.description }}
+{% endif %}
+{% endfor %}
+   !
+{% endif %}
+   ! BGP Neighbors
+{% for session in sessions %}
+{% if session.enabled %}
+   neighbor {{ session.remote_ip }} remote-as {{ session.peer_asn }}
+   neighbor {{ session.remote_ip }} description {{ session.name }}{% if session.description %} - {{ session.description }}{% endif %}
+
+{% if session.local_ip %}
+   neighbor {{ session.remote_ip }} update-source {{ session.local_ip }}
+{% endif %}
+{% if session.peer_group %}
+   neighbor {{ session.remote_ip }} peer group {{ session.peer_group.name }}
+{% endif %}
+{% if session.password %}
+   neighbor {{ session.remote_ip }} password 7 {{ session.password }}
+{% endif %}
+{% if session.multihop_ttl %}
+   neighbor {{ session.remote_ip }} ebgp-multihop {{ session.multihop_ttl }}
+{% endif %}
+{% if session.bfd_profile %}
+   neighbor {{ session.remote_ip }} bfd
+{% endif %}
+{% if session.import_policies %}
+   neighbor {{ session.remote_ip }} route-map {% for policy in session.import_policies | sort(attribute='weight', reverse=True) %}{{ policy.name }}{% if not loop.last %}-{% endif %}{% endfor %} in
+{% endif %}
+{% if session.export_policies %}
+   neighbor {{ session.remote_ip }} route-map {% for policy in session.export_policies | sort(attribute='weight', reverse=True) %}{{ policy.name }}{% if not loop.last %}-{% endif %}{% endfor %} out
+{% endif %}
+{% endif %}
+{% endfor %}
+   !
+{# Configure address families #}
+{% set has_ipv4 = false %}
+{% set has_ipv6 = false %}
+{% set has_evpn = false %}
+{% for session in sessions %}
+{% if session.enabled %}
+{% for afi in session.afi_safis | default([]) %}
+{% if afi == 'ipv4-unicast' %}{% set has_ipv4 = true %}{% endif %}
+{% if afi == 'ipv6-unicast' %}{% set has_ipv6 = true %}{% endif %}
+{% if afi == 'evpn' %}{% set has_evpn = true %}{% endif %}
+{% endfor %}
+{% endif %}
+{% endfor %}
+   ! Address Family IPv4
+   address-family ipv4
+{% for session in sessions %}
+{% if session.enabled and ('ipv4-unicast' in session.afi_safis | default(['ipv4-unicast'])) %}
+      neighbor {{ session.remote_ip }} activate
+{% endif %}
+{% endfor %}
+   !
+{% for session in sessions %}
+{% if session.enabled %}
+{% for afi in session.afi_safis | default([]) %}
+{% if afi == 'ipv6-unicast' %}
+   ! Address Family IPv6
+   address-family ipv6
+      neighbor {{ session.remote_ip }} activate
+   !
+{% endif %}
+{% if afi == 'evpn' %}
+   ! Address Family EVPN
+   address-family evpn
+      neighbor {{ session.remote_ip }} activate
+   !
+{% endif %}
+{% endfor %}
+{% endif %}
+{% endfor %}
+!
+
+{# BFD Configuration #}
+{% for session in sessions %}
+{% if session.enabled and session.bfd_profile %}
+bfd interval {{ session.bfd_profile.minimum_interval }} min-rx {{ session.bfd_profile.minimum_interval }} multiplier {{ session.bfd_profile.multiplier }}
+{% endif %}
+{% endfor %}
+!
+
+{# Route-map definitions #}
+{% if routing_policies %}
+{% for policy in routing_policies %}
+! Route-map: {{ policy.name }}
+! Weight: {{ policy.weight | default(1000) }}
+! {{ policy.description | default('No description') }}
+route-map {{ policy.name }} permit 10
+!
+{% endfor %}
+{% endif %}
+
+{# Prefix-list examples (if needed by policies) #}
+{% for policy in routing_policies | default([]) %}
+{% if policy.prefix_list %}
+ip prefix-list {{ policy.name }}-PFX seq 10 permit 0.0.0.0/0 le 32
+{% endif %}
+{% endfor %}

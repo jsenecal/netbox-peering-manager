@@ -1,0 +1,121 @@
+{# Cisco IOS-XR BGP Configuration Template #}
+{#
+   Context Variables:
+   - device: Device object with name, platform, site
+   - sessions: List of BGP session objects
+   - peer_groups: List of peer group objects
+   - routing_policies: List of routing policy objects
+#}
+
+!! BGP Configuration for {{ device.name }}
+!! Platform: {{ device.platform.name }}
+!! Site: {{ device.site.name }}
+
+router bgp {{ sessions[0].local_asn if sessions else 'LOCAL_ASN' }}
+ bgp router-id {{ device.name }}
+!
+{% for session in sessions %}
+{% if session.enabled %}
+ neighbor {{ session.remote_ip }}
+  description {{ session.name }}{% if session.description %} - {{ session.description }}{% endif %}
+
+  remote-as {{ session.peer_asn }}
+{% if session.local_ip %}
+  update-source {{ session.local_ip }}
+{% endif %}
+{% if session.password %}
+  password encrypted {{ session.password }}
+{% endif %}
+{% if session.multihop_ttl %}
+  ebgp-multihop {{ session.multihop_ttl }}
+{% endif %}
+{% if session.bfd_profile %}
+  bfd fast-detect
+  bfd multiplier {{ session.bfd_profile.multiplier }}
+  bfd minimum-interval {{ session.bfd_profile.minimum_interval }}
+{% endif %}
+{# Configure address families with policies #}
+{% for afi_safi in session.afi_safis | default(['ipv4-unicast']) %}
+{% if afi_safi == 'ipv4-unicast' %}
+  address-family ipv4 unicast
+{% if session.import_policies %}
+{% for policy in session.import_policies | sort(attribute='weight', reverse=True) %}
+   route-policy {{ policy.name }} in
+{% endfor %}
+{% endif %}
+{% if session.export_policies %}
+{% for policy in session.export_policies | sort(attribute='weight', reverse=True) %}
+   route-policy {{ policy.name }} out
+{% endfor %}
+{% endif %}
+  !
+{% elif afi_safi == 'ipv6-unicast' %}
+  address-family ipv6 unicast
+{% if session.import_policies %}
+{% for policy in session.import_policies | sort(attribute='weight', reverse=True) %}
+   route-policy {{ policy.name }} in
+{% endfor %}
+{% endif %}
+{% if session.export_policies %}
+{% for policy in session.export_policies | sort(attribute='weight', reverse=True) %}
+   route-policy {{ policy.name }} out
+{% endfor %}
+{% endif %}
+  !
+{% elif afi_safi == 'l3vpn-ipv4-unicast' %}
+  address-family vpnv4 unicast
+{% if session.import_policies %}
+{% for policy in session.import_policies | sort(attribute='weight', reverse=True) %}
+   route-policy {{ policy.name }} in
+{% endfor %}
+{% endif %}
+{% if session.export_policies %}
+{% for policy in session.export_policies | sort(attribute='weight', reverse=True) %}
+   route-policy {{ policy.name }} out
+{% endfor %}
+{% endif %}
+  !
+{% elif afi_safi == 'l3vpn-ipv6-unicast' %}
+  address-family vpnv6 unicast
+{% if session.import_policies %}
+{% for policy in session.import_policies | sort(attribute='weight', reverse=True) %}
+   route-policy {{ policy.name }} in
+{% endfor %}
+{% endif %}
+{% if session.export_policies %}
+{% for policy in session.export_policies | sort(attribute='weight', reverse=True) %}
+   route-policy {{ policy.name }} out
+{% endfor %}
+{% endif %}
+  !
+{% elif afi_safi == 'evpn' %}
+  address-family l2vpn evpn
+{% if session.import_policies %}
+{% for policy in session.import_policies | sort(attribute='weight', reverse=True) %}
+   route-policy {{ policy.name }} in
+{% endfor %}
+{% endif %}
+{% if session.export_policies %}
+{% for policy in session.export_policies | sort(attribute='weight', reverse=True) %}
+   route-policy {{ policy.name }} out
+{% endfor %}
+{% endif %}
+  !
+{% endif %}
+{% endfor %}
+ !
+{% endif %}
+{% endfor %}
+!
+
+{# Route-policy definitions #}
+{% if routing_policies %}
+{% for policy in routing_policies %}
+route-policy {{ policy.name }}
+  # Weight: {{ policy.weight | default(1000) }}
+  # {{ policy.description | default('No description') }}
+  pass
+end-policy
+!
+{% endfor %}
+{% endif %}
