@@ -1,6 +1,7 @@
 from dcim.models import Device, Interface, Site
 from django import forms
 from django.utils.translation import gettext as _
+from ipam.choices import IPAddressFamilyChoices as CoreIPAddressFamilyChoices
 from ipam.formfields import IPNetworkFormField
 from ipam.models import ASN, VLAN, IPAddress, Prefix
 from netbox.forms import (
@@ -28,7 +29,6 @@ from virtualization.models import VirtualMachine
 
 from .choices import (
     CommunityStatusChoices,
-    IPAddressFamilyChoices,
     PeeringStatusChoices,
     SessionStatusChoices,
 )
@@ -964,7 +964,7 @@ class PrefixListFilterForm(NetBoxModelFilterSetForm):
     model = PrefixList
     q = forms.CharField(required=False, label="Search")
     family = forms.MultipleChoiceField(
-        choices=IPAddressFamilyChoices,
+        choices=CoreIPAddressFamilyChoices,
         required=False,
     )
     irr_source_id = DynamicModelMultipleChoiceField(
@@ -995,7 +995,7 @@ class PrefixListForm(NetBoxModelForm):
 
 
 class PrefixListImportForm(NetBoxModelImportForm):
-    family = CSVChoiceField(choices=IPAddressFamilyChoices, required=True, help_text=_("Family address"))
+    family = CSVChoiceField(choices=CoreIPAddressFamilyChoices, required=True, help_text=_("Family address"))
     irr_source = CSVModelChoiceField(
         queryset=IRRSource.objects.all(),
         required=False,
@@ -1013,7 +1013,7 @@ class PrefixListBulkEditForm(NetBoxModelBulkEditForm):
     family = forms.ChoiceField(
         label=_("Family"),
         required=False,
-        choices=IPAddressFamilyChoices,
+        choices=CoreIPAddressFamilyChoices,
     )
     source_as_set = forms.CharField(
         max_length=100,

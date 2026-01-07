@@ -1,9 +1,9 @@
 import strawberry
+from ipam.choices import IPAddressFamilyChoices
 
 from netbox_peering_manager.choices import (
     ActionChoices,
     CommunityStatusChoices,
-    IPAddressFamilyChoices,
     PeeringStatusChoices,
     SessionStatusChoices,
 )

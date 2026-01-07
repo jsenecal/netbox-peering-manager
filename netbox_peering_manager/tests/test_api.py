@@ -1,11 +1,11 @@
 from dcim.models import Device, DeviceRole, DeviceType, Interface, Manufacturer, Site
 from django.urls import reverse
+from ipam.choices import IPAddressFamilyChoices as CoreIPAddressFamilyChoices
 from ipam.models import ASN, RIR, IPAddress, Prefix
 from utilities.testing import APITestCase, APIViewTestCases
 
 from netbox_peering_manager.choices import (
     ActionChoices,
-    IPAddressFamilyChoices,
     SessionStatusChoices,
 )
 from netbox_peering_manager.models import (
@@ -253,7 +253,7 @@ class BGPSessionAPITestCase(
         pl1 = PrefixList.objects.create(
             name="pl1",
             description="test_pl",
-            family=IPAddressFamilyChoices.FAMILY_4,
+            family=CoreIPAddressFamilyChoices.FAMILY_4,
             comments="comments_pl",
         )
 
@@ -405,8 +405,8 @@ class RoutingPolicyRuleAPITestCase(
     def setUpTestData(cls):
         rp1 = RoutingPolicy.objects.create(name="rp1", description="test_rp1", comments="comments_routing_policy1")
         rp2 = RoutingPolicy.objects.create(name="rp2", description="test_rp2", comments="comments_routing_policy2")
-        pl1 = PrefixList.objects.create(name="pl1", description="test_pl", family=IPAddressFamilyChoices.FAMILY_4)
-        pl2 = PrefixList.objects.create(name="pl1", description="test_pl", family=IPAddressFamilyChoices.FAMILY_6)
+        pl1 = PrefixList.objects.create(name="pl1", description="test_pl", family=CoreIPAddressFamilyChoices.FAMILY_4)
+        pl2 = PrefixList.objects.create(name="pl1", description="test_pl", family=CoreIPAddressFamilyChoices.FAMILY_6)
         com1 = Community.objects.create(value="65000:65000")
         com_list1 = CommunityList.objects.create(name="community list 1", description="community list 1")
 
@@ -514,19 +514,19 @@ class PrefixListAPITestCase(
                 name="prefix_list 1",
                 description="prefix_list 1",
                 comments="prefix_list 1",
-                family=IPAddressFamilyChoices.FAMILY_4,
+                family=CoreIPAddressFamilyChoices.FAMILY_4,
             ),
             PrefixList(
                 name="prefix_list 2",
                 description="prefix_list 2",
                 comments="prefix_list 2",
-                family=IPAddressFamilyChoices.FAMILY_6,
+                family=CoreIPAddressFamilyChoices.FAMILY_6,
             ),
             PrefixList(
                 name="prefix_list 3",
                 description="prefix_list 3",
                 comments="prefix_list 3",
-                family=IPAddressFamilyChoices.FAMILY_4,
+                family=CoreIPAddressFamilyChoices.FAMILY_4,
             ),
         )
         PrefixList.objects.bulk_create(prefix_lists)
@@ -553,8 +553,8 @@ class PrefixListRuleAPITestCase(
 
     @classmethod
     def setUpTestData(cls):
-        pl1 = PrefixList.objects.create(name="pl1", description="test_pl1", family=IPAddressFamilyChoices.FAMILY_4)
-        pl2 = PrefixList.objects.create(name="pl2", description="test_pl2", family=IPAddressFamilyChoices.FAMILY_4)
+        pl1 = PrefixList.objects.create(name="pl1", description="test_pl1", family=CoreIPAddressFamilyChoices.FAMILY_4)
+        pl2 = PrefixList.objects.create(name="pl2", description="test_pl2", family=CoreIPAddressFamilyChoices.FAMILY_4)
         subnet1 = Prefix.objects.create(prefix="10.0.0.0/24")
         subnet2 = Prefix.objects.create(prefix="10.0.0.0/24")
 
