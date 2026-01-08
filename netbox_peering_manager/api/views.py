@@ -263,7 +263,6 @@ class RenderConfigView(ConfigTemplateRenderMixin, APIView):
     """
 
     renderer_classes = [JSONRenderer, TextRenderer]
-    _ignore_model_permissions = True
 
     def post(self, request):
         serializer = RenderConfigRequestSerializer(data=request.data)
