@@ -23,9 +23,7 @@ class Command(BaseCommand):
 
         # Now run any plugin initializers not in INITIALIZER_ORDER
         target_path = options["path"]
-        plugin_initializers = [
-            name for name in INITIALIZER_REGISTRY if name not in INITIALIZER_ORDER
-        ]
+        plugin_initializers = [name for name in INITIALIZER_REGISTRY if name not in INITIALIZER_ORDER]
 
         # Define order for plugin initializers (dependencies first)
         plugin_order = [

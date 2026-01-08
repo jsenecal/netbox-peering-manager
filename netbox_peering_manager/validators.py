@@ -14,7 +14,7 @@ REGEX_EXTENDED = re.compile(
 MSG_STANDARD_COMMUNITY = "Standard community must be <0-65535>:<0-65535>"
 MSG_LARGE_COMMUNITY = "Large community values must be <0-4294967295>"
 MSG_INVALID_FORMAT = (
-    "Invalid community format. Use standard (ASN:VAL), " "large (GA:LD1:LD2), or extended (RT|SoO:ADMIN:VAL)"
+    "Invalid community format. Use standard (ASN:VAL), large (GA:LD1:LD2), or extended (RT|SoO:ADMIN:VAL)"
 )
 
 

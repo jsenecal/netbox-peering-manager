@@ -34,7 +34,6 @@ class IRRClientError(Exception):
     """Base exception for IRR client errors."""
 
 
-
 class IRRClient:
     """Client for querying fastbgpq4 API."""
 
@@ -104,9 +103,7 @@ class IRRClient:
         before_sleep=before_sleep_log(logger, logging.WARNING),
         reraise=True,
     )
-    def _initial_request(
-        self, client: httpx.Client, url: str, params: dict[str, Any]
-    ) -> httpx.Response:
+    def _initial_request(self, client: httpx.Client, url: str, params: dict[str, Any]) -> httpx.Response:
         """Make initial request with retry logic. Does not raise on 202."""
         return client.get(url, params=params)
 
