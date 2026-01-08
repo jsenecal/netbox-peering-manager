@@ -11,7 +11,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ('extras', '0133_make_cf_minmax_decimal'),
-        ('ipam', '0083_vlangroup_populate_total_vlan_ids'),
+        ('ipam', '0082_add_prefix_network_containment_indexes'),
         ('netbox_peering_manager', '0043_phase4_security_policy'),
     ]
 

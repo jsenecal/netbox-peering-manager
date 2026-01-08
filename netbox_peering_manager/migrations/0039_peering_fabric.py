@@ -11,7 +11,7 @@ class Migration(migrations.Migration):
     dependencies = [
         ('dcim', '0215_rackreservation_status'),
         ('extras', '0133_make_cf_minmax_decimal'),
-        ('ipam', '0083_vlangroup_populate_total_vlan_ids'),
+        ('ipam', '0082_add_prefix_network_containment_indexes'),
         ('tenancy', '0020_remove_contactgroupmembership'),
         ('netbox_peering_manager', '0038_alter_bfd_hold_time_alter_relationship_color'),
     ]
