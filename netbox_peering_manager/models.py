@@ -885,14 +885,10 @@ class BGPSession(NetBoxModel):
             return f"{self.virtualmachine}:{self.name}"
         return f":{self.name}"
 
-    # def clean(self, *args, new_session=None, **kwargs):
-    #    if not self.device and not self.virtualmachine:
-    #        raise ValidationError(_("Either a Device or a VirtualMachine should be selected"))
-    #    super().clean(*args, **kwargs)
-
-    # def save(self, *args, **kwargs):
-    #    self.clean()
-    #    super().save(*args, **kwargs)
+    def clean(self):
+        super().clean()
+        if not self.device and not self.virtualmachine:
+            raise ValidationError({"device": "Either a Device or a VirtualMachine must be selected."})
 
     def get_status_color(self):
         return SessionStatusChoices.colors.get(self.status)
