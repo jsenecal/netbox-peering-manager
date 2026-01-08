@@ -3,7 +3,7 @@
 import logging
 from dataclasses import dataclass, field
 
-from django.db import transaction
+from django.db import IntegrityError, transaction
 from django.utils import timezone
 from ipam.models import Prefix
 
@@ -16,6 +16,7 @@ from netbox_peering_manager.models import (
     PeeringNetworkPeeringDB,
 )
 
+from .exceptions import PeeringDBError, PeeringDBNotFoundError
 from .peeringdb import PeeringDBClient, get_plugin_config
 
 logger = logging.getLogger(__name__)
@@ -82,9 +83,13 @@ class PeeringDBSyncService:
                 # Sync peers (always)
                 self._sync_peers(fabric, ix_id, result)
 
-        except Exception as e:
-            error_msg = f"Sync failed: {e}"
-            logger.exception(error_msg)
+        except PeeringDBError as e:
+            error_msg = f"PeeringDB API error during sync: {e}"
+            logger.error(error_msg)
+            result.errors.append(error_msg)
+        except IntegrityError as e:
+            error_msg = f"Database integrity error during sync: {e}"
+            logger.error(error_msg)
             result.errors.append(error_msg)
 
         if result.success:
@@ -112,8 +117,6 @@ class PeeringDBSyncService:
         Returns:
             True if sync successful, False otherwise.
         """
-        from netbox_peering_manager.services.exceptions import PeeringDBNotFoundError
-
         try:
             network = self.client.get_network(peer_asn.asn.asn)
 
@@ -130,8 +133,11 @@ class PeeringDBSyncService:
         except PeeringDBNotFoundError:
             logger.warning(f"No PeeringDB network found for AS{peer_asn.asn.asn}")
             return False
-        except Exception as e:
-            logger.error(f"Failed to sync PeerASN {peer_asn}: {e}")
+        except PeeringDBError as e:
+            logger.error(f"PeeringDB API error syncing PeerASN {peer_asn}: {e}")
+            return False
+        except IntegrityError as e:
+            logger.error(f"Database error syncing PeerASN {peer_asn}: {e}")
             return False
 
     def _sync_ix_details(self, fabric: PeeringFabric, ix_id: int, result: SyncResult) -> None:
@@ -159,8 +165,12 @@ class PeeringDBSyncService:
             result.fabric_updated = True
             logger.debug(f"Updated IX details for {fabric.name}: {pdb_info.name}")
 
-        except Exception as e:
-            error_msg = f"Failed to sync IX details: {e}"
+        except PeeringDBError as e:
+            error_msg = f"PeeringDB API error syncing IX details: {e}"
+            logger.error(error_msg)
+            result.errors.append(error_msg)
+        except IntegrityError as e:
+            error_msg = f"Database error syncing IX details: {e}"
             logger.error(error_msg)
             result.errors.append(error_msg)
 
@@ -192,8 +202,8 @@ class PeeringDBSyncService:
                     # Try to create new network from IXLAN
                     self._create_network_from_ixlan(fabric, ixlan, result)
 
-        except Exception as e:
-            error_msg = f"Failed to sync IXLANs: {e}"
+        except PeeringDBError as e:
+            error_msg = f"PeeringDB API error syncing IXLANs: {e}"
             logger.error(error_msg)
             result.errors.append(error_msg)
 
@@ -247,8 +257,8 @@ class PeeringDBSyncService:
             result.networks_updated += 1
             logger.debug(f"Updated PeeringDB info for network {network.name}")
 
-        except Exception as e:
-            error_msg = f"Failed to update network {network.name}: {e}"
+        except IntegrityError as e:
+            error_msg = f"Database error updating network {network.name}: {e}"
             logger.error(error_msg)
             result.errors.append(error_msg)
 
@@ -336,8 +346,13 @@ class PeeringDBSyncService:
 
             return None  # Multiple networks may have been created
 
-        except Exception as e:
-            error_msg = f"Failed to create network from IXLAN {ixlan_id}: {e}"
+        except PeeringDBError as e:
+            error_msg = f"PeeringDB API error creating network from IXLAN {ixlan_id}: {e}"
+            logger.error(error_msg)
+            result.errors.append(error_msg)
+            return None
+        except IntegrityError as e:
+            error_msg = f"Database error creating network from IXLAN {ixlan_id}: {e}"
             logger.error(error_msg)
             result.errors.append(error_msg)
             return None
@@ -408,15 +423,19 @@ class PeeringDBSyncService:
                             speed=netixlan.get("speed", 0) or 0,
                         )
                         peers_created += 1
-                    except Exception as e:
+                    except IntegrityError as e:
                         # Log but continue - duplicates may occur
-                        logger.debug(f"Could not create peer AS{asn}: {e}")
+                        logger.debug(f"Could not create peer AS{asn} (duplicate?): {e}")
 
             result.peers_synced = peers_created
             logger.info(f"Synced {peers_created} peers for {fabric.name}")
 
-        except Exception as e:
-            error_msg = f"Failed to sync peers: {e}"
+        except PeeringDBError as e:
+            error_msg = f"PeeringDB API error syncing peers: {e}"
+            logger.error(error_msg)
+            result.errors.append(error_msg)
+        except IntegrityError as e:
+            error_msg = f"Database error syncing peers: {e}"
             logger.error(error_msg)
             result.errors.append(error_msg)
 
