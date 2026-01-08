@@ -1,6 +1,7 @@
 from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
+from django.db.models import Q, UniqueConstraint
 from django.urls import reverse
 from ipam.choices import IPAddressFamilyChoices as CoreIPAddressFamilyChoices
 from ipam.fields import IPNetworkField
@@ -216,9 +217,20 @@ class PeeringFabric(NetBoxModel):
 
     class Meta:
         ordering = ["name"]
-        unique_together = ["name", "site"]
         verbose_name = "Peering Fabric"
         verbose_name_plural = "Peering Fabrics"
+        constraints = [
+            UniqueConstraint(
+                fields=["name", "site"],
+                condition=Q(site__isnull=False),
+                name="unique_peeringfabric_name_site",
+            ),
+            UniqueConstraint(
+                fields=["name"],
+                condition=Q(site__isnull=True),
+                name="unique_peeringfabric_name_no_site",
+            ),
+        ]
 
     def __str__(self):
         return self.name
@@ -876,11 +888,19 @@ class BGPSession(NetBoxModel):
 
     class Meta:
         verbose_name_plural = "BGP Sessions"
-        unique_together = [
-            ["device", "local_address", "local_as", "remote_address", "remote_as"],
-            ["virtualmachine", "local_address", "local_as", "remote_address", "remote_as"],
-        ]
         ordering = ["name"]
+        constraints = [
+            UniqueConstraint(
+                fields=["device", "local_address", "local_as", "remote_address", "remote_as"],
+                condition=Q(device__isnull=False),
+                name="unique_bgpsession_device",
+            ),
+            UniqueConstraint(
+                fields=["virtualmachine", "local_address", "local_as", "remote_address", "remote_as"],
+                condition=Q(virtualmachine__isnull=False),
+                name="unique_bgpsession_vm",
+            ),
+        ]
 
     def __str__(self):
         if self.device:
