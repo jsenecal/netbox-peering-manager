@@ -265,7 +265,7 @@ class BGPSessionFilterSet(NetBoxModelFilterSet, TenancyFilterSet):
         field_name="site__name",
         queryset=Site.objects.all(),
         to_field_name="name",
-        label="DSite (name)",
+        label="Site (name)",
     )
     by_remote_address = django_filters.CharFilter(
         method="search_by_remote_ip",
