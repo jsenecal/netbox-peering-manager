@@ -100,13 +100,37 @@ class IRRSourceViewSet(NetBoxModelViewSet):
 
 
 class PeerASNViewSet(NetBoxModelViewSet):
-    queryset = PeerASN.objects.annotate(session_count=Count("sessions"))
+    queryset = PeerASN.objects.select_related(
+        "asn",
+    ).annotate(session_count=Count("sessions"))
     serializer_class = PeerASNSerializer
     filterset_class = PeerASNFilterSet
 
 
 class BGPSessionViewSet(NetBoxModelViewSet):
-    queryset = BGPSession.objects.all()
+    queryset = BGPSession.objects.select_related(
+        "site",
+        "tenant",
+        "device",
+        "virtualmachine",
+        "local_address",
+        "remote_address",
+        "local_as",
+        "remote_as",
+        "remote_as__asn",
+        "peer_group",
+        "relationship",
+        "bfd",
+        "prefix_list_in",
+        "prefix_list_out",
+        "peering_network",
+    ).prefetch_related(
+        "import_policies",
+        "export_policies",
+        "peer_group__import_policies",
+        "peer_group__export_policies",
+        "tags",
+    )
     serializer_class = BGPSessionSerializer
     filterset_class = BGPSessionFilterSet
 
@@ -118,55 +142,82 @@ class RoutingPolicyViewSet(NetBoxModelViewSet):
 
 
 class RoutingPolicyRuleViewSet(NetBoxModelViewSet):
-    queryset = RoutingPolicyRule.objects.all()
+    queryset = RoutingPolicyRule.objects.select_related(
+        "routing_policy",
+    ).prefetch_related(
+        "match_ip_address",
+        "match_ipv6_address",
+        "match_community",
+        "match_community_list",
+        "match_aspath_list",
+        "tags",
+    )
     serializer_class = RoutingPolicyRuleSerializer
     filterset_class = RoutingPolicyRuleFilterSet
 
 
 class BGPPeerGroupViewSet(NetBoxModelViewSet):
-    queryset = BGPPeerGroup.objects.all()
+    queryset = BGPPeerGroup.objects.prefetch_related(
+        "import_policies",
+        "export_policies",
+        "tags",
+    )
     serializer_class = BGPPeerGroupSerializer
     filterset_class = BGPPeerGroupFilterSet
 
 
 class CommunityViewSet(NetBoxModelViewSet):
-    queryset = Community.objects.all()
+    queryset = Community.objects.select_related(
+        "tenant",
+    ).prefetch_related("tags")
     serializer_class = CommunitySerializer
     filterset_class = CommunityFilterSet
 
 
 class CommunityListViewSet(NetBoxModelViewSet):
-    queryset = CommunityList.objects.all()
+    queryset = CommunityList.objects.prefetch_related("tags")
     serializer_class = CommunityListSerializer
     filterset_class = CommunityListFilterSet
 
 
 class CommunityListRuleViewSet(NetBoxModelViewSet):
-    queryset = CommunityListRule.objects.all()
+    queryset = CommunityListRule.objects.select_related(
+        "community_list",
+        "community",
+        "community__tenant",
+    ).prefetch_related("tags")
     serializer_class = CommunityListRuleSerializer
     filterset_class = CommunityListRuleFilterSet
 
 
 class PrefixListViewSet(NetBoxModelViewSet):
-    queryset = PrefixList.objects.all()
+    queryset = PrefixList.objects.select_related(
+        "irr_source",
+    ).prefetch_related("tags")
     serializer_class = PrefixListSerializer
     filterset_class = PrefixListFilterSet
 
 
 class PrefixListRuleViewSet(NetBoxModelViewSet):
-    queryset = PrefixListRule.objects.all()
+    queryset = PrefixListRule.objects.select_related(
+        "prefix_list",
+        "prefix_list__irr_source",
+        "prefix",
+    ).prefetch_related("tags")
     serializer_class = PrefixListRuleSerializer
     filterset_class = PrefixListRuleFilterSet
 
 
 class ASPathListViewSet(NetBoxModelViewSet):
-    queryset = ASPathList.objects.all()
+    queryset = ASPathList.objects.prefetch_related("tags")
     serializer_class = ASPathListSerializer
     filterset_class = ASPathListFilterSet
 
 
 class ASPathListRuleViewSet(NetBoxModelViewSet):
-    queryset = ASPathListRule.objects.all()
+    queryset = ASPathListRule.objects.select_related(
+        "aspath_list",
+    ).prefetch_related("tags")
     serializer_class = ASPathListRuleSerializer
     filterset_class = ASPathListRuleFilterSet
 
