@@ -364,6 +364,8 @@ class PeeringDBSyncService:
         Clears existing PeeringDBPeer records for the fabric and creates
         new ones from netixlan data.
 
+        Uses batch API calls to minimize requests per PeeringDB best practices.
+
         Args:
             fabric: The PeeringFabric being synced.
             ix_id: The PeeringDB IX ID.
@@ -378,54 +380,50 @@ class PeeringDBSyncService:
 
             # Get all IXLANs for this IX
             ixlans = self.client.get_ixlans(ix_id)
+            ixlan_ids = [ixlan.get("id") for ixlan in ixlans if ixlan.get("id")]
 
             # Clear existing peers for this fabric
             deleted_count = PeeringDBPeer.objects.filter(fabric=fabric).delete()[0]
             logger.debug(f"Cleared {deleted_count} existing peers for {fabric.name}")
 
+            # Batch fetch all netixlans for all IXLANs in a single request
+            netixlans = self.client.get_netixlans_batch(ixlan_ids) if ixlan_ids else []
+            logger.debug(f"Found {len(netixlans)} network connections for {len(ixlan_ids)} IXLANs")
+
             peers_created = 0
-            for ixlan in ixlans:
-                ixlan_id = ixlan.get("id")
-                if not ixlan_id:
+            for netixlan in netixlans:
+                asn = netixlan.get("asn")
+                if not asn:
                     continue
 
-                # Get network connections (netixlans) for this IXLAN
-                netixlans = self.client.get_netixlans(ixlan_id)
-                logger.debug(f"Found {len(netixlans)} network connections for IXLAN {ixlan_id}")
+                # Skip local ASNs
+                if asn in local_asns:
+                    logger.debug(f"Skipping local ASN {asn}")
+                    continue
 
-                for netixlan in netixlans:
-                    asn = netixlan.get("asn")
-                    if not asn:
-                        continue
+                # Get IP addresses
+                ipv4_addr = netixlan.get("ipaddr4")
+                ipv6_addr = netixlan.get("ipaddr6")
 
-                    # Skip local ASNs
-                    if asn in local_asns:
-                        logger.debug(f"Skipping local ASN {asn}")
-                        continue
+                # Skip if no IP addresses
+                if not ipv4_addr and not ipv6_addr:
+                    continue
 
-                    # Get IP addresses
-                    ipv4_addr = netixlan.get("ipaddr4")
-                    ipv6_addr = netixlan.get("ipaddr6")
-
-                    # Skip if no IP addresses
-                    if not ipv4_addr and not ipv6_addr:
-                        continue
-
-                    # Create peer record
-                    try:
-                        PeeringDBPeer.objects.create(
-                            fabric=fabric,
-                            asn=asn,
-                            name=netixlan.get("name", "")[:200] or f"AS{asn}",
-                            ipv4_addr=ipv4_addr,
-                            ipv6_addr=ipv6_addr,
-                            is_rs_peer=netixlan.get("is_rs_peer", False),
-                            speed=netixlan.get("speed", 0) or 0,
-                        )
-                        peers_created += 1
-                    except IntegrityError as e:
-                        # Log but continue - duplicates may occur
-                        logger.debug(f"Could not create peer AS{asn} (duplicate?): {e}")
+                # Create peer record
+                try:
+                    PeeringDBPeer.objects.create(
+                        fabric=fabric,
+                        asn=asn,
+                        name=netixlan.get("name", "")[:200] or f"AS{asn}",
+                        ipv4_addr=ipv4_addr,
+                        ipv6_addr=ipv6_addr,
+                        is_rs_peer=netixlan.get("is_rs_peer", False),
+                        speed=netixlan.get("speed", 0) or 0,
+                    )
+                    peers_created += 1
+                except IntegrityError as e:
+                    # Log but continue - duplicates may occur
+                    logger.debug(f"Could not create peer AS{asn} (duplicate?): {e}")
 
             result.peers_synced = peers_created
             logger.info(f"Synced {peers_created} peers for {fabric.name}")

@@ -15,3 +15,11 @@ class PeeringDBAPIError(PeeringDBError):
 
 class PeeringDBNotFoundError(PeeringDBError):
     """IX/Network not found in PeeringDB."""
+
+
+class PeeringDBRateLimitError(PeeringDBError):
+    """Rate limit exceeded (429 response)."""
+
+    def __init__(self, retry_after: int = 60):
+        self.retry_after = retry_after
+        super().__init__(f"Rate limited, retry after {retry_after}s")
