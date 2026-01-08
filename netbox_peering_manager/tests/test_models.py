@@ -10,6 +10,7 @@ from netbox_peering_manager.models import (
     BGPSession,
     Community,
     CommunityList,
+    PeerASN,
     PeeringConnection,
     PeeringFabric,
     PeeringFabricType,
@@ -110,7 +111,8 @@ class BGPSessionTestCase(TestCase):
         self.device = Device.objects.create(name="device", site=self.site, role=device_role, device_type=device_type)
         self.rir = RIR.objects.create(name="rir")
         self.local_as = ASN.objects.create(asn=65001, rir=self.rir)
-        self.remote_as = ASN.objects.create(asn=65002, rir=self.rir)
+        remote_as_asn = ASN.objects.create(asn=65002, rir=self.rir)
+        self.remote_as = PeerASN.objects.create(asn=remote_as_asn)
         self.peer_group = BGPPeerGroup.objects.create(name="peer_group")
         self.routing_policy_in = RoutingPolicy.objects.create(name="policy_in")
         self.routing_policy_out = RoutingPolicy.objects.create(name="policy_out")

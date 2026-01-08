@@ -8,6 +8,7 @@ from netbox_peering_manager.models import (
     BFD,
     BGPPeerGroup,
     BGPSession,
+    PeerASN,
     PeeringFabric,
     PeeringNetwork,
     Relationship,
@@ -51,8 +52,10 @@ class ConfigRendererTestCase(TestCase):
         # Create RIR and ASNs
         cls.rir = RIR.objects.create(name="Test RIR", slug="test-rir")
         cls.local_as = ASN.objects.create(asn=65000, rir=cls.rir)
-        cls.remote_as1 = ASN.objects.create(asn=65001, rir=cls.rir)
-        cls.remote_as2 = ASN.objects.create(asn=65002, rir=cls.rir)
+        remote_asn1 = ASN.objects.create(asn=65001, rir=cls.rir)
+        remote_asn2 = ASN.objects.create(asn=65002, rir=cls.rir)
+        cls.remote_as1 = PeerASN.objects.create(asn=remote_asn1, irr_as_set="AS-TEST1")
+        cls.remote_as2 = PeerASN.objects.create(asn=remote_asn2, irr_as_set="AS-TEST2")
 
         # Create IP addresses
         cls.local_ip1 = IPAddress.objects.create(address="192.0.2.1/32")
