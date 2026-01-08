@@ -862,10 +862,14 @@ class BGPSession(NetBoxModel):
     )
 
     # Phase 4: Session security
+    # WARNING: Password is stored in plaintext because BGP MD5 authentication
+    # requires the original password for config generation. Ensure database
+    # access is properly secured. Consider using database-level encryption
+    # (e.g., PostgreSQL TDE) or a secrets management solution for production.
     password = models.CharField(
         max_length=256,
         blank=True,
-        help_text="MD5 authentication password for this session",
+        help_text="MD5 authentication password. Stored in plaintext for config generation.",
     )
 
     afi_safi = None  # for future use
