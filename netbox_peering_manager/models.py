@@ -797,14 +797,14 @@ class BGPSession(NetBoxModel):
     tenant = models.ForeignKey(to="tenancy.Tenant", on_delete=models.PROTECT, blank=True, null=True)
     device = models.ForeignKey(
         to="dcim.Device",
-        on_delete=models.PROTECT,
+        on_delete=models.CASCADE,
         null=True,
         blank=True,
     )
 
     virtualmachine = models.ForeignKey(
         to="virtualization.VirtualMachine",
-        on_delete=models.PROTECT,
+        on_delete=models.CASCADE,
         null=True,
         blank=True,
     )
