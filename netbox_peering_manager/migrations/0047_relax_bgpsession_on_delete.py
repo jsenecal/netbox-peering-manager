@@ -7,9 +7,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('dcim', '0215_rackreservation_status'),
         ('netbox_peering_manager', '0046_unique_constraints_fix'),
-        ('virtualization', '0048_populate_mac_addresses'),
     ]
 
     operations = [

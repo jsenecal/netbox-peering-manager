@@ -6,12 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('dcim', '0215_rackreservation_status'),
-        ('extras', '0133_make_cf_minmax_decimal'),
-        ('ipam', '0083_vlangroup_populate_total_vlan_ids'),
         ('netbox_peering_manager', '0045_update_bgpsession_remote_as'),
-        ('tenancy', '0020_remove_contactgroupmembership'),
-        ('virtualization', '0048_populate_mac_addresses'),
     ]
 
     operations = [
