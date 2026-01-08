@@ -3,6 +3,7 @@ from extras.api.mixins import ConfigTemplateRenderMixin
 from netbox.api.renderers import TextRenderer
 from netbox.api.viewsets import NetBoxModelViewSet
 from rest_framework import status
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
 from rest_framework.routers import APIRootView
@@ -263,6 +264,7 @@ class RenderConfigView(ConfigTemplateRenderMixin, APIView):
     """
 
     renderer_classes = [JSONRenderer, TextRenderer]
+    permission_classes = [IsAuthenticated]
 
     def post(self, request):
         serializer = RenderConfigRequestSerializer(data=request.data)
