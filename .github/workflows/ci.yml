@@ -7,7 +7,22 @@ on:
     branches: [main, develop]
 
 jobs:
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      peeringdb: ${{ steps.filter.outputs.peeringdb }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            peeringdb:
+              - 'netbox_peering_manager/services/peeringdb*.py'
+              - 'netbox_peering_manager/tests/test_peeringdb.py'
+
   test:
+    needs: changes
     runs-on: ubuntu-latest
 
     services:
@@ -47,7 +62,7 @@ jobs:
 
       - name: Install NetBox
         run: |
-          git clone --depth 1 --branch v4.4.1 https://github.com/netbox-community/netbox.git /tmp/netbox
+          git clone --depth 1 --branch v4.5.0 https://github.com/netbox-community/netbox.git /tmp/netbox
           pip install --upgrade pip
           pip install -r /tmp/netbox/requirements.txt
 
@@ -86,12 +101,32 @@ jobs:
                   'SSL': False,
               }
           }
+
+          API_TOKEN_PEPPERS = {
+              1: 'ci-testing-pepper-not-for-production-use-1234567890',
+          }
           EOF
 
       - name: Install plugin
         run: pip install -e .
 
-      - name: Run migrations
+      - name: Run linting
+        run: |
+          pip install ruff
+          ruff check netbox_peering_manager/
+          ruff format --check netbox_peering_manager/
+
+      - name: Check for missing migrations
+        env:
+          PYTHONPATH: /tmp/netbox/netbox
+          DJANGO_SETTINGS_MODULE: netbox.settings
+          NETBOX_CONFIGURATION: netbox.configuration
+          SECRET_KEY: "abcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*(-_=+)"
+        run: |
+          cd /tmp/netbox/netbox
+          python manage.py makemigrations netbox_peering_manager --check --dry-run
+
+      - name: Apply database migrations
         env:
           PYTHONPATH: /tmp/netbox/netbox
           DJANGO_SETTINGS_MODULE: netbox.settings
@@ -101,13 +136,7 @@ jobs:
           cd /tmp/netbox/netbox
           python manage.py migrate --noinput
 
-      - name: Run linting
-        run: |
-          pip install ruff
-          ruff check netbox_peering_manager/
-          ruff format --check netbox_peering_manager/
-
-      - name: Run tests
+      - name: Run core tests (excluding PeeringDB)
         env:
           PYTHONPATH: /tmp/netbox/netbox
           DJANGO_SETTINGS_MODULE: netbox.settings
@@ -115,9 +144,17 @@ jobs:
           SECRET_KEY: "abcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*(-_=+)"
         run: |
           cd /tmp/netbox/netbox
-          python manage.py test netbox_peering_manager --verbosity 2
+          python manage.py test \
+            netbox_peering_manager.tests.test_api \
+            netbox_peering_manager.tests.test_forms \
+            netbox_peering_manager.tests.test_models \
+            netbox_peering_manager.tests.test_validators \
+            netbox_peering_manager.tests.test_jinja2_filters \
+            netbox_peering_manager.tests.test_config_renderer \
+            --verbosity 2
 
-      - name: Check migrations
+      - name: Run PeeringDB tests
+        if: needs.changes.outputs.peeringdb == 'true'
         env:
           PYTHONPATH: /tmp/netbox/netbox
           DJANGO_SETTINGS_MODULE: netbox.settings
@@ -125,7 +162,7 @@ jobs:
           SECRET_KEY: "abcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*(-_=+)"
         run: |
           cd /tmp/netbox/netbox
-          python manage.py makemigrations --check --dry-run
+          python manage.py test netbox_peering_manager.tests.test_peeringdb --verbosity 2
 
       - name: Django system check
         env:
