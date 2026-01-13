@@ -87,6 +87,12 @@ REDIS = {
 # https://docs.djangoproject.com/en/stable/ref/settings/#std:setting-SECRET_KEY
 SECRET_KEY = _read_secret("secret_key", environ.get("SECRET_KEY", ""))
 
+# API token peppers for v2 token generation (required for NetBox 4.5+)
+# Each pepper should be a unique random string of at least 32 characters
+API_TOKEN_PEPPERS = {
+    1: environ.get("API_TOKEN_PEPPER", "development-pepper-not-for-production-use-1234567890"),
+}
+
 
 #########################
 #                       #

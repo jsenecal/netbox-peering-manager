@@ -4,7 +4,7 @@ import strawberry
 import strawberry_django
 from dcim.graphql.filters import DeviceFilter
 from ipam.graphql.filters import ASNFilter, IPAddressFilter
-from netbox.graphql.filter_mixins import NetBoxModelFilterMixin
+from netbox.graphql.filters import NetBoxModelFilter
 from strawberry.scalars import ID
 from strawberry_django import FilterLookup
 from tenancy.graphql.filter_mixins import TenancyFilterMixin
@@ -62,20 +62,20 @@ __all__ = (
 
 
 @strawberry_django.filter_type(Relationship, lookups=True)
-class NetBoxBGPRelationshipFilter(NetBoxModelFilterMixin):
+class NetBoxBGPRelationshipFilter(NetBoxModelFilter):
     name: FilterLookup[str] | None = strawberry_django.filter_field()
     slug: FilterLookup[str] | None = strawberry_django.filter_field()
     description: FilterLookup[str] | None = strawberry_django.filter_field()
 
 
 @strawberry_django.filter_type(BFD, lookups=True)
-class NetBoxBGPBFDFilter(NetBoxModelFilterMixin):
+class NetBoxBGPBFDFilter(NetBoxModelFilter):
     name: FilterLookup[str] | None = strawberry_django.filter_field()
     description: FilterLookup[str] | None = strawberry_django.filter_field()
 
 
 @strawberry_django.filter_type(IRRSource, lookups=True)
-class NetBoxBGPIRRSourceFilter(NetBoxModelFilterMixin):
+class NetBoxBGPIRRSourceFilter(NetBoxModelFilter):
     name: FilterLookup[str] | None = strawberry_django.filter_field()
     slug: FilterLookup[str] | None = strawberry_django.filter_field()
     description: FilterLookup[str] | None = strawberry_django.filter_field()
@@ -83,7 +83,7 @@ class NetBoxBGPIRRSourceFilter(NetBoxModelFilterMixin):
 
 
 @strawberry_django.filter_type(PeerASN, lookups=True)
-class NetBoxBGPPeerASNFilter(NetBoxModelFilterMixin):
+class NetBoxBGPPeerASNFilter(NetBoxModelFilter):
     affiliated: FilterLookup[bool] | None = strawberry_django.filter_field()
     irr_as_set: FilterLookup[str] | None = strawberry_django.filter_field()
     peeringdb_id: FilterLookup[int] | None = strawberry_django.filter_field()
@@ -92,13 +92,13 @@ class NetBoxBGPPeerASNFilter(NetBoxModelFilterMixin):
 
 
 @strawberry_django.filter_type(ASPathList, lookups=True)
-class NetBoxBGPASPathListFilter(NetBoxModelFilterMixin):
+class NetBoxBGPASPathListFilter(NetBoxModelFilter):
     name: FilterLookup[str] | None = strawberry_django.filter_field()
     description: FilterLookup[str] | None = strawberry_django.filter_field()
 
 
 @strawberry_django.filter_type(ASPathListRule, lookups=True)
-class NetBoxBGPASPathListRuleFilter(NetBoxModelFilterMixin):
+class NetBoxBGPASPathListRuleFilter(NetBoxModelFilter):
     value: FilterLookup[str] | None = strawberry_django.filter_field()
     aspath_list: (
         Annotated["NetBoxBGPASPathListFilter", strawberry.lazy("netbox_peering_manager.graphql.filters")] | None
@@ -110,7 +110,7 @@ class NetBoxBGPASPathListRuleFilter(NetBoxModelFilterMixin):
 
 
 @strawberry_django.filter_type(Community, lookups=True)
-class NetBoxBGPCommunityFilter(TenancyFilterMixin, NetBoxModelFilterMixin):
+class NetBoxBGPCommunityFilter(TenancyFilterMixin, NetBoxModelFilter):
     value: FilterLookup[str] | None = strawberry_django.filter_field()
     description: FilterLookup[str] | None = strawberry_django.filter_field()
     status: (
@@ -119,7 +119,7 @@ class NetBoxBGPCommunityFilter(TenancyFilterMixin, NetBoxModelFilterMixin):
 
 
 @strawberry_django.filter_type(BGPSession, lookups=True)
-class NetBoxBGPSessionFilter(TenancyFilterMixin, NetBoxModelFilterMixin):
+class NetBoxBGPSessionFilter(TenancyFilterMixin, NetBoxModelFilter):
     name: FilterLookup[str] | None = strawberry_django.filter_field()
     description: FilterLookup[str] | None = strawberry_django.filter_field()
     status: Annotated["NetBoxBGPSessionStatusEnum", strawberry.lazy("netbox_peering_manager.graphql.enums")] | None = (
@@ -172,19 +172,19 @@ class NetBoxBGPSessionFilter(TenancyFilterMixin, NetBoxModelFilterMixin):
 
 
 @strawberry_django.filter_type(BGPPeerGroup, lookups=True)
-class NetBoxBGPBGPPeerGroupFilter(NetBoxModelFilterMixin):
+class NetBoxBGPBGPPeerGroupFilter(NetBoxModelFilter):
     name: FilterLookup[str] | None = strawberry_django.filter_field()
     description: FilterLookup[str] | None = strawberry_django.filter_field()
 
 
 @strawberry_django.filter_type(RoutingPolicy, lookups=True)
-class NetBoxBGPRoutingPolicyFilter(NetBoxModelFilterMixin):
+class NetBoxBGPRoutingPolicyFilter(NetBoxModelFilter):
     name: FilterLookup[str] | None = strawberry_django.filter_field()
     description: FilterLookup[str] | None = strawberry_django.filter_field()
 
 
 @strawberry_django.filter_type(RoutingPolicyRule, lookups=True)
-class NetBoxBGPRoutingPolicyRuleFilter(NetBoxModelFilterMixin):
+class NetBoxBGPRoutingPolicyRuleFilter(NetBoxModelFilter):
     description: FilterLookup[str] | None = strawberry_django.filter_field()
     routing_policy: (
         Annotated["NetBoxBGPRoutingPolicyFilter", strawberry.lazy("netbox_peering_manager.graphql.filters")] | None
@@ -200,7 +200,7 @@ class NetBoxBGPRoutingPolicyRuleFilter(NetBoxModelFilterMixin):
 
 
 @strawberry_django.filter_type(PrefixList, lookups=True)
-class NetBoxBGPPrefixListFilter(NetBoxModelFilterMixin):
+class NetBoxBGPPrefixListFilter(NetBoxModelFilter):
     name: FilterLookup[str] | None = strawberry_django.filter_field()
     description: FilterLookup[str] | None = strawberry_django.filter_field()
     family: (
@@ -214,7 +214,7 @@ class NetBoxBGPPrefixListFilter(NetBoxModelFilterMixin):
 
 
 @strawberry_django.filter_type(PrefixListRule, lookups=True)
-class NetBoxBGPPrefixListRuleFilter(NetBoxModelFilterMixin):
+class NetBoxBGPPrefixListRuleFilter(NetBoxModelFilter):
     action: Annotated["NetBoxBGPActionEnum", strawberry.lazy("netbox_peering_manager.graphql.enums")] | None = (
         strawberry_django.filter_field()
     )
@@ -225,13 +225,13 @@ class NetBoxBGPPrefixListRuleFilter(NetBoxModelFilterMixin):
 
 
 @strawberry_django.filter_type(CommunityList, lookups=True)
-class NetBoxBGPCommunityListFilter(NetBoxModelFilterMixin):
+class NetBoxBGPCommunityListFilter(NetBoxModelFilter):
     name: FilterLookup[str] | None = strawberry_django.filter_field()
     description: FilterLookup[str] | None = strawberry_django.filter_field()
 
 
 @strawberry_django.filter_type(CommunityListRule, lookups=True)
-class NetBoxBGPCommunityListRuleFilter(NetBoxModelFilterMixin):
+class NetBoxBGPCommunityListRuleFilter(NetBoxModelFilter):
     action: Annotated["NetBoxBGPActionEnum", strawberry.lazy("netbox_peering_manager.graphql.enums")] | None = (
         strawberry_django.filter_field()
     )
@@ -248,14 +248,14 @@ class NetBoxBGPCommunityListRuleFilter(NetBoxModelFilterMixin):
 
 
 @strawberry_django.filter_type(PeeringFabricType, lookups=True)
-class NetBoxBGPPeeringFabricTypeFilter(NetBoxModelFilterMixin):
+class NetBoxBGPPeeringFabricTypeFilter(NetBoxModelFilter):
     name: FilterLookup[str] | None = strawberry_django.filter_field()
     slug: FilterLookup[str] | None = strawberry_django.filter_field()
     description: FilterLookup[str] | None = strawberry_django.filter_field()
 
 
 @strawberry_django.filter_type(PeeringFabric, lookups=True)
-class NetBoxBGPPeeringFabricFilter(TenancyFilterMixin, NetBoxModelFilterMixin):
+class NetBoxBGPPeeringFabricFilter(TenancyFilterMixin, NetBoxModelFilter):
     name: FilterLookup[str] | None = strawberry_django.filter_field()
     slug: FilterLookup[str] | None = strawberry_django.filter_field()
     description: FilterLookup[str] | None = strawberry_django.filter_field()
@@ -269,7 +269,7 @@ class NetBoxBGPPeeringFabricFilter(TenancyFilterMixin, NetBoxModelFilterMixin):
 
 
 @strawberry_django.filter_type(PeeringNetwork, lookups=True)
-class NetBoxBGPPeeringNetworkFilter(NetBoxModelFilterMixin):
+class NetBoxBGPPeeringNetworkFilter(NetBoxModelFilter):
     name: FilterLookup[str] | None = strawberry_django.filter_field()
     description: FilterLookup[str] | None = strawberry_django.filter_field()
     status: Annotated["NetBoxBGPPeeringStatusEnum", strawberry.lazy("netbox_peering_manager.graphql.enums")] | None = (
@@ -282,7 +282,7 @@ class NetBoxBGPPeeringNetworkFilter(NetBoxModelFilterMixin):
 
 
 @strawberry_django.filter_type(PeeringConnection, lookups=True)
-class NetBoxBGPPeeringConnectionFilter(NetBoxModelFilterMixin):
+class NetBoxBGPPeeringConnectionFilter(NetBoxModelFilter):
     description: FilterLookup[str] | None = strawberry_django.filter_field()
     status: Annotated["NetBoxBGPPeeringStatusEnum", strawberry.lazy("netbox_peering_manager.graphql.enums")] | None = (
         strawberry_django.filter_field()
