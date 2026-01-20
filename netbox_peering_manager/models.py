@@ -541,7 +541,7 @@ class ASPathListRule(NetBoxModel):
     Rules for AS Path List
     """
 
-    aspath_list = models.ForeignKey(to=ASPathList, on_delete=models.CASCADE, related_name="aspathlistrules")
+    aspath_list = models.ForeignKey(to=ASPathList, on_delete=models.CASCADE, related_name="rules")
     index = models.PositiveIntegerField()
     action = models.CharField(max_length=30, choices=ActionChoices)
     pattern = models.CharField(
@@ -674,7 +674,7 @@ class CommunityList(NetBoxModel):
 class CommunityListRule(NetBoxModel):
     """ """
 
-    community_list = models.ForeignKey(to=CommunityList, on_delete=models.CASCADE, related_name="commlistrules")
+    community_list = models.ForeignKey(to=CommunityList, on_delete=models.CASCADE, related_name="rules")
     action = models.CharField(max_length=30, choices=ActionChoices)
     community = models.ForeignKey(
         to=Community,
@@ -745,7 +745,7 @@ class PrefixList(NetBoxModel):
 class PrefixListRule(NetBoxModel):
     """ """
 
-    prefix_list = models.ForeignKey(to=PrefixList, on_delete=models.CASCADE, related_name="prefrules")
+    prefix_list = models.ForeignKey(to=PrefixList, on_delete=models.CASCADE, related_name="rules")
     index = models.PositiveIntegerField()
     action = models.CharField(max_length=30, choices=ActionChoices)
     prefix = models.ForeignKey(

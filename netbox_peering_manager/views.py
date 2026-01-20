@@ -353,7 +353,7 @@ class CommListView(generic.ObjectView):
     def get_extra_context(self, _request, instance):
         rprules = instance.cmrules.all()
         rprules_table = tables.RoutingPolicyRuleTable(rprules)
-        rules = instance.commlistrules.all()
+        rules = instance.rules.all()
         rules_table = tables.CommunityListRuleTable(rules)
         return {"rules_table": rules_table, "rprules_table": rprules_table}
 
@@ -698,7 +698,7 @@ class PrefixListView(generic.ObjectView):
     def get_extra_context(self, _request, instance):
         rprules = instance.plrules.all()
         rprules_table = tables.RoutingPolicyRuleTable(rprules)
-        rules = instance.prefrules.all()
+        rules = instance.rules.all()
         rules_table = tables.PrefixListRuleTable(rules)
 
         sess = instance.session_prefix_in.all() | instance.session_prefix_out.all()
@@ -836,7 +836,7 @@ class ASPathListView(generic.ObjectView):
     def get_extra_context(self, _request, instance):
         rprules = instance.aspathrules.all()
         rprules_table = tables.RoutingPolicyRuleTable(rprules)
-        rules = instance.aspathlistrules.all()
+        rules = instance.rules.all()
         rules_table = tables.ASPathListRuleTable(rules)
         return {"rules_table": rules_table, "rprules_table": rprules_table}
 

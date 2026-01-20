@@ -42,8 +42,8 @@ class SyncPrefixListJob(JobRunner):
             prefixes = client.fetch_prefixes(as_set, family)
 
             # Delete existing rules
-            deleted_count = prefix_list.prefrules.count()
-            prefix_list.prefrules.all().delete()
+            deleted_count = prefix_list.rules.count()
+            prefix_list.rules.all().delete()
 
             # Create new rules
             rules = []
@@ -121,7 +121,7 @@ class SyncAllPrefixListsJob(JobRunner):
                     prefix_list.family,
                 )
 
-                prefix_list.prefrules.all().delete()
+                prefix_list.rules.all().delete()
 
                 rules = []
                 for index, prefix in enumerate(prefixes):

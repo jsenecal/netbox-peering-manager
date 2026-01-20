@@ -184,7 +184,7 @@ class PrefixListType(NetBoxObjectType):
     family: str
     source_as_set: str
     irr_source: Annotated["IRRSourceType", strawberry.lazy("netbox_peering_manager.graphql.types")] | None
-    prefrules: list[Annotated["PrefixListRuleType", strawberry.lazy("netbox_peering_manager.graphql.types")]]
+    rules: list[Annotated["PrefixListRuleType", strawberry.lazy("netbox_peering_manager.graphql.types")]]
 
 
 @strawberry_django.type(PrefixListRule, fields="__all__", filters=NetBoxBGPPrefixListRuleFilter)
@@ -203,7 +203,7 @@ class PrefixListRuleType(NetBoxObjectType):
 class CommunityListType(NetBoxObjectType):
     name: str
     description: str
-    commlistrules: list[Annotated["CommunityListRuleType", strawberry.lazy("netbox_peering_manager.graphql.types")]]
+    rules: list[Annotated["CommunityListRuleType", strawberry.lazy("netbox_peering_manager.graphql.types")]]
 
 
 @strawberry_django.type(CommunityListRule, fields="__all__", filters=NetBoxBGPCommunityListRuleFilter)
