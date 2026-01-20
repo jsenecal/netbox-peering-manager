@@ -9,14 +9,30 @@ Currently the codebase is mostly a fork of the original [NetBox BGP Plugin](http
 ## Features
 
 This plugin provides the following Models:
-* BGP Sessions
+
+**Core BGP Models:**
+* BGP Sessions (with MD5 auth, BFD, multihop support)
 * BGP Peer Groups
-* BGP Communities
-* Routing Policies
+* Peer ASNs (extends NetBox ASN with peering-specific attributes)
+* Relationship Types (transit, peer, customer, IXP)
+* BFD Profiles
+
+**Policy & Filtering:**
+* Routing Policies (with weight and address family)
+* BGP Communities (standard, extended, large)
+* Community Lists
 * Prefix Lists
 * AS Path Lists
-* Relationship Types (transit, peer, customer, etc.)
-* BFD Profiles
+
+**Internet Exchange Support:**
+* Peering Fabrics (IX, cloud exchange, private LAN)
+* Peering Networks (IX LANs with prefix/VLAN)
+* Peering Connections (device interface attachments)
+
+**External Integrations:**
+* PeeringDB selective sync
+* IRR prefix list synchronization
+* Configuration templating (Jinja2 with multi-vendor support)
 
 ## Compatibility
 

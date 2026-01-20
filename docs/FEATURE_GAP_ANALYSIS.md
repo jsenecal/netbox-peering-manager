@@ -8,9 +8,15 @@ netbox-peering-manager is a NetBox plugin that leverages NetBox's existing infra
 
 **Key Advantage of netbox-peering-manager:** Tight integration with NetBox eliminates data duplication and provides a single source of truth for network infrastructure.
 
-**Key Gaps:** Session state monitoring.
+**Status:** Core functionality complete (Phases 1-6). Future enhancements: IX-API integration, session state monitoring (NAPALM).
 
-**Recently Completed:** ASN extensions with PeerASN model (Phase 6), Configuration templating (Phase 5), Session security and policy enhancements (Phase 4), PeeringDB selective sync integration (Phase 3), Internet Exchange support via Peering Fabric models (Phase 2), IRR prefix list synchronization (Phase 1.5).
+**Completed Features:**
+- BGP session management with relationship types, BFD, multihop, MD5 auth
+- Internet Exchange support via Peering Fabric models
+- PeeringDB selective sync integration
+- IRR prefix list synchronization
+- Configuration templating with multi-vendor support
+- PeerASN model for ASN extensions
 
 ---
 
@@ -26,7 +32,7 @@ netbox-peering-manager is a NetBox plugin that leverages NetBox's existing infra
 | Tenants | N/A | Uses NetBox tenancy.Tenant | ✅ Leveraged |
 | **BGP Sessions** |
 | Direct Peering Sessions | ✅ DirectPeeringSession | ✅ BGPSession | ✅ Equivalent |
-| IX Peering Sessions | ✅ IXPeeringSession | ❌ Missing | 🔴 Gap |
+| IX Peering Sessions | ✅ IXPeeringSession | ✅ BGPSession + peering_network | ✅ Implemented |
 | Session Status | ✅ | ✅ | ✅ Equivalent |
 | Relationship Types | ✅ | ✅ | ✅ Implemented |
 | BFD Configuration | ✅ | ✅ | ✅ Implemented |
@@ -174,43 +180,41 @@ PLUGINS_CONFIG = {
 - `password` field on BGPSession using NetBox's encrypted storage
 - Secure storage and retrieval via NetBox's secrets framework
 
-### 5. Routing Policy Enhancements (PARTIALLY COMPLETED)
+### 5. Routing Policy Enhancements ✅ COMPLETED
 
-**Current State:** Weight field added for evaluation order.
+**Current State:** Fully implemented with weight and address family fields.
 
 **Implemented:**
 - `weight` - Evaluation order (higher = first)
+- `address_family` - IPv4/IPv6/any filtering
 
-**Skipped/Deferred:**
+**Skipped (YAGNI):**
 - `type` (ingress/egress) - Not needed; handled by M2M relationship names (import_policies, export_policies)
-- `address_family` - Deferred to future need
 
-### 6. Community Enhancements (LOW PRIORITY)
+### 6. Community Enhancements ✅ COMPLETED
 
-**Current State:** Basic value with simple regex validation.
+**Current State:** RFC-compliant value validation implemented.
 
-**Missing:**
-- `type` field (ingress/egress application)
-- RFC-compliant value validation:
-  - Standard: `<16-bit>:<16-bit>`
-  - Extended: `(origin|target):<asn>:<value>`
-  - Large: `<32-bit>:<32-bit>:<32-bit>`
+**Implemented:**
+- Standard communities: `<16-bit>:<16-bit>`
+- Extended communities: `(origin|target):<asn>:<value>`
+- Large communities: `<32-bit>:<32-bit>:<32-bit>`
 
-### 7. Configuration Templating (MEDIUM PRIORITY)
+**Skipped (YAGNI):**
+- `type` field (ingress/egress) - Usage context determines application
 
-**Current State:** No config generation capability.
+### 7. Configuration Templating ✅ COMPLETED
 
-**Required:**
-- Jinja2 template storage model
-- Template context with session/policy data
-- Render endpoint for generating configs
-- Multi-vendor template examples
+**Current State:** Full config generation capability using NetBox's ConfigTemplate.
 
-**NetBox Integration:**
-- Leverage NetBox's existing config template framework
-- Or create plugin-specific templates
+**Implementation:**
+- Uses NetBox's built-in `extras.ConfigTemplate` for template storage
+- Custom Jinja2 filters: `as_path_regex`, `ip_network`, `group_by`, `to_community_list`, `to_prefix_set`
+- `ConfigRenderer` service builds template context with device/session/policy data
+- API endpoint: `POST /api/plugins/bgp/render-config/`
+- Example templates for Junos, IOS-XR, EOS, Nokia SR OS
 
-### 8. Session State Monitoring (LOW PRIORITY - FUTURE)
+### 8. Session State Monitoring (FUTURE)
 
 **Current State:** No live state polling.
 
@@ -363,7 +367,24 @@ PeerASN
 - [x] Create PeerASN detail template
 - [x] Update tests for PeerASN and BGPSession
 
-### Phase 7: Operational Monitoring (FUTURE)
+### Phase 7: IX-API Integration (FUTURE)
+
+**Priority:** LOW
+**Estimated Effort:** Medium
+
+IX-API is an open industry standard developed by AMS-IX, DE-CIX, and LINX for automated IX service provisioning.
+
+**Tasks:**
+- [ ] Create `IXAPIEndpoint` model (name, url, api_key, api_secret, identity, api_version)
+- [ ] Add optional FK from `PeeringFabric` to `IXAPIEndpoint`
+- [ ] Integrate [pyixapi](https://github.com/peering-manager/pyixapi) client library
+- [ ] Create service class for IX-API operations
+- [ ] Add UI tab on PeeringFabric detail page for IX-API data
+- [ ] Fetch and display member services, port info, subscription details
+
+**Note:** Limited adoption - only DE-CIX, AMS-IX, LINX, France-IX, JP-NAP currently support IX-API.
+
+### Phase 8: Operational Monitoring (FUTURE)
 
 **Priority:** LOW
 **Estimated Effort:** Large
@@ -380,32 +401,35 @@ PeerASN
 
 ## Architecture Decisions
 
-### Decision 1: Separate IX Session Model vs Extended BGPSession
+### Decision 1: IX Session Model ✅ DECIDED
 
-**Option A: Separate IXPeeringSession model**
-- Pros: Clean separation, IX-specific fields, matches Peering Manager
-- Cons: Code duplication, two places to look for sessions
+**Chosen: Option B - Extend BGPSession with optional peering_network field**
 
-**Option B: Extend BGPSession with optional IX fields**
-- Pros: Single session model, simpler queries
-- Cons: Nullable fields, less clear data model
+Rationale:
+- Single session model simplifies queries and management
+- `BGPSession.peering_network` (optional FK to PeeringNetwork) distinguishes IX sessions
+- Avoids code duplication between direct and IX session types
+- More flexible - sessions can be associated with peering fabrics without requiring a separate model
 
-**Recommendation:** Option A - Create separate `IXPeeringSession` model for clarity and to match established patterns in Peering Manager. Use abstract base class for shared functionality.
+### Decision 2: ASN Extensions ✅ DECIDED
 
-### Decision 2: ASN Extensions
+**Chosen: PeerASN model with OneToOne to ipam.ASN**
 
-**Recommendation:** Start with **PeerASN model** approach. This provides:
-- Clean data model
-- Full control over fields and behavior
-- Easy PeeringDB sync target
+Rationale:
+- Clean data model with full control over fields
+- Easy PeeringDB sync target via peeringdb_id
 - No dependency on NetBox custom field behavior
+- Stores peering-specific attributes (irr_as_set, max_prefixes, affiliated flag)
 
-### Decision 3: Configuration Templates
+### Decision 3: Configuration Templates ✅ DECIDED
 
-**Recommendation:** Create plugin-specific `ConfigurationTemplate` model rather than using NetBox's config templates. Reasons:
-- BGP-specific context variables
-- Custom Jinja2 filters for routing policy rendering
-- Independence from NetBox config context changes
+**Chosen: Use NetBox's built-in extras.ConfigTemplate**
+
+Rationale:
+- Leverages existing NetBox infrastructure
+- Users familiar with NetBox config templates can reuse knowledge
+- Custom Jinja2 filters registered via plugin config provide BGP-specific functionality
+- ConfigRenderer service builds context with all necessary session/policy data
 
 ---
 
@@ -414,10 +438,11 @@ PeerASN
 ### External Libraries
 - `tenacity` - Retry logic for IRR queries and PeeringDB API ✅ Added
 - `requests` - HTTP client for PeeringDB REST API (already in NetBox) ✅ Used
-- `napalm` - Device connectivity (Phase 7)
+- `pyixapi` - IX-API client (Phase 7)
+- `napalm` - Device connectivity (Phase 8)
 
 ### NetBox Version Requirements
-- NetBox 4.4+ (current compatibility)
+- NetBox 4.4+ or 4.5+ (current compatibility)
 - Monitor for relevant upstream changes
 
 ---
@@ -438,3 +463,5 @@ PeerASN
 - [Peering Manager GitHub](https://github.com/peering-manager/peering-manager)
 - [NetBox Plugin Development](https://docs.netbox.dev/en/stable/plugins/development/)
 - [PeeringDB API](https://www.peeringdb.com/apidocs/)
+- [IX-API Specification](https://ix-api.net/)
+- [pyixapi Client Library](https://github.com/peering-manager/pyixapi)
