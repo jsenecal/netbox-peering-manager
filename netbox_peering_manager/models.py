@@ -39,7 +39,7 @@ class IRRSource(NetBoxModel):
         default=1440,
         help_text="Minutes between automatic syncs (default: 1440 = 24 hours)",
     )
-    enabled = models.BooleanField(default=True)
+    enabled = models.BooleanField(default=True, db_index=True)
     description = models.CharField(max_length=200, blank=True)
     comments = models.TextField(blank=True)
 
@@ -96,6 +96,7 @@ class PeerASN(NetBoxModel):
     )
     affiliated = models.BooleanField(
         default=False,
+        db_index=True,
         help_text="ASN is operated by your organization (subsidiary, partner)",
     )
     irr_as_set = models.CharField(
@@ -122,6 +123,7 @@ class PeerASN(NetBoxModel):
     peeringdb_last_sync = models.DateTimeField(
         null=True,
         blank=True,
+        db_index=True,
     )
     comments = models.TextField(blank=True)
 
@@ -270,6 +272,7 @@ class PeeringNetwork(NetBoxModel):
         max_length=50,
         choices=PeeringStatusChoices,
         default=PeeringStatusChoices.STATUS_ACTIVE,
+        db_index=True,
     )
     description = models.CharField(max_length=200, blank=True)
     comments = models.TextField(blank=True)
@@ -426,6 +429,7 @@ class PeeringConnection(NetBoxModel):
         max_length=50,
         choices=PeeringStatusChoices,
         default=PeeringStatusChoices.STATUS_ACTIVE,
+        db_index=True,
     )
     description = models.CharField(max_length=200, blank=True)
 
@@ -792,7 +796,7 @@ class PrefixListRule(NetBoxModel):
 
 
 class BGPSession(NetBoxModel):
-    name = models.CharField(max_length=256, blank=True, null=True)
+    name = models.CharField(max_length=256, blank=True, null=True, db_index=True)
     site = models.ForeignKey(to="dcim.Site", on_delete=models.SET_NULL, blank=True, null=True)
     tenant = models.ForeignKey(to="tenancy.Tenant", on_delete=models.PROTECT, blank=True, null=True)
     device = models.ForeignKey(
@@ -818,7 +822,9 @@ class BGPSession(NetBoxModel):
         related_name="sessions",
         help_text="Peer ASN for this session",
     )
-    status = models.CharField(max_length=50, choices=SessionStatusChoices, default=SessionStatusChoices.STATUS_ACTIVE)
+    status = models.CharField(
+        max_length=50, choices=SessionStatusChoices, default=SessionStatusChoices.STATUS_ACTIVE, db_index=True
+    )
     description = models.CharField(max_length=200, blank=True)
     peer_group = models.ForeignKey(BGPPeerGroup, on_delete=models.SET_NULL, blank=True, null=True)
     import_policies = models.ManyToManyField(RoutingPolicy, blank=True, related_name="session_import_policies")
