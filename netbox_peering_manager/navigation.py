@@ -98,6 +98,25 @@ _menu_items_primary = (
         ),
     ),
     PluginMenuItem(
+        link="plugins:netbox_peering_manager:communitylistrule_list",
+        link_text="Community List Rules",
+        permissions=["netbox_peering_manager.view_communitylistrule"],
+        buttons=(
+            PluginMenuButton(
+                link="plugins:netbox_peering_manager:communitylistrule_add",
+                title="Add",
+                icon_class="mdi mdi-plus-thick",
+                permissions=["netbox_peering_manager.add_communitylistrule"],
+            ),
+            PluginMenuButton(
+                link="plugins:netbox_peering_manager:communitylistrule_bulk_import",
+                title="Import",
+                icon_class="mdi mdi-upload",
+                permissions=["netbox_peering_manager.add_communitylistrule"],
+            ),
+        ),
+    ),
+    PluginMenuItem(
         link="plugins:netbox_peering_manager:bgpsession_list",
         link_text="Sessions",
         permissions=["netbox_peering_manager.view_bgpsession"],
@@ -364,6 +383,25 @@ _menu_items_grouped = (
                 title="Import",
                 icon_class="mdi mdi-upload",
                 permissions=["netbox_peering_manager.add_communitylist"],
+            ),
+        ),
+    ),
+    PluginMenuItem(
+        link="plugins:netbox_peering_manager:communitylistrule_list",
+        link_text="Community List Rules",
+        permissions=["netbox_peering_manager.view_communitylistrule"],
+        buttons=(
+            PluginMenuButton(
+                link="plugins:netbox_peering_manager:communitylistrule_add",
+                title="Add",
+                icon_class="mdi mdi-plus-thick",
+                permissions=["netbox_peering_manager.add_communitylistrule"],
+            ),
+            PluginMenuButton(
+                link="plugins:netbox_peering_manager:communitylistrule_bulk_import",
+                title="Import",
+                icon_class="mdi mdi-upload",
+                permissions=["netbox_peering_manager.add_communitylistrule"],
             ),
         ),
     ),

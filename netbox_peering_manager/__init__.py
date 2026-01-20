@@ -16,7 +16,7 @@ class BGPConfig(PluginConfig):
     max_version = "4.5.99"
     default_settings = {
         "device_ext_page": "right",
-        "top_level_menu": False,
+        "top_level_menu": True,
         "peeringdb_url": None,
         "peeringdb_api_key": None,
         "peeringdb_timeout": None,
