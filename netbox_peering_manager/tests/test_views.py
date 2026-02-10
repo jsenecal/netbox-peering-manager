@@ -1,21 +1,29 @@
 """View tests for netbox_peering_manager plugin."""
 
-from ipam.models import ASN, RIR
+from dcim.models import Device, DeviceRole, DeviceType, Interface, Manufacturer, Site
+from ipam.models import ASN, RIR, IPAddress, Prefix
 from utilities.testing import ViewTestCases, create_tags
 
 from netbox_peering_manager.models import (
     BFD,
     ASPathList,
+    ASPathListRule,
     BGPPeerGroup,
+    BGPSession,
     Community,
     CommunityList,
+    CommunityListRule,
     IRRSource,
     PeerASN,
+    PeeringConnection,
     PeeringFabric,
     PeeringFabricType,
+    PeeringNetwork,
     PrefixList,
+    PrefixListRule,
     Relationship,
     RoutingPolicy,
+    RoutingPolicyRule,
 )
 
 
@@ -536,4 +544,429 @@ class PeerASNTestCase(ViewTestCases.PrimaryObjectViewTestCase):
         cls.bulk_edit_data = {
             "affiliated": True,
             "comments": "Bulk updated",
+        }
+
+
+class BGPSessionTestCase(ViewTestCases.PrimaryObjectViewTestCase):
+    """Test cases for BGPSession views."""
+
+    model = BGPSession
+
+    @classmethod
+    def setUpTestData(cls):
+        # Create required dependencies
+        site = Site.objects.create(name="Test Site", slug="test-site")
+        manufacturer = Manufacturer.objects.create(name="Test Manufacturer", slug="test-manufacturer")
+        device_type = DeviceType.objects.create(manufacturer=manufacturer, model="Test Model", slug="test-model")
+        device_role = DeviceRole.objects.create(name="Test Role", slug="test-role")
+
+        devices = (
+            Device(name="Device 1", site=site, device_type=device_type, role=device_role),
+            Device(name="Device 2", site=site, device_type=device_type, role=device_role),
+        )
+        Device.objects.bulk_create(devices)
+
+        rir = RIR.objects.create(name="RFC 6996", is_private=True)
+
+        # Create ASNs
+        local_asns = (
+            ASN(asn=65000, rir=rir, description="Local AS 1"),
+            ASN(asn=65001, rir=rir, description="Local AS 2"),
+        )
+        ASN.objects.bulk_create(local_asns)
+
+        remote_asns = (
+            ASN(asn=65100, rir=rir, description="Remote AS 1"),
+            ASN(asn=65101, rir=rir, description="Remote AS 2"),
+            ASN(asn=65102, rir=rir, description="Remote AS 3"),
+            ASN(asn=65103, rir=rir, description="Remote AS 4"),
+        )
+        ASN.objects.bulk_create(remote_asns)
+
+        peer_asns = (
+            PeerASN(asn=remote_asns[0]),
+            PeerASN(asn=remote_asns[1]),
+            PeerASN(asn=remote_asns[2]),
+            PeerASN(asn=remote_asns[3]),
+        )
+        PeerASN.objects.bulk_create(peer_asns)
+
+        # Create IP addresses
+        local_ips = (
+            IPAddress(address="192.0.2.1/24"),
+            IPAddress(address="192.0.2.2/24"),
+            IPAddress(address="192.0.2.3/24"),
+            IPAddress(address="192.0.2.4/24"),
+        )
+        IPAddress.objects.bulk_create(local_ips)
+
+        remote_ips = (
+            IPAddress(address="198.51.100.1/24"),
+            IPAddress(address="198.51.100.2/24"),
+            IPAddress(address="198.51.100.3/24"),
+            IPAddress(address="198.51.100.4/24"),
+        )
+        IPAddress.objects.bulk_create(remote_ips)
+
+        # Create BGP sessions
+        sessions = (
+            BGPSession(
+                name="Session 1",
+                device=devices[0],
+                local_address=local_ips[0],
+                remote_address=remote_ips[0],
+                local_as=local_asns[0],
+                remote_as=peer_asns[0],
+            ),
+            BGPSession(
+                name="Session 2",
+                device=devices[0],
+                local_address=local_ips[1],
+                remote_address=remote_ips[1],
+                local_as=local_asns[0],
+                remote_as=peer_asns[1],
+            ),
+            BGPSession(
+                name="Session 3",
+                device=devices[1],
+                local_address=local_ips[2],
+                remote_address=remote_ips[2],
+                local_as=local_asns[1],
+                remote_as=peer_asns[2],
+            ),
+        )
+        BGPSession.objects.bulk_create(sessions)
+
+        tags = create_tags("Alpha", "Bravo", "Charlie")
+
+        cls.form_data = {
+            "name": "New Session",
+            "device": devices[1].pk,
+            "local_address": local_ips[3].pk,
+            "remote_address": remote_ips[3].pk,
+            "local_as": local_asns[1].pk,
+            "remote_as": peer_asns[3].pk,
+            "status": "active",
+            "tags": [t.pk for t in tags],
+        }
+
+        cls.csv_data = (
+            "name,device,local_address,remote_address,local_as,remote_as,status",
+            f"Session 4,{devices[0].pk},{local_ips[3].pk},{remote_ips[3].pk},{local_asns[0].pk},{peer_asns[3].pk},active",
+        )
+
+        cls.csv_update_data = (
+            "id,name,description",
+            f"{sessions[0].pk},Session 1 Updated,Updated",
+            f"{sessions[1].pk},Session 2 Updated,Updated",
+            f"{sessions[2].pk},Session 3 Updated,Updated",
+        )
+
+        cls.bulk_edit_data = {
+            "description": "Bulk updated",
+            "status": "disabled",
+        }
+
+
+class PeeringNetworkTestCase(ViewTestCases.PrimaryObjectViewTestCase):
+    """Test cases for PeeringNetwork views."""
+
+    model = PeeringNetwork
+
+    @classmethod
+    def setUpTestData(cls):
+        fabric_type = PeeringFabricType.objects.create(name="Internet Exchange", slug="internet-exchange")
+        fabric = PeeringFabric.objects.create(name="Test IX", slug="test-ix", type=fabric_type)
+
+        prefixes = (
+            Prefix(prefix="192.0.2.0/24"),
+            Prefix(prefix="198.51.100.0/24"),
+            Prefix(prefix="203.0.113.0/24"),
+            Prefix(prefix="10.0.0.0/24"),
+        )
+        Prefix.objects.bulk_create(prefixes)
+
+        networks = (
+            PeeringNetwork(name="Peering LAN 1", fabric=fabric, prefix=prefixes[0]),
+            PeeringNetwork(name="Peering LAN 2", fabric=fabric, prefix=prefixes[1]),
+            PeeringNetwork(name="Peering LAN 3", fabric=fabric, prefix=prefixes[2]),
+        )
+        PeeringNetwork.objects.bulk_create(networks)
+
+        tags = create_tags("Alpha", "Bravo", "Charlie")
+
+        cls.form_data = {
+            "name": "New Peering LAN",
+            "fabric": fabric.pk,
+            "prefix": prefixes[3].pk,
+            "status": "active",
+            "tags": [t.pk for t in tags],
+        }
+
+        cls.csv_data = (
+            "name,fabric,prefix,status",
+            f"Peering LAN 4,{fabric.pk},{prefixes[3].pk},active",
+        )
+
+        cls.csv_update_data = (
+            "id,name,description",
+            f"{networks[0].pk},Peering LAN 1 Updated,Updated",
+            f"{networks[1].pk},Peering LAN 2 Updated,Updated",
+            f"{networks[2].pk},Peering LAN 3 Updated,Updated",
+        )
+
+        cls.bulk_edit_data = {
+            "description": "Bulk updated",
+            "status": "disabled",
+        }
+
+
+class PeeringConnectionTestCase(ViewTestCases.PrimaryObjectViewTestCase):
+    """Test cases for PeeringConnection views."""
+
+    model = PeeringConnection
+
+    @classmethod
+    def setUpTestData(cls):
+        fabric_type = PeeringFabricType.objects.create(name="Internet Exchange", slug="internet-exchange")
+        fabric = PeeringFabric.objects.create(name="Test IX", slug="test-ix", type=fabric_type)
+
+        prefixes = (
+            Prefix(prefix="192.0.2.0/24"),
+            Prefix(prefix="198.51.100.0/24"),
+        )
+        Prefix.objects.bulk_create(prefixes)
+
+        network = PeeringNetwork.objects.create(name="Peering LAN", fabric=fabric, prefix=prefixes[0])
+
+        site = Site.objects.create(name="Test Site", slug="test-site")
+        manufacturer = Manufacturer.objects.create(name="Test Manufacturer", slug="test-manufacturer")
+        device_type = DeviceType.objects.create(manufacturer=manufacturer, model="Test Model", slug="test-model")
+        device_role = DeviceRole.objects.create(name="Test Role", slug="test-role")
+        device = Device.objects.create(name="Device 1", site=site, device_type=device_type, role=device_role)
+
+        interfaces = (
+            Interface(name="eth0", device=device, type="1000base-t"),
+            Interface(name="eth1", device=device, type="1000base-t"),
+            Interface(name="eth2", device=device, type="1000base-t"),
+            Interface(name="eth3", device=device, type="1000base-t"),
+        )
+        Interface.objects.bulk_create(interfaces)
+
+        connections = (
+            PeeringConnection(peering_network=network, interface=interfaces[0]),
+            PeeringConnection(peering_network=network, interface=interfaces[1]),
+            PeeringConnection(peering_network=network, interface=interfaces[2]),
+        )
+        PeeringConnection.objects.bulk_create(connections)
+
+        tags = create_tags("Alpha", "Bravo", "Charlie")
+
+        cls.form_data = {
+            "peering_network": network.pk,
+            "interface": interfaces[3].pk,
+            "status": "active",
+            "tags": [t.pk for t in tags],
+        }
+
+        cls.csv_data = (
+            "peering_network,interface,status",
+            f"{network.pk},{interfaces[3].pk},active",
+        )
+
+        cls.csv_update_data = (
+            "id,description",
+            f"{connections[0].pk},Updated",
+            f"{connections[1].pk},Updated",
+            f"{connections[2].pk},Updated",
+        )
+
+        cls.bulk_edit_data = {
+            "description": "Bulk updated",
+            "status": "disabled",
+        }
+
+
+class ASPathListRuleTestCase(ViewTestCases.PrimaryObjectViewTestCase):
+    """Test cases for ASPathListRule views."""
+
+    model = ASPathListRule
+
+    @classmethod
+    def setUpTestData(cls):
+        aspath_list = ASPathList.objects.create(name="Test AS Path List")
+
+        rules = (
+            ASPathListRule(aspath_list=aspath_list, index=10, action="permit", pattern="^65000$"),
+            ASPathListRule(aspath_list=aspath_list, index=20, action="permit", pattern="^65001$"),
+            ASPathListRule(aspath_list=aspath_list, index=30, action="deny", pattern=".*"),
+        )
+        ASPathListRule.objects.bulk_create(rules)
+
+        tags = create_tags("Alpha", "Bravo", "Charlie")
+
+        cls.form_data = {
+            "aspath_list": aspath_list.pk,
+            "index": 40,
+            "action": "permit",
+            "pattern": "^65002_",
+            "tags": [t.pk for t in tags],
+        }
+
+        cls.csv_data = (
+            "aspath_list,index,action,pattern",
+            f"{aspath_list.pk},50,permit,^65003$",
+            f"{aspath_list.pk},60,permit,^65004$",
+            f"{aspath_list.pk},70,deny,.*",
+        )
+
+        cls.csv_update_data = (
+            "id,description",
+            f"{rules[0].pk},Updated",
+            f"{rules[1].pk},Updated",
+            f"{rules[2].pk},Updated",
+        )
+
+        cls.bulk_edit_data = {
+            "description": "Bulk updated",
+        }
+
+
+class PrefixListRuleTestCase(ViewTestCases.PrimaryObjectViewTestCase):
+    """Test cases for PrefixListRule views."""
+
+    model = PrefixListRule
+
+    @classmethod
+    def setUpTestData(cls):
+        prefix_list = PrefixList.objects.create(name="Test Prefix List", family=4)
+
+        rules = (
+            PrefixListRule(prefix_list=prefix_list, index=10, action="permit", prefix_custom="192.0.2.0/24"),
+            PrefixListRule(prefix_list=prefix_list, index=20, action="permit", prefix_custom="198.51.100.0/24"),
+            PrefixListRule(prefix_list=prefix_list, index=30, action="deny", prefix_custom="0.0.0.0/0", le=32),
+        )
+        PrefixListRule.objects.bulk_create(rules)
+
+        tags = create_tags("Alpha", "Bravo", "Charlie")
+
+        cls.form_data = {
+            "prefix_list": prefix_list.pk,
+            "index": 40,
+            "action": "permit",
+            "prefix_custom": "203.0.113.0/24",
+            "tags": [t.pk for t in tags],
+        }
+
+        cls.csv_data = (
+            "prefix_list,index,action,prefix_custom",
+            f"{prefix_list.pk},50,permit,10.0.0.0/8",
+            f"{prefix_list.pk},60,permit,172.16.0.0/12",
+            f"{prefix_list.pk},70,deny,0.0.0.0/0",
+        )
+
+        cls.csv_update_data = (
+            "id,description",
+            f"{rules[0].pk},Updated",
+            f"{rules[1].pk},Updated",
+            f"{rules[2].pk},Updated",
+        )
+
+        cls.bulk_edit_data = {
+            "description": "Bulk updated",
+        }
+
+
+class CommunityListRuleTestCase(ViewTestCases.PrimaryObjectViewTestCase):
+    """Test cases for CommunityListRule views."""
+
+    model = CommunityListRule
+
+    @classmethod
+    def setUpTestData(cls):
+        community_list = CommunityList.objects.create(name="Test Community List")
+
+        communities = (
+            Community(value="65000:100"),
+            Community(value="65000:200"),
+            Community(value="65000:300"),
+            Community(value="65000:400"),
+        )
+        Community.objects.bulk_create(communities)
+
+        rules = (
+            CommunityListRule(community_list=community_list, action="permit", community=communities[0]),
+            CommunityListRule(community_list=community_list, action="permit", community=communities[1]),
+            CommunityListRule(community_list=community_list, action="deny", community=communities[2]),
+        )
+        CommunityListRule.objects.bulk_create(rules)
+
+        tags = create_tags("Alpha", "Bravo", "Charlie")
+
+        cls.form_data = {
+            "community_list": community_list.pk,
+            "action": "permit",
+            "community": communities[3].pk,
+            "tags": [t.pk for t in tags],
+        }
+
+        cls.csv_data = (
+            "community_list,action,community",
+            f"{community_list.pk},permit,{communities[3].pk}",
+        )
+
+        cls.csv_update_data = (
+            "id,description",
+            f"{rules[0].pk},Updated",
+            f"{rules[1].pk},Updated",
+            f"{rules[2].pk},Updated",
+        )
+
+        cls.bulk_edit_data = {
+            "description": "Bulk updated",
+        }
+
+
+class RoutingPolicyRuleTestCase(ViewTestCases.PrimaryObjectViewTestCase):
+    """Test cases for RoutingPolicyRule views."""
+
+    model = RoutingPolicyRule
+
+    @classmethod
+    def setUpTestData(cls):
+        routing_policy = RoutingPolicy.objects.create(name="Test Routing Policy")
+
+        rules = (
+            RoutingPolicyRule(routing_policy=routing_policy, index=10, action="permit"),
+            RoutingPolicyRule(routing_policy=routing_policy, index=20, action="permit"),
+            RoutingPolicyRule(routing_policy=routing_policy, index=30, action="deny"),
+        )
+        RoutingPolicyRule.objects.bulk_create(rules)
+
+        tags = create_tags("Alpha", "Bravo", "Charlie")
+
+        cls.form_data = {
+            "routing_policy": routing_policy.pk,
+            "index": 40,
+            "action": "permit",
+            "description": "New rule",
+            "tags": [t.pk for t in tags],
+        }
+
+        cls.csv_data = (
+            "routing_policy,index,action",
+            f"{routing_policy.pk},50,permit",
+            f"{routing_policy.pk},60,permit",
+            f"{routing_policy.pk},70,deny",
+        )
+
+        cls.csv_update_data = (
+            "id,description",
+            f"{rules[0].pk},Updated",
+            f"{rules[1].pk},Updated",
+            f"{rules[2].pk},Updated",
+        )
+
+        cls.bulk_edit_data = {
+            "description": "Bulk updated",
         }
