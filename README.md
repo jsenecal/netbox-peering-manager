@@ -68,6 +68,53 @@ The following options are available:
   - Set empty value to disable device BGP sessions display
 * `top_level_menu`: Bool (default False) Enable top level section navigation menu for the plugin.
 
+## External Dependencies
+
+### IRR Prefix List Synchronization (fastbgpq4)
+
+The plugin supports automatic prefix list synchronization from Internet Routing Registry (IRR) databases. This feature requires [fastbgpq4](https://github.com/jsenecal/fastbgpq4), a separate REST API service that wraps [bgpq4](https://github.com/bgp/bgpq4) for querying IRR databases like RADB, RIPE, ARIN, etc.
+
+**Why a separate service?**
+
+bgpq4 is a command-line tool, not a library. fastbgpq4 provides a REST API interface that allows netbox-peering-manager to query IRR data without requiring bgpq4 to be installed on the NetBox server itself. This also enables caching, async queries for large AS-SETs, and centralized IRR query infrastructure.
+
+**Setup:**
+
+1. Deploy fastbgpq4 (see [fastbgpq4 documentation](https://github.com/jsenecal/fastbgpq4) for installation options including Docker)
+
+2. In NetBox, create an IRR Source under *Peering Manager > IRR Sources* with:
+   - **Name**: A descriptive name (e.g., "RADB via fastbgpq4")
+   - **URL**: The fastbgpq4 API base URL (e.g., `http://fastbgpq4:8000`)
+   - **Sources** (optional): Comma-separated IRR sources to query (e.g., `RADB,RIPE,ARIN`)
+   - **Cache TTL** (optional): Cache duration for query results
+
+3. On your PeerASN records, set the **IRR AS-SET** field (e.g., `AS-HURRICANE`, `AS15169:AS-GOOGLE`)
+
+4. Create Prefix Lists with:
+   - **IRR Source**: Select your configured IRR source
+   - **Source AS-SET**: The AS-SET to query (e.g., `AS-HURRICANE`)
+   - **Family**: IPv4 or IPv6
+
+5. Use the sync action on Prefix Lists to populate them from IRR data
+
+**Background Jobs:**
+
+IRR synchronization runs as NetBox background jobs via the RQ worker:
+- **Sync Prefix List from IRR** - Syncs a single prefix list
+- **Sync All Prefix Lists from IRR** - Syncs all prefix lists associated with an IRR source
+
+Ensure the NetBox RQ worker is running (`make rqworker` in development, or your production worker service).
+
+**API Endpoint:**
+
+The plugin queries fastbgpq4 at `GET /api/v1/as-set/expand` with parameters:
+- `target`: The AS-SET to expand
+- `format`: Response format (json)
+- `sources`: IRR sources to query
+- `cache_ttl`: Cache duration
+
+For large AS-SETs, fastbgpq4 returns a 202 status with a job ID, and the plugin polls for completion.
+
 ## Development
 
 This plugin uses a VS Code devcontainer for development. The devcontainer provides a complete NetBox environment with the plugin installed in editable mode.
