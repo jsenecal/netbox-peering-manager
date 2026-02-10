@@ -316,7 +316,7 @@ class BGPSessionSerializer(NetBoxModelSerializer):
             "description",
             "comments",
         )
-        brief_fields = ("id", "url", "display", "name", "description")
+        brief_fields = ("id", "url", "display", "name", "status", "local_as", "remote_as")
 
     def to_representation(self, instance):
         ret = super().to_representation(instance)

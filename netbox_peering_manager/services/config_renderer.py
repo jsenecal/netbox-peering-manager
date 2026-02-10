@@ -4,12 +4,14 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
-from dcim.models import Device
+from dcim.models import Device, Platform, Site
 from django.db.models import Prefetch
 
 from netbox_peering_manager.models import (
+    BFD,
     BGPPeerGroup,
     BGPSession,
+    PeeringNetwork,
     RoutingPolicy,
 )
 
@@ -127,7 +129,7 @@ class ConfigRenderer:
             "site": self._serialize_site(device.site) if device.site else None,
         }
 
-    def _serialize_platform(self, platform) -> dict[str, Any]:
+    def _serialize_platform(self, platform: Platform) -> dict[str, Any]:
         """
         Serialize platform to context dict.
 
@@ -142,7 +144,7 @@ class ConfigRenderer:
             "slug": platform.slug,
         }
 
-    def _serialize_site(self, site) -> dict[str, Any]:
+    def _serialize_site(self, site: Site) -> dict[str, Any]:
         """
         Serialize site to context dict.
 
@@ -202,7 +204,7 @@ class ConfigRenderer:
             "afi_safis": self._derive_afi_safis(session),
         }
 
-    def _serialize_bfd(self, bfd) -> dict[str, Any]:
+    def _serialize_bfd(self, bfd: BFD) -> dict[str, Any]:
         """
         Serialize BFD profile to context dict.
 
@@ -235,7 +237,7 @@ class ConfigRenderer:
             "description": peer_group.description,
         }
 
-    def _serialize_peering_network(self, peering_network) -> dict[str, Any]:
+    def _serialize_peering_network(self, peering_network: PeeringNetwork) -> dict[str, Any]:
         """
         Serialize PeeringNetwork to context dict.
 
