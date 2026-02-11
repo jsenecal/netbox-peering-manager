@@ -319,6 +319,15 @@ class ASPathListRuleImportForm(NetBoxModelImportForm):
         fields = ["aspath_list", "index", "action", "pattern", "description", "tags", "comments"]
 
 
+class ASPathListRuleBulkEditForm(NetBoxModelBulkEditForm):
+    description = forms.CharField(max_length=200, required=False)
+
+    model = ASPathListRule
+    nullable_fields = [
+        "description",
+    ]
+
+
 class ASPathListRuleForm(NetBoxModelForm):
     comments = CommentField()
 
@@ -426,6 +435,28 @@ class CommunityListRuleForm(NetBoxModelForm):
     class Meta:
         model = CommunityListRule
         fields = ["community_list", "action", "community", "tags", "comments"]
+
+
+class CommunityListRuleFilterForm(NetBoxModelFilterSetForm):
+    model = CommunityListRule
+    q = forms.CharField(required=False, label="Search")
+    community_list = DynamicModelChoiceField(queryset=CommunityList.objects.all(), required=False)
+    tag = TagFilterField(model)
+
+
+class CommunityListRuleImportForm(NetBoxModelImportForm):
+    class Meta:
+        model = CommunityListRule
+        fields = ("community_list", "action", "community", "description", "tags", "comments")
+
+
+class CommunityListRuleBulkEditForm(NetBoxModelBulkEditForm):
+    description = forms.CharField(max_length=200, required=False)
+
+    model = CommunityListRule
+    nullable_fields = [
+        "description",
+    ]
 
 
 class BGPSessionForm(NetBoxModelForm):
@@ -1078,6 +1109,22 @@ class RoutingPolicyRuleImportForm(NetBoxModelImportForm):
         )
 
 
+class RoutingPolicyRuleFilterForm(NetBoxModelFilterSetForm):
+    model = RoutingPolicyRule
+    q = forms.CharField(required=False, label="Search")
+    routing_policy = DynamicModelChoiceField(queryset=RoutingPolicy.objects.all(), required=False)
+    tag = TagFilterField(model)
+
+
+class RoutingPolicyRuleBulkEditForm(NetBoxModelBulkEditForm):
+    description = forms.CharField(max_length=500, required=False)
+
+    model = RoutingPolicyRule
+    nullable_fields = [
+        "description",
+    ]
+
+
 class PrefixListFilterForm(NetBoxModelFilterSetForm):
     model = PrefixList
     q = forms.CharField(required=False, label="Search")
@@ -1163,6 +1210,22 @@ class PrefixListRuleImportForm(NetBoxModelImportForm):
             "tags",
             "comments",
         )
+
+
+class PrefixListRuleFilterForm(NetBoxModelFilterSetForm):
+    model = PrefixListRule
+    q = forms.CharField(required=False, label="Search")
+    prefix_list = DynamicModelChoiceField(queryset=PrefixList.objects.all(), required=False)
+    tag = TagFilterField(model)
+
+
+class PrefixListRuleBulkEditForm(NetBoxModelBulkEditForm):
+    description = forms.CharField(max_length=200, required=False)
+
+    model = PrefixListRule
+    nullable_fields = [
+        "description",
+    ]
 
 
 class PrefixListRuleForm(NetBoxModelForm):

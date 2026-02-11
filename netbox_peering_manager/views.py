@@ -377,9 +377,8 @@ class CommunityListBulkImportView(generic.BulkImportView):
 class CommunityListRuleListView(generic.ObjectListView):
     queryset = CommunityListRule.objects.all()
     filterset = filtersets.CommunityListRuleFilterSet
-    # filterset_form = RoutingPolicyRuleFilterForm
+    filterset_form = forms.CommunityListRuleFilterForm
     table = tables.CommunityListRuleTable
-    actions = {"add": {"add"}, "bulk_delete": {"delete"}}
 
 
 @register_model_view(CommunityListRule, "add", detail=False)
@@ -387,6 +386,20 @@ class CommunityListRuleListView(generic.ObjectListView):
 class CommunityListRuleEditView(generic.ObjectEditView):
     queryset = CommunityListRule.objects.all()
     form = forms.CommunityListRuleForm
+
+
+@register_model_view(CommunityListRule, "bulk_import", path="import", detail=False)
+class CommunityListRuleBulkImportView(generic.BulkImportView):
+    queryset = CommunityListRule.objects.all()
+    model_form = forms.CommunityListRuleImportForm
+
+
+@register_model_view(CommunityListRule, "bulk_edit", path="edit", detail=False)
+class CommunityListRuleBulkEditView(generic.BulkEditView):
+    queryset = CommunityListRule.objects.all()
+    filterset = filtersets.CommunityListRuleFilterSet
+    table = tables.CommunityListRuleTable
+    form = forms.CommunityListRuleBulkEditForm
 
 
 @register_model_view(CommunityListRule, "bulk_delete", path="delete", detail=False)
@@ -545,9 +558,8 @@ class RoutingPolicyBulkImportView(generic.BulkImportView):
 class RoutingPolicyRuleListView(generic.ObjectListView):
     queryset = RoutingPolicyRule.objects.all()
     filterset = filtersets.RoutingPolicyRuleFilterSet
-    # filterset_form = RoutingPolicyRuleFilterForm
+    filterset_form = forms.RoutingPolicyRuleFilterForm
     table = tables.RoutingPolicyRuleTable
-    actions = {"add": {"add"}, "bulk_import": {"add"}, "export": {"export"}, "bulk_delete": {"delete"}}
 
 
 @register_model_view(RoutingPolicyRule, "add", detail=False)
@@ -593,6 +605,14 @@ class RoutingPolicyRuleView(generic.ObjectView):
 class RoutingPolicyRuleImportView(generic.BulkImportView):
     queryset = RoutingPolicyRule.objects.all()
     model_form = forms.RoutingPolicyRuleImportForm
+
+
+@register_model_view(RoutingPolicyRule, "bulk_edit", path="edit", detail=False)
+class RoutingPolicyRuleBulkEditView(generic.BulkEditView):
+    queryset = RoutingPolicyRule.objects.all()
+    filterset = filtersets.RoutingPolicyRuleFilterSet
+    table = tables.RoutingPolicyRuleTable
+    form = forms.RoutingPolicyRuleBulkEditForm
 
 
 # Peer Group
@@ -745,9 +765,8 @@ class PrefixListSyncView(View):
 class PrefixListRuleListView(generic.ObjectListView):
     queryset = PrefixListRule.objects.all()
     filterset = filtersets.PrefixListRuleFilterSet
-    # filterset_form = RoutingPolicyRuleFilterForm
+    filterset_form = forms.PrefixListRuleFilterForm
     table = tables.PrefixListRuleTable
-    actions = {"add": {"add"}, "bulk_import": {"add"}, "export": {"export"}, "bulk_delete": {"delete"}}
 
 
 @register_model_view(PrefixListRule, "add", detail=False)
@@ -779,6 +798,14 @@ class PrefixListRuleView(generic.ObjectView):
 class PrefixListRuleViewImportView(generic.BulkImportView):
     queryset = PrefixListRule.objects.all()
     model_form = forms.PrefixListRuleImportForm
+
+
+@register_model_view(PrefixListRule, "bulk_edit", path="edit", detail=False)
+class PrefixListRuleBulkEditView(generic.BulkEditView):
+    queryset = PrefixListRule.objects.all()
+    filterset = filtersets.PrefixListRuleFilterSet
+    table = tables.PrefixListRuleTable
+    form = forms.PrefixListRuleBulkEditForm
 
 
 # Viewtab for Virtual Machine
@@ -860,9 +887,8 @@ class ASPathListBulkImportView(generic.BulkImportView):
 class ASPathListRuleListView(generic.ObjectListView):
     queryset = ASPathListRule.objects.all()
     filterset = filtersets.ASPathListRuleFilterSet
-    # filterset_form = ASPathListRuleFilterForm
+    filterset_form = forms.ASPathListRuleFilterForm
     table = tables.ASPathListRuleTable
-    actions = {"add": {"add"}, "bulk_import": {"add"}, "export": {"export"}, "bulk_delete": {"delete"}}
 
 
 @register_model_view(ASPathListRule, "add", detail=False)
@@ -888,6 +914,14 @@ class ASPathListRuleDeleteView(generic.ObjectDeleteView):
 class ASPathListRuleBulkImportView(generic.BulkImportView):
     queryset = ASPathListRule.objects.all()
     model_form = forms.ASPathListRuleImportForm
+
+
+@register_model_view(ASPathListRule, "bulk_edit", path="edit", detail=False)
+class ASPathListRuleBulkEditView(generic.BulkEditView):
+    queryset = ASPathListRule.objects.all()
+    filterset = filtersets.ASPathListRuleFilterSet
+    table = tables.ASPathListRuleTable
+    form = forms.ASPathListRuleBulkEditForm
 
 
 @register_model_view(ASPathListRule)
