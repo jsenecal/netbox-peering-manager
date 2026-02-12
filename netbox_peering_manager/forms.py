@@ -916,9 +916,11 @@ class RoutingPolicyForm(NetBoxModelForm):
         label=_("Weight"),
         help_text=_("Higher weight policies are evaluated first"),
     )
-    address_family = forms.ChoiceField(
+    address_family = forms.TypedChoiceField(
         required=False,
         choices=add_blank_choice(CoreIPAddressFamilyChoices),
+        coerce=int,
+        empty_value=None,
         label=_("Address Family"),
         help_text=_("Restrict policy to specific address family"),
     )
@@ -932,7 +934,7 @@ class RoutingPolicyForm(NetBoxModelForm):
 class RoutingPolicyImportForm(NetBoxModelImportForm):
     class Meta:
         model = RoutingPolicy
-        fields = ("name", "description", "tags")
+        fields = ("name", "weight", "description", "tags")
 
 
 class RoutingPolicyBulkEditForm(NetBoxModelBulkEditForm):

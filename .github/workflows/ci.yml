@@ -151,6 +151,9 @@ jobs:
             netbox_peering_manager.tests.test_validators \
             netbox_peering_manager.tests.test_jinja2_filters \
             netbox_peering_manager.tests.test_config_renderer \
+            netbox_peering_manager.tests.test_irr_client \
+            netbox_peering_manager.tests.test_jobs \
+            netbox_peering_manager.tests.test_views \
             --verbosity 2
 
       - name: Run PeeringDB tests

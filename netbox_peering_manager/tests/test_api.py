@@ -265,7 +265,7 @@ class BGPSessionAPITestCase(
 ):
     model = BGPSession
     view_namespace = "plugins-api:netbox_peering_manager"
-    brief_fields = ["description", "display", "id", "name", "url"]
+    brief_fields = ["display", "id", "local_as", "name", "remote_as", "status", "url"]
     graphql_base_name = "netbox_peering_manager_session"
 
     bulk_update_data = {

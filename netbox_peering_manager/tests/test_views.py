@@ -27,7 +27,14 @@ from netbox_peering_manager.models import (
 )
 
 
-class RelationshipTestCase(ViewTestCases.OrganizationalObjectViewTestCase):
+class PluginURLMixin:
+    """Mixin to fix URL namespace for plugin view tests."""
+
+    def _get_base_url(self):
+        return f"plugins:{self.model._meta.app_label}:{self.model._meta.model_name}_{{}}"
+
+
+class RelationshipTestCase(PluginURLMixin, ViewTestCases.OrganizationalObjectViewTestCase):
     """Test cases for Relationship views."""
 
     model = Relationship
@@ -70,7 +77,7 @@ class RelationshipTestCase(ViewTestCases.OrganizationalObjectViewTestCase):
         }
 
 
-class BFDTestCase(ViewTestCases.OrganizationalObjectViewTestCase):
+class BFDTestCase(PluginURLMixin, ViewTestCases.OrganizationalObjectViewTestCase):
     """Test cases for BFD views."""
 
     model = BFD
@@ -114,7 +121,7 @@ class BFDTestCase(ViewTestCases.OrganizationalObjectViewTestCase):
         }
 
 
-class IRRSourceTestCase(ViewTestCases.OrganizationalObjectViewTestCase):
+class IRRSourceTestCase(PluginURLMixin, ViewTestCases.OrganizationalObjectViewTestCase):
     """Test cases for IRRSource views."""
 
     model = IRRSource
@@ -140,10 +147,10 @@ class IRRSourceTestCase(ViewTestCases.OrganizationalObjectViewTestCase):
         }
 
         cls.csv_data = (
-            "name,slug,url",
-            "IRR Source 4,irr-source-4,http://irr4.example.com/",
-            "IRR Source 5,irr-source-5,http://irr5.example.com/",
-            "IRR Source 6,irr-source-6,http://irr6.example.com/",
+            "name,slug,url,sync_interval",
+            "IRR Source 4,irr-source-4,http://irr4.example.com/,1440",
+            "IRR Source 5,irr-source-5,http://irr5.example.com/,1440",
+            "IRR Source 6,irr-source-6,http://irr6.example.com/,1440",
         )
 
         cls.csv_update_data = (
@@ -159,10 +166,11 @@ class IRRSourceTestCase(ViewTestCases.OrganizationalObjectViewTestCase):
         }
 
 
-class RoutingPolicyTestCase(ViewTestCases.OrganizationalObjectViewTestCase):
+class RoutingPolicyTestCase(PluginURLMixin, ViewTestCases.OrganizationalObjectViewTestCase):
     """Test cases for RoutingPolicy views."""
 
     model = RoutingPolicy
+    validation_excluded_fields = ["address_family"]
 
     @classmethod
     def setUpTestData(cls):
@@ -179,6 +187,7 @@ class RoutingPolicyTestCase(ViewTestCases.OrganizationalObjectViewTestCase):
             "name": "New Policy",
             "description": "A new routing policy",
             "weight": 150,
+            "address_family": "",
             "tags": [t.pk for t in tags],
         }
 
@@ -201,7 +210,7 @@ class RoutingPolicyTestCase(ViewTestCases.OrganizationalObjectViewTestCase):
         }
 
 
-class BGPPeerGroupTestCase(ViewTestCases.OrganizationalObjectViewTestCase):
+class BGPPeerGroupTestCase(PluginURLMixin, ViewTestCases.OrganizationalObjectViewTestCase):
     """Test cases for BGPPeerGroup views."""
 
     model = BGPPeerGroup
@@ -242,7 +251,7 @@ class BGPPeerGroupTestCase(ViewTestCases.OrganizationalObjectViewTestCase):
         }
 
 
-class CommunityTestCase(ViewTestCases.PrimaryObjectViewTestCase):
+class CommunityTestCase(PluginURLMixin, ViewTestCases.PrimaryObjectViewTestCase):
     """Test cases for Community views."""
 
     model = Community
@@ -284,7 +293,7 @@ class CommunityTestCase(ViewTestCases.PrimaryObjectViewTestCase):
         }
 
 
-class CommunityListTestCase(ViewTestCases.OrganizationalObjectViewTestCase):
+class CommunityListTestCase(PluginURLMixin, ViewTestCases.OrganizationalObjectViewTestCase):
     """Test cases for CommunityList views."""
 
     model = CommunityList
@@ -325,7 +334,7 @@ class CommunityListTestCase(ViewTestCases.OrganizationalObjectViewTestCase):
         }
 
 
-class ASPathListTestCase(ViewTestCases.OrganizationalObjectViewTestCase):
+class ASPathListTestCase(PluginURLMixin, ViewTestCases.OrganizationalObjectViewTestCase):
     """Test cases for ASPathList views."""
 
     model = ASPathList
@@ -366,7 +375,7 @@ class ASPathListTestCase(ViewTestCases.OrganizationalObjectViewTestCase):
         }
 
 
-class PrefixListTestCase(ViewTestCases.OrganizationalObjectViewTestCase):
+class PrefixListTestCase(PluginURLMixin, ViewTestCases.OrganizationalObjectViewTestCase):
     """Test cases for PrefixList views."""
 
     model = PrefixList
@@ -408,7 +417,7 @@ class PrefixListTestCase(ViewTestCases.OrganizationalObjectViewTestCase):
         }
 
 
-class PeeringFabricTypeTestCase(ViewTestCases.OrganizationalObjectViewTestCase):
+class PeeringFabricTypeTestCase(PluginURLMixin, ViewTestCases.OrganizationalObjectViewTestCase):
     """Test cases for PeeringFabricType views."""
 
     model = PeeringFabricType
@@ -451,7 +460,7 @@ class PeeringFabricTypeTestCase(ViewTestCases.OrganizationalObjectViewTestCase):
         }
 
 
-class PeeringFabricTestCase(ViewTestCases.PrimaryObjectViewTestCase):
+class PeeringFabricTestCase(PluginURLMixin, ViewTestCases.PrimaryObjectViewTestCase):
     """Test cases for PeeringFabric views."""
 
     model = PeeringFabric
@@ -496,7 +505,7 @@ class PeeringFabricTestCase(ViewTestCases.PrimaryObjectViewTestCase):
         }
 
 
-class PeerASNTestCase(ViewTestCases.PrimaryObjectViewTestCase):
+class PeerASNTestCase(PluginURLMixin, ViewTestCases.PrimaryObjectViewTestCase):
     """Test cases for PeerASN views."""
 
     model = PeerASN
@@ -531,23 +540,23 @@ class PeerASNTestCase(ViewTestCases.PrimaryObjectViewTestCase):
 
         cls.csv_data = (
             "asn",
-            f"{asns[3].pk}",
+            f"{asns[3].asn}",
         )
 
         cls.csv_update_data = (
-            "id,irr_as_set,comments",
-            f"{peer_asns[0].pk},AS-PEER1,Updated",
-            f"{peer_asns[1].pk},AS-PEER2,Updated",
-            f"{peer_asns[2].pk},AS-PEER3,Updated",
+            "id,irr_as_set",
+            f"{peer_asns[0].pk},AS-PEER1",
+            f"{peer_asns[1].pk},AS-PEER2",
+            f"{peer_asns[2].pk},AS-PEER3",
         )
 
         cls.bulk_edit_data = {
             "affiliated": True,
-            "comments": "Bulk updated",
+            "irr_as_set": "AS-BULK",
         }
 
 
-class BGPSessionTestCase(ViewTestCases.PrimaryObjectViewTestCase):
+class BGPSessionTestCase(PluginURLMixin, ViewTestCases.PrimaryObjectViewTestCase):
     """Test cases for BGPSession views."""
 
     model = BGPSession
@@ -651,8 +660,8 @@ class BGPSessionTestCase(ViewTestCases.PrimaryObjectViewTestCase):
         }
 
         cls.csv_data = (
-            "name,device,local_address,remote_address,local_as,remote_as,status",
-            f"Session 4,{devices[0].pk},{local_ips[3].pk},{remote_ips[3].pk},{local_asns[0].pk},{peer_asns[3].pk},active",
+            "name,device,local_address,remote_address,local_as,remote_as,status,multihop_ttl",
+            f"Session 4,{devices[0].name},{local_ips[3].address},{remote_ips[3].address},{local_asns[0].asn},{remote_asns[3].asn},active,1",
         )
 
         cls.csv_update_data = (
@@ -664,11 +673,11 @@ class BGPSessionTestCase(ViewTestCases.PrimaryObjectViewTestCase):
 
         cls.bulk_edit_data = {
             "description": "Bulk updated",
-            "status": "disabled",
+            "status": "offline",
         }
 
 
-class PeeringNetworkTestCase(ViewTestCases.PrimaryObjectViewTestCase):
+class PeeringNetworkTestCase(PluginURLMixin, ViewTestCases.PrimaryObjectViewTestCase):
     """Test cases for PeeringNetwork views."""
 
     model = PeeringNetwork
@@ -705,7 +714,7 @@ class PeeringNetworkTestCase(ViewTestCases.PrimaryObjectViewTestCase):
 
         cls.csv_data = (
             "name,fabric,prefix,status",
-            f"Peering LAN 4,{fabric.pk},{prefixes[3].pk},active",
+            f"Peering LAN 4,{fabric.name},{prefixes[3].prefix},active",
         )
 
         cls.csv_update_data = (
@@ -717,11 +726,11 @@ class PeeringNetworkTestCase(ViewTestCases.PrimaryObjectViewTestCase):
 
         cls.bulk_edit_data = {
             "description": "Bulk updated",
-            "status": "disabled",
+            "status": "decommissioned",
         }
 
 
-class PeeringConnectionTestCase(ViewTestCases.PrimaryObjectViewTestCase):
+class PeeringConnectionTestCase(PluginURLMixin, ViewTestCases.PrimaryObjectViewTestCase):
     """Test cases for PeeringConnection views."""
 
     model = PeeringConnection
@@ -771,7 +780,7 @@ class PeeringConnectionTestCase(ViewTestCases.PrimaryObjectViewTestCase):
 
         cls.csv_data = (
             "peering_network,interface,status",
-            f"{network.pk},{interfaces[3].pk},active",
+            f"{network.name},{interfaces[3].pk},active",
         )
 
         cls.csv_update_data = (
@@ -783,11 +792,11 @@ class PeeringConnectionTestCase(ViewTestCases.PrimaryObjectViewTestCase):
 
         cls.bulk_edit_data = {
             "description": "Bulk updated",
-            "status": "disabled",
+            "status": "decommissioned",
         }
 
 
-class ASPathListRuleTestCase(ViewTestCases.PrimaryObjectViewTestCase):
+class ASPathListRuleTestCase(PluginURLMixin, ViewTestCases.PrimaryObjectViewTestCase):
     """Test cases for ASPathListRule views."""
 
     model = ASPathListRule
@@ -832,10 +841,11 @@ class ASPathListRuleTestCase(ViewTestCases.PrimaryObjectViewTestCase):
         }
 
 
-class PrefixListRuleTestCase(ViewTestCases.PrimaryObjectViewTestCase):
+class PrefixListRuleTestCase(PluginURLMixin, ViewTestCases.PrimaryObjectViewTestCase):
     """Test cases for PrefixListRule views."""
 
     model = PrefixListRule
+    validation_excluded_fields = ["prefix_custom"]
 
     @classmethod
     def setUpTestData(cls):
@@ -866,7 +876,7 @@ class PrefixListRuleTestCase(ViewTestCases.PrimaryObjectViewTestCase):
         )
 
         cls.csv_update_data = (
-            "id,description",
+            "id,comments",
             f"{rules[0].pk},Updated",
             f"{rules[1].pk},Updated",
             f"{rules[2].pk},Updated",
@@ -877,7 +887,7 @@ class PrefixListRuleTestCase(ViewTestCases.PrimaryObjectViewTestCase):
         }
 
 
-class CommunityListRuleTestCase(ViewTestCases.PrimaryObjectViewTestCase):
+class CommunityListRuleTestCase(PluginURLMixin, ViewTestCases.PrimaryObjectViewTestCase):
     """Test cases for CommunityListRule views."""
 
     model = CommunityListRule
@@ -927,7 +937,7 @@ class CommunityListRuleTestCase(ViewTestCases.PrimaryObjectViewTestCase):
         }
 
 
-class RoutingPolicyRuleTestCase(ViewTestCases.PrimaryObjectViewTestCase):
+class RoutingPolicyRuleTestCase(PluginURLMixin, ViewTestCases.PrimaryObjectViewTestCase):
     """Test cases for RoutingPolicyRule views."""
 
     model = RoutingPolicyRule

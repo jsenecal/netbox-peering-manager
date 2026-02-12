@@ -29,11 +29,12 @@ class SyncPrefixListJobTestCase(TestCase):
         )
 
     def _create_mock_job(self, obj):
-        """Create a mock job object."""
+        """Create a mock job object compatible with JobRunner.__init__."""
         job = MagicMock()
         job.object = obj
         job.data = {}
         job.status = JobStatusChoices.STATUS_RUNNING
+        job.log = MagicMock()
         return job
 
     @patch("netbox_peering_manager.jobs.IRRClient")
@@ -43,8 +44,8 @@ class SyncPrefixListJobTestCase(TestCase):
         mock_client.fetch_prefixes.return_value = ["192.0.2.0/24", "198.51.100.0/24"]
         mock_client_class.return_value = mock_client
 
-        runner = SyncPrefixListJob()
-        runner.job = self._create_mock_job(self.prefix_list)
+        mock_job = self._create_mock_job(self.prefix_list)
+        runner = SyncPrefixListJob(mock_job)
 
         runner.run()
 
@@ -81,8 +82,8 @@ class SyncPrefixListJobTestCase(TestCase):
         mock_client.fetch_prefixes.return_value = ["192.0.2.0/24"]
         mock_client_class.return_value = mock_client
 
-        runner = SyncPrefixListJob()
-        runner.job = self._create_mock_job(self.prefix_list)
+        mock_job = self._create_mock_job(self.prefix_list)
+        runner = SyncPrefixListJob(mock_job)
 
         runner.run()
 
@@ -99,8 +100,8 @@ class SyncPrefixListJobTestCase(TestCase):
             family=4,
         )
 
-        runner = SyncPrefixListJob()
-        runner.job = self._create_mock_job(non_irr_prefix_list)
+        mock_job = self._create_mock_job(non_irr_prefix_list)
+        runner = SyncPrefixListJob(mock_job)
 
         runner.run()
 
@@ -114,8 +115,8 @@ class SyncPrefixListJobTestCase(TestCase):
         mock_client.fetch_prefixes.side_effect = IRRClientError("Connection failed")
         mock_client_class.return_value = mock_client
 
-        runner = SyncPrefixListJob()
-        runner.job = self._create_mock_job(self.prefix_list)
+        mock_job = self._create_mock_job(self.prefix_list)
+        runner = SyncPrefixListJob(mock_job)
 
         with self.assertRaises(IRRClientError):
             runner.run()
@@ -149,11 +150,12 @@ class SyncAllPrefixListsJobTestCase(TestCase):
         )
 
     def _create_mock_job(self, obj):
-        """Create a mock job object."""
+        """Create a mock job object compatible with JobRunner.__init__."""
         job = MagicMock()
         job.object = obj
         job.data = {}
         job.status = JobStatusChoices.STATUS_RUNNING
+        job.log = MagicMock()
         return job
 
     @patch("netbox_peering_manager.jobs.IRRClient")
@@ -166,8 +168,8 @@ class SyncAllPrefixListsJobTestCase(TestCase):
         ]
         mock_client_class.return_value = mock_client
 
-        runner = SyncAllPrefixListsJob()
-        runner.job = self._create_mock_job(self.irr_source)
+        mock_job = self._create_mock_job(self.irr_source)
+        runner = SyncAllPrefixListsJob(mock_job)
 
         runner.run()
 
@@ -185,8 +187,8 @@ class SyncAllPrefixListsJobTestCase(TestCase):
         self.irr_source.enabled = False
         self.irr_source.save()
 
-        runner = SyncAllPrefixListsJob()
-        runner.job = self._create_mock_job(self.irr_source)
+        mock_job = self._create_mock_job(self.irr_source)
+        runner = SyncAllPrefixListsJob(mock_job)
 
         runner.run()
 
@@ -203,8 +205,8 @@ class SyncAllPrefixListsJobTestCase(TestCase):
         ]
         mock_client_class.return_value = mock_client
 
-        runner = SyncAllPrefixListsJob()
-        runner.job = self._create_mock_job(self.irr_source)
+        mock_job = self._create_mock_job(self.irr_source)
+        runner = SyncAllPrefixListsJob(mock_job)
 
         runner.run()
 
@@ -230,8 +232,8 @@ class SyncAllPrefixListsJobTestCase(TestCase):
         ]
         mock_client_class.return_value = mock_client
 
-        runner = SyncAllPrefixListsJob()
-        runner.job = self._create_mock_job(self.irr_source)
+        mock_job = self._create_mock_job(self.irr_source)
+        runner = SyncAllPrefixListsJob(mock_job)
 
         runner.run()
 

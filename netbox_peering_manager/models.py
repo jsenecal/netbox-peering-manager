@@ -59,6 +59,10 @@ class IRRSource(NetBoxModel):
         """Return the count of PrefixLists using this IRRSource."""
         return self.prefix_lists.count()
 
+    @prefix_list_count.setter
+    def prefix_list_count(self, value):
+        pass  # Allow queryset annotation to set this attribute
+
 
 class Relationship(NetBoxModel):
     """
