@@ -66,11 +66,16 @@ jobs:
           pip install --upgrade pip
           pip install -r /tmp/netbox/requirements.txt
 
+      - name: Install netbox-routing dependency
+        run: pip install git+https://github.com/DanSheps/netbox-routing.git@14318f1c
+
       - name: Configure NetBox
         run: |
           cp .devcontainer/configuration/configuration.py /tmp/netbox/netbox/netbox/
           cat >> /tmp/netbox/netbox/netbox/configuration.py << 'EOF_PLUGINS'
 
+          PLUGINS.append("netbox_routing")
+          PLUGINS_CONFIG["netbox_routing"] = {}
           PLUGINS.append("netbox_peering_manager")
           PLUGINS_CONFIG["netbox_peering_manager"] = {}
           EOF_PLUGINS

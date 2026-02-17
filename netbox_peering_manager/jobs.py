@@ -5,71 +5,79 @@ Background jobs for IRR prefix list synchronization.
 import logging
 
 from core.choices import JobStatusChoices
+from django.db import transaction
 from netbox.jobs import JobRunner
 
 from netbox_peering_manager.irr_client import IRRClient, IRRClientError
-from netbox_peering_manager.models import PrefixList, PrefixListRule
+from netbox_peering_manager.models import IRRPrefixListConfig
 
 logger = logging.getLogger(__name__)
 
+# Map netbox-routing PrefixList.family integer choices to IRR client string values
+FAMILY_MAP = {4: "ipv4", 6: "ipv6"}
+
 
 class SyncPrefixListJob(JobRunner):
-    """Sync a single PrefixList from IRR."""
+    """Sync a single PrefixList from IRR via its IRRPrefixListConfig."""
 
     class Meta:
         name = "Sync Prefix List from IRR"
 
     def run(self, *_args, **_kwargs):
-        prefix_list = self.job.object
+        config = self.job.object
 
-        if not prefix_list.is_irr_managed:
-            self.job.data = {"error": "PrefixList is not IRR-managed"}
+        if not config.is_irr_managed:
+            self.job.data = {"error": "IRRPrefixListConfig is not IRR-managed"}
             self.job.status = JobStatusChoices.STATUS_ERRORED
             return
 
-        irr_source = prefix_list.irr_source
-        as_set = prefix_list.source_as_set
-        family = prefix_list.family
+        irr_source = config.irr_source
+        as_set = config.source_as_set
+        prefix_list = config.prefix_list
+        family = FAMILY_MAP.get(prefix_list.family, "both")
 
         self.job.data = {
             "as_set": as_set,
             "irr_source": irr_source.name,
+            "prefix_list": prefix_list.name,
             "family": family,
         }
 
         try:
+            from netbox_routing.models import PrefixListEntry
+
             client = IRRClient(irr_source)
             prefixes = client.fetch_prefixes(as_set, family)
 
-            # Delete existing rules
-            deleted_count = prefix_list.rules.count()
-            prefix_list.rules.all().delete()
+            # Atomically replace entries to avoid partial state on failure
+            with transaction.atomic():
+                deleted_count = prefix_list.prefix_list_entries.count()
+                prefix_list.prefix_list_entries.all().delete()
 
-            # Create new rules
-            rules = []
-            for index, prefix in enumerate(prefixes):
-                rules.append(
-                    PrefixListRule(
-                        prefix_list=prefix_list,
-                        index=(index + 1) * 10,
-                        action="permit",
-                        prefix_custom=prefix,
+                entries = []
+                for idx, prefix in enumerate(prefixes):
+                    entries.append(
+                        PrefixListEntry(
+                            prefix_list=prefix_list,
+                            sequence=(idx + 1) * 10,
+                            action="permit",
+                            prefix=prefix,
+                        )
                     )
-                )
 
-            PrefixListRule.objects.bulk_create(rules)
+                PrefixListEntry.objects.bulk_create(entries)
 
             self.job.data.update(
                 {
-                    "deleted_rules": deleted_count,
-                    "created_rules": len(rules),
+                    "deleted_entries": deleted_count,
+                    "created_entries": len(entries),
                     "prefixes": len(prefixes),
                 }
             )
 
             logger.info(
                 f"Synced {len(prefixes)} prefixes for {prefix_list.name} "
-                f"from {as_set} ({deleted_count} deleted, {len(rules)} created)"
+                f"from {as_set} ({deleted_count} deleted, {len(entries)} created)"
             )
 
         except IRRClientError as e:
@@ -99,14 +107,18 @@ class SyncAllPrefixListsJob(JobRunner):
             self.job.status = JobStatusChoices.STATUS_ERRORED
             return
 
-        prefix_lists = PrefixList.objects.filter(
-            irr_source=irr_source,
-            source_as_set__isnull=False,
-        ).exclude(source_as_set="")
+        configs = (
+            IRRPrefixListConfig.objects.filter(
+                irr_source=irr_source,
+                source_as_set__isnull=False,
+            )
+            .exclude(source_as_set="")
+            .select_related("prefix_list")
+        )
 
         self.job.data = {
             "irr_source": irr_source.name,
-            "total_prefix_lists": prefix_lists.count(),
+            "total_configs": configs.count(),
             "synced": 0,
             "failed": 0,
             "errors": [],
@@ -114,27 +126,33 @@ class SyncAllPrefixListsJob(JobRunner):
 
         client = IRRClient(irr_source)
 
-        for prefix_list in prefix_lists:
+        for config in configs:
+            prefix_list = config.prefix_list
             try:
+                from netbox_routing.models import PrefixListEntry
+
+                family = FAMILY_MAP.get(prefix_list.family, "both")
                 prefixes = client.fetch_prefixes(
-                    prefix_list.source_as_set,
-                    prefix_list.family,
+                    config.source_as_set,
+                    family,
                 )
 
-                prefix_list.rules.all().delete()
+                with transaction.atomic():
+                    prefix_list.prefix_list_entries.all().delete()
 
-                rules = []
-                for index, prefix in enumerate(prefixes):
-                    rules.append(
-                        PrefixListRule(
-                            prefix_list=prefix_list,
-                            index=(index + 1) * 10,
-                            action="permit",
-                            prefix_custom=prefix,
+                    entries = []
+                    for idx, prefix in enumerate(prefixes):
+                        entries.append(
+                            PrefixListEntry(
+                                prefix_list=prefix_list,
+                                sequence=(idx + 1) * 10,
+                                action="permit",
+                                prefix=prefix,
+                            )
                         )
-                    )
 
-                PrefixListRule.objects.bulk_create(rules)
+                    PrefixListEntry.objects.bulk_create(entries)
+
                 self.job.data["synced"] += 1
 
                 logger.info(f"Synced {len(prefixes)} prefixes for {prefix_list.name}")

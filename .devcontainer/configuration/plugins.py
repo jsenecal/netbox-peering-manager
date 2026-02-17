@@ -3,6 +3,7 @@ Plugin related config
 """
 
 PLUGINS = [
+    "netbox_routing",
     "netbox_peering_manager",
 ]
 

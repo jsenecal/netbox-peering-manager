@@ -15,15 +15,6 @@ urlpatterns = (
         "relationship/<int:pk>/",
         include(get_model_urls("netbox_peering_manager", "relationship")),
     ),
-    # BFD Profiles
-    path(
-        "bfd/",
-        include(get_model_urls("netbox_peering_manager", "bfd", detail=False)),
-    ),
-    path(
-        "bfd/<int:pk>/",
-        include(get_model_urls("netbox_peering_manager", "bfd")),
-    ),
     # IRR Sources
     path(
         "irr-source/",
@@ -33,59 +24,14 @@ urlpatterns = (
         "irr-source/<int:pk>/",
         include(get_model_urls("netbox_peering_manager", "irrsource")),
     ),
-    # AS Path Lists
+    # IRR Prefix List Configs
     path(
-        "aspath-list/",
-        include(get_model_urls("netbox_peering_manager", "aspathlist", detail=False)),
+        "irr-prefix-list-config/",
+        include(get_model_urls("netbox_peering_manager", "irrprefixlistconfig", detail=False)),
     ),
     path(
-        "aspath-list/<int:pk>/",
-        include(get_model_urls("netbox_peering_manager", "aspathlist")),
-    ),
-    # AS Path List Rules
-    path(
-        "aspath-list-rule/",
-        include(get_model_urls("netbox_peering_manager", "aspathlistrule", detail=False)),
-    ),
-    path(
-        "aspath-list-rule/<int:pk>/",
-        include(get_model_urls("netbox_peering_manager", "aspathlistrule")),
-    ),
-    # Community
-    path(
-        "community/",
-        include(get_model_urls("netbox_peering_manager", "community", detail=False)),
-    ),
-    path(
-        "community/<int:pk>/",
-        include(get_model_urls("netbox_peering_manager", "community")),
-    ),
-    # Community Lists
-    path(
-        "community-list/",
-        include(get_model_urls("netbox_peering_manager", "communitylist", detail=False)),
-    ),
-    path(
-        "community-list/<int:pk>/",
-        include(get_model_urls("netbox_peering_manager", "communitylist")),
-    ),
-    # Community List Rules
-    path(
-        "community-list-rule/",
-        include(get_model_urls("netbox_peering_manager", "communitylistrule", detail=False)),
-    ),
-    path(
-        "community-list-rule/<int:pk>/",
-        include(get_model_urls("netbox_peering_manager", "communitylistrule")),
-    ),
-    # Sessions
-    path(
-        "session/",
-        include(get_model_urls("netbox_peering_manager", "bgpsession", detail=False)),
-    ),
-    path(
-        "session/<int:pk>/",
-        include(get_model_urls("netbox_peering_manager", "bgpsession")),
+        "irr-prefix-list-config/<int:pk>/",
+        include(get_model_urls("netbox_peering_manager", "irrprefixlistconfig")),
     ),
     # Peer ASNs
     path(
@@ -96,50 +42,14 @@ urlpatterns = (
         "peer-asn/<int:pk>/",
         include(get_model_urls("netbox_peering_manager", "peerasn")),
     ),
-    # Routing Policies
+    # Peering Sessions
     path(
-        "routing-policy/",
-        include(get_model_urls("netbox_peering_manager", "routingpolicy", detail=False)),
+        "peering-session/",
+        include(get_model_urls("netbox_peering_manager", "peeringsession", detail=False)),
     ),
     path(
-        "routing-policy/<int:pk>/",
-        include(get_model_urls("netbox_peering_manager", "routingpolicy")),
-    ),
-    # Routing Policy Rules
-    path(
-        "routing-policy-rule/",
-        include(get_model_urls("netbox_peering_manager", "routingpolicyrule", detail=False)),
-    ),
-    path(
-        "routing-policy-rule/<int:pk>/",
-        include(get_model_urls("netbox_peering_manager", "routingpolicyrule")),
-    ),
-    # Peer Groups
-    path(
-        "peer-group/",
-        include(get_model_urls("netbox_peering_manager", "bgppeergroup", detail=False)),
-    ),
-    path(
-        "peer-group/<int:pk>/",
-        include(get_model_urls("netbox_peering_manager", "bgppeergroup")),
-    ),
-    # Prefix Lists
-    path(
-        "prefix-list/",
-        include(get_model_urls("netbox_peering_manager", "prefixlist", detail=False)),
-    ),
-    path(
-        "prefix-list/<int:pk>/",
-        include(get_model_urls("netbox_peering_manager", "prefixlist")),
-    ),
-    # Prefix List Rules
-    path(
-        "prefix-list-rule/",
-        include(get_model_urls("netbox_peering_manager", "prefixlistrule", detail=False)),
-    ),
-    path(
-        "prefix-list-rule/<int:pk>/",
-        include(get_model_urls("netbox_peering_manager", "prefixlistrule")),
+        "peering-session/<int:pk>/",
+        include(get_model_urls("netbox_peering_manager", "peeringsession")),
     ),
     # Peering Fabric Types
     path(
@@ -187,15 +97,5 @@ urlpatterns = (
         "peering-fabric/create-from-peeringdb/",
         views.PeeringFabricCreateFromPeeringDBView.as_view(),
         name="peeringfabric_create_from_peeringdb",
-    ),
-    path(
-        "peering-fabric/<int:pk>/sync-peeringdb/",
-        views.PeeringFabricSyncPeeringDBView.as_view(),
-        name="peeringfabric_sync_peeringdb",
-    ),
-    path(
-        "peering-fabric/<int:pk>/create-session-from-peer/<int:peer_pk>/",
-        views.CreateSessionFromPeerView.as_view(),
-        name="peeringfabric_create_session_from_peer",
     ),
 )

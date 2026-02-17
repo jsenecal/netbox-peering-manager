@@ -14,7 +14,7 @@ services:
       - ../:/opt/netbox-peering-manager:cached
       - ~/.gitconfig:/home/ubuntu/.gitconfig:z,ro
       - ~/.ssh:/home/ubuntu/.ssh
-      - ~/.claude:/home/ubuntu/.claude
+      - netbox-peering-manager-claude:/home/ubuntu/.claude
       - ./home/.config/:/home/ubuntu/.config/
       - ./configuration:/etc/netbox/config:z,ro
       - netbox-peering-manager-scripts:/etc/netbox/scripts
@@ -59,4 +59,6 @@ volumes:
   netbox-postgres-data:
     driver: local
   netbox-peering-manager-scripts:
+    driver: local
+  netbox-peering-manager-claude:
     driver: local

@@ -32,7 +32,11 @@ setup(
     url="https://github.com/jsenecal/netbox-peering-manager",
     author="Jonathan Senecal",
     author_email="jonathan.senecal@metrooptic.com",
-    install_requires=["httpx", "tenacity"],
+    install_requires=[
+        "httpx",
+        "tenacity",
+        "netbox-routing @ git+https://github.com/DanSheps/netbox-routing.git@14318f1c",
+    ],
     packages=find_packages(),
     include_package_data=True,
     classifiers=[

@@ -2,28 +2,19 @@
 
 from dcim.models import Device, DeviceRole, DeviceType, Interface, Manufacturer, Site
 from ipam.models import ASN, RIR, IPAddress, Prefix
+from netbox_routing.models import BGPPeer, PrefixList
 from utilities.testing import ViewTestCases, create_tags
 
 from netbox_peering_manager.models import (
-    BFD,
-    ASPathList,
-    ASPathListRule,
-    BGPPeerGroup,
-    BGPSession,
-    Community,
-    CommunityList,
-    CommunityListRule,
+    IRRPrefixListConfig,
     IRRSource,
     PeerASN,
     PeeringConnection,
     PeeringFabric,
     PeeringFabricType,
     PeeringNetwork,
-    PrefixList,
-    PrefixListRule,
+    PeeringSession,
     Relationship,
-    RoutingPolicy,
-    RoutingPolicyRule,
 )
 
 
@@ -35,8 +26,6 @@ class PluginURLMixin:
 
 
 class RelationshipTestCase(PluginURLMixin, ViewTestCases.OrganizationalObjectViewTestCase):
-    """Test cases for Relationship views."""
-
     model = Relationship
 
     @classmethod
@@ -77,53 +66,7 @@ class RelationshipTestCase(PluginURLMixin, ViewTestCases.OrganizationalObjectVie
         }
 
 
-class BFDTestCase(PluginURLMixin, ViewTestCases.OrganizationalObjectViewTestCase):
-    """Test cases for BFD views."""
-
-    model = BFD
-
-    @classmethod
-    def setUpTestData(cls):
-        bfd_profiles = (
-            BFD(name="Fast", minimum_transmit_interval=100, minimum_receive_interval=100, detect_multiplier=3),
-            BFD(name="Normal", minimum_transmit_interval=300, minimum_receive_interval=300, detect_multiplier=3),
-            BFD(name="Slow", minimum_transmit_interval=1000, minimum_receive_interval=1000, detect_multiplier=5),
-        )
-        BFD.objects.bulk_create(bfd_profiles)
-
-        tags = create_tags("Alpha", "Bravo", "Charlie")
-
-        cls.form_data = {
-            "name": "Custom BFD",
-            "minimum_transmit_interval": 500,
-            "minimum_receive_interval": 500,
-            "detect_multiplier": 4,
-            "description": "Custom BFD profile",
-            "tags": [t.pk for t in tags],
-        }
-
-        cls.csv_data = (
-            "name,minimum_transmit_interval,minimum_receive_interval,detect_multiplier",
-            "BFD Profile 1,200,200,3",
-            "BFD Profile 2,400,400,4",
-            "BFD Profile 3,600,600,5",
-        )
-
-        cls.csv_update_data = (
-            "id,name,description",
-            f"{bfd_profiles[0].pk},Fast Updated,Updated",
-            f"{bfd_profiles[1].pk},Normal Updated,Updated",
-            f"{bfd_profiles[2].pk},Slow Updated,Updated",
-        )
-
-        cls.bulk_edit_data = {
-            "description": "Bulk updated",
-        }
-
-
 class IRRSourceTestCase(PluginURLMixin, ViewTestCases.OrganizationalObjectViewTestCase):
-    """Test cases for IRRSource views."""
-
     model = IRRSource
 
     @classmethod
@@ -166,260 +109,121 @@ class IRRSourceTestCase(PluginURLMixin, ViewTestCases.OrganizationalObjectViewTe
         }
 
 
-class RoutingPolicyTestCase(PluginURLMixin, ViewTestCases.OrganizationalObjectViewTestCase):
-    """Test cases for RoutingPolicy views."""
-
-    model = RoutingPolicy
-    validation_excluded_fields = ["address_family"]
+class IRRPrefixListConfigTestCase(PluginURLMixin, ViewTestCases.PrimaryObjectViewTestCase):
+    model = IRRPrefixListConfig
 
     @classmethod
     def setUpTestData(cls):
-        policies = (
-            RoutingPolicy(name="Import Policy 1", weight=100),
-            RoutingPolicy(name="Export Policy 1", weight=200),
-            RoutingPolicy(name="Default Policy", weight=0),
-        )
-        RoutingPolicy.objects.bulk_create(policies)
+        irr_source = IRRSource.objects.create(name="Test IRR", slug="test-irr", url="http://irr.example.com/")
 
-        tags = create_tags("Alpha", "Bravo", "Charlie")
-
-        cls.form_data = {
-            "name": "New Policy",
-            "description": "A new routing policy",
-            "weight": 150,
-            "address_family": "",
-            "tags": [t.pk for t in tags],
-        }
-
-        cls.csv_data = (
-            "name,weight",
-            "Policy 4,100",
-            "Policy 5,200",
-            "Policy 6,300",
-        )
-
-        cls.csv_update_data = (
-            "id,name,description",
-            f"{policies[0].pk},Import Policy Updated,Updated",
-            f"{policies[1].pk},Export Policy Updated,Updated",
-            f"{policies[2].pk},Default Policy Updated,Updated",
-        )
-
-        cls.bulk_edit_data = {
-            "description": "Bulk updated",
-        }
-
-
-class BGPPeerGroupTestCase(PluginURLMixin, ViewTestCases.OrganizationalObjectViewTestCase):
-    """Test cases for BGPPeerGroup views."""
-
-    model = BGPPeerGroup
-
-    @classmethod
-    def setUpTestData(cls):
-        peer_groups = (
-            BGPPeerGroup(name="Transit Peers"),
-            BGPPeerGroup(name="IXP Peers"),
-            BGPPeerGroup(name="Customer Peers"),
-        )
-        BGPPeerGroup.objects.bulk_create(peer_groups)
-
-        tags = create_tags("Alpha", "Bravo", "Charlie")
-
-        cls.form_data = {
-            "name": "New Peer Group",
-            "description": "A new peer group",
-            "tags": [t.pk for t in tags],
-        }
-
-        cls.csv_data = (
-            "name,description",
-            "Peer Group 4,Description 4",
-            "Peer Group 5,Description 5",
-            "Peer Group 6,Description 6",
-        )
-
-        cls.csv_update_data = (
-            "id,name,description",
-            f"{peer_groups[0].pk},Transit Peers Updated,Updated",
-            f"{peer_groups[1].pk},IXP Peers Updated,Updated",
-            f"{peer_groups[2].pk},Customer Peers Updated,Updated",
-        )
-
-        cls.bulk_edit_data = {
-            "description": "Bulk updated",
-        }
-
-
-class CommunityTestCase(PluginURLMixin, ViewTestCases.PrimaryObjectViewTestCase):
-    """Test cases for Community views."""
-
-    model = Community
-
-    @classmethod
-    def setUpTestData(cls):
-        communities = (
-            Community(value="65000:100"),
-            Community(value="65000:200"),
-            Community(value="65000:300"),
-        )
-        Community.objects.bulk_create(communities)
-
-        tags = create_tags("Alpha", "Bravo", "Charlie")
-
-        cls.form_data = {
-            "value": "65000:400",
-            "description": "New community",
-            "status": "active",
-            "tags": [t.pk for t in tags],
-        }
-
-        cls.csv_data = (
-            "value,status",
-            "65000:500,active",
-            "65000:600,active",
-            "65000:700,active",
-        )
-
-        cls.csv_update_data = (
-            "id,value,description",
-            f"{communities[0].pk},65000:100,Updated",
-            f"{communities[1].pk},65000:200,Updated",
-            f"{communities[2].pk},65000:300,Updated",
-        )
-
-        cls.bulk_edit_data = {
-            "description": "Bulk updated",
-        }
-
-
-class CommunityListTestCase(PluginURLMixin, ViewTestCases.OrganizationalObjectViewTestCase):
-    """Test cases for CommunityList views."""
-
-    model = CommunityList
-
-    @classmethod
-    def setUpTestData(cls):
-        community_lists = (
-            CommunityList(name="Community List 1"),
-            CommunityList(name="Community List 2"),
-            CommunityList(name="Community List 3"),
-        )
-        CommunityList.objects.bulk_create(community_lists)
-
-        tags = create_tags("Alpha", "Bravo", "Charlie")
-
-        cls.form_data = {
-            "name": "New Community List",
-            "description": "A new community list",
-            "tags": [t.pk for t in tags],
-        }
-
-        cls.csv_data = (
-            "name,description",
-            "Community List 4,Description 4",
-            "Community List 5,Description 5",
-            "Community List 6,Description 6",
-        )
-
-        cls.csv_update_data = (
-            "id,name,description",
-            f"{community_lists[0].pk},Community List 1 Updated,Updated",
-            f"{community_lists[1].pk},Community List 2 Updated,Updated",
-            f"{community_lists[2].pk},Community List 3 Updated,Updated",
-        )
-
-        cls.bulk_edit_data = {
-            "description": "Bulk updated",
-        }
-
-
-class ASPathListTestCase(PluginURLMixin, ViewTestCases.OrganizationalObjectViewTestCase):
-    """Test cases for ASPathList views."""
-
-    model = ASPathList
-
-    @classmethod
-    def setUpTestData(cls):
-        aspath_lists = (
-            ASPathList(name="AS Path List 1"),
-            ASPathList(name="AS Path List 2"),
-            ASPathList(name="AS Path List 3"),
-        )
-        ASPathList.objects.bulk_create(aspath_lists)
-
-        tags = create_tags("Alpha", "Bravo", "Charlie")
-
-        cls.form_data = {
-            "name": "New AS Path List",
-            "description": "A new AS path list",
-            "tags": [t.pk for t in tags],
-        }
-
-        cls.csv_data = (
-            "name,description",
-            "AS Path List 4,Description 4",
-            "AS Path List 5,Description 5",
-            "AS Path List 6,Description 6",
-        )
-
-        cls.csv_update_data = (
-            "id,name,description",
-            f"{aspath_lists[0].pk},AS Path List 1 Updated,Updated",
-            f"{aspath_lists[1].pk},AS Path List 2 Updated,Updated",
-            f"{aspath_lists[2].pk},AS Path List 3 Updated,Updated",
-        )
-
-        cls.bulk_edit_data = {
-            "description": "Bulk updated",
-        }
-
-
-class PrefixListTestCase(PluginURLMixin, ViewTestCases.OrganizationalObjectViewTestCase):
-    """Test cases for PrefixList views."""
-
-    model = PrefixList
-
-    @classmethod
-    def setUpTestData(cls):
         prefix_lists = (
-            PrefixList(name="Prefix List 1", family=4),
-            PrefixList(name="Prefix List 2", family=4),
-            PrefixList(name="Prefix List 3", family=6),
+            PrefixList(name="PL 1", family=4),
+            PrefixList(name="PL 2", family=4),
+            PrefixList(name="PL 3", family=6),
+            PrefixList(name="PL 4", family=4),
         )
         PrefixList.objects.bulk_create(prefix_lists)
 
+        configs = (
+            IRRPrefixListConfig(prefix_list=prefix_lists[0], irr_source=irr_source, source_as_set="AS-TEST1"),
+            IRRPrefixListConfig(prefix_list=prefix_lists[1], irr_source=irr_source, source_as_set="AS-TEST2"),
+            IRRPrefixListConfig(prefix_list=prefix_lists[2], irr_source=irr_source, source_as_set="AS-TEST3"),
+        )
+        IRRPrefixListConfig.objects.bulk_create(configs)
+
         tags = create_tags("Alpha", "Bravo", "Charlie")
 
         cls.form_data = {
-            "name": "New Prefix List",
-            "family": 4,
-            "description": "A new prefix list",
+            "prefix_list": prefix_lists[3].pk,
+            "irr_source": irr_source.pk,
+            "source_as_set": "AS-NEW",
+            "sync_interval": 720,
             "tags": [t.pk for t in tags],
         }
 
         cls.csv_data = (
-            "name,family",
-            "Prefix List 4,4",
-            "Prefix List 5,4",
-            "Prefix List 6,6",
+            "prefix_list,irr_source,source_as_set,sync_interval",
+            f"{prefix_lists[3].name},{irr_source.name},AS-CSV1,1440",
         )
 
         cls.csv_update_data = (
-            "id,name,description",
-            f"{prefix_lists[0].pk},Prefix List 1 Updated,Updated",
-            f"{prefix_lists[1].pk},Prefix List 2 Updated,Updated",
-            f"{prefix_lists[2].pk},Prefix List 3 Updated,Updated",
+            "id,source_as_set",
+            f"{configs[0].pk},AS-UPDATED1",
+            f"{configs[1].pk},AS-UPDATED2",
+            f"{configs[2].pk},AS-UPDATED3",
         )
 
         cls.bulk_edit_data = {
-            "description": "Bulk updated",
+            "sync_interval": 2880,
+        }
+
+
+class PeeringSessionTestCase(PluginURLMixin, ViewTestCases.PrimaryObjectViewTestCase):
+    model = PeeringSession
+
+    @classmethod
+    def setUpTestData(cls):
+        rir = RIR.objects.create(name="Test RIR", is_private=True)
+        remote_asns = (
+            ASN(asn=65001, rir=rir),
+            ASN(asn=65002, rir=rir),
+            ASN(asn=65003, rir=rir),
+            ASN(asn=65004, rir=rir),
+        )
+        ASN.objects.bulk_create(remote_asns)
+
+        ips = (
+            IPAddress(address="192.0.2.1/32"),
+            IPAddress(address="192.0.2.2/32"),
+            IPAddress(address="192.0.2.3/32"),
+            IPAddress(address="192.0.2.4/32"),
+        )
+        IPAddress.objects.bulk_create(ips)
+
+        bgp_peers = (
+            BGPPeer(name="Peer 1", peer=ips[0], remote_as=remote_asns[0]),
+            BGPPeer(name="Peer 2", peer=ips[1], remote_as=remote_asns[1]),
+            BGPPeer(name="Peer 3", peer=ips[2], remote_as=remote_asns[2]),
+            BGPPeer(name="Peer 4", peer=ips[3], remote_as=remote_asns[3]),
+        )
+        BGPPeer.objects.bulk_create(bgp_peers)
+
+        relationship = Relationship.objects.create(name="Peer", slug="peer")
+
+        sessions = (
+            PeeringSession(bgp_peer=bgp_peers[0], relationship=relationship),
+            PeeringSession(bgp_peer=bgp_peers[1], relationship=relationship),
+            PeeringSession(bgp_peer=bgp_peers[2], relationship=relationship),
+        )
+        PeeringSession.objects.bulk_create(sessions)
+
+        tags = create_tags("Alpha", "Bravo", "Charlie")
+
+        cls.form_data = {
+            "bgp_peer": bgp_peers[3].pk,
+            "relationship": relationship.pk,
+            "service_reference": "TICKET-999",
+            "tags": [t.pk for t in tags],
+        }
+
+        cls.csv_data = (
+            "bgp_peer,service_reference",
+            f"{bgp_peers[3].name},CSV-REF",
+        )
+
+        cls.csv_update_data = (
+            "id,service_reference",
+            f"{sessions[0].pk},REF-1",
+            f"{sessions[1].pk},REF-2",
+            f"{sessions[2].pk},REF-3",
+        )
+
+        cls.bulk_edit_data = {
+            "service_reference": "BULK-REF",
         }
 
 
 class PeeringFabricTypeTestCase(PluginURLMixin, ViewTestCases.OrganizationalObjectViewTestCase):
-    """Test cases for PeeringFabricType views."""
-
     model = PeeringFabricType
 
     @classmethod
@@ -461,8 +265,6 @@ class PeeringFabricTypeTestCase(PluginURLMixin, ViewTestCases.OrganizationalObje
 
 
 class PeeringFabricTestCase(PluginURLMixin, ViewTestCases.PrimaryObjectViewTestCase):
-    """Test cases for PeeringFabric views."""
-
     model = PeeringFabric
 
     @classmethod
@@ -506,8 +308,6 @@ class PeeringFabricTestCase(PluginURLMixin, ViewTestCases.PrimaryObjectViewTestC
 
 
 class PeerASNTestCase(PluginURLMixin, ViewTestCases.PrimaryObjectViewTestCase):
-    """Test cases for PeerASN views."""
-
     model = PeerASN
 
     @classmethod
@@ -556,130 +356,7 @@ class PeerASNTestCase(PluginURLMixin, ViewTestCases.PrimaryObjectViewTestCase):
         }
 
 
-class BGPSessionTestCase(PluginURLMixin, ViewTestCases.PrimaryObjectViewTestCase):
-    """Test cases for BGPSession views."""
-
-    model = BGPSession
-
-    @classmethod
-    def setUpTestData(cls):
-        # Create required dependencies
-        site = Site.objects.create(name="Test Site", slug="test-site")
-        manufacturer = Manufacturer.objects.create(name="Test Manufacturer", slug="test-manufacturer")
-        device_type = DeviceType.objects.create(manufacturer=manufacturer, model="Test Model", slug="test-model")
-        device_role = DeviceRole.objects.create(name="Test Role", slug="test-role")
-
-        devices = (
-            Device(name="Device 1", site=site, device_type=device_type, role=device_role),
-            Device(name="Device 2", site=site, device_type=device_type, role=device_role),
-        )
-        Device.objects.bulk_create(devices)
-
-        rir = RIR.objects.create(name="RFC 6996", is_private=True)
-
-        # Create ASNs
-        local_asns = (
-            ASN(asn=65000, rir=rir, description="Local AS 1"),
-            ASN(asn=65001, rir=rir, description="Local AS 2"),
-        )
-        ASN.objects.bulk_create(local_asns)
-
-        remote_asns = (
-            ASN(asn=65100, rir=rir, description="Remote AS 1"),
-            ASN(asn=65101, rir=rir, description="Remote AS 2"),
-            ASN(asn=65102, rir=rir, description="Remote AS 3"),
-            ASN(asn=65103, rir=rir, description="Remote AS 4"),
-        )
-        ASN.objects.bulk_create(remote_asns)
-
-        peer_asns = (
-            PeerASN(asn=remote_asns[0]),
-            PeerASN(asn=remote_asns[1]),
-            PeerASN(asn=remote_asns[2]),
-            PeerASN(asn=remote_asns[3]),
-        )
-        PeerASN.objects.bulk_create(peer_asns)
-
-        # Create IP addresses
-        local_ips = (
-            IPAddress(address="192.0.2.1/24"),
-            IPAddress(address="192.0.2.2/24"),
-            IPAddress(address="192.0.2.3/24"),
-            IPAddress(address="192.0.2.4/24"),
-        )
-        IPAddress.objects.bulk_create(local_ips)
-
-        remote_ips = (
-            IPAddress(address="198.51.100.1/24"),
-            IPAddress(address="198.51.100.2/24"),
-            IPAddress(address="198.51.100.3/24"),
-            IPAddress(address="198.51.100.4/24"),
-        )
-        IPAddress.objects.bulk_create(remote_ips)
-
-        # Create BGP sessions
-        sessions = (
-            BGPSession(
-                name="Session 1",
-                device=devices[0],
-                local_address=local_ips[0],
-                remote_address=remote_ips[0],
-                local_as=local_asns[0],
-                remote_as=peer_asns[0],
-            ),
-            BGPSession(
-                name="Session 2",
-                device=devices[0],
-                local_address=local_ips[1],
-                remote_address=remote_ips[1],
-                local_as=local_asns[0],
-                remote_as=peer_asns[1],
-            ),
-            BGPSession(
-                name="Session 3",
-                device=devices[1],
-                local_address=local_ips[2],
-                remote_address=remote_ips[2],
-                local_as=local_asns[1],
-                remote_as=peer_asns[2],
-            ),
-        )
-        BGPSession.objects.bulk_create(sessions)
-
-        tags = create_tags("Alpha", "Bravo", "Charlie")
-
-        cls.form_data = {
-            "name": "New Session",
-            "device": devices[1].pk,
-            "local_address": local_ips[3].pk,
-            "remote_address": remote_ips[3].pk,
-            "local_as": local_asns[1].pk,
-            "remote_as": peer_asns[3].pk,
-            "status": "active",
-            "tags": [t.pk for t in tags],
-        }
-
-        cls.csv_data = (
-            "name,device,local_address,remote_address,local_as,remote_as,status,multihop_ttl",
-            f"Session 4,{devices[0].name},{local_ips[3].address},{remote_ips[3].address},{local_asns[0].asn},{remote_asns[3].asn},active,1",
-        )
-
-        cls.csv_update_data = (
-            "id,name,description",
-            f"{sessions[0].pk},Session 1 Updated,Updated",
-            f"{sessions[1].pk},Session 2 Updated,Updated",
-            f"{sessions[2].pk},Session 3 Updated,Updated",
-        )
-
-        cls.bulk_edit_data = {
-            "description": "Bulk updated",
-            "status": "offline",
-        }
-
-
 class PeeringNetworkTestCase(PluginURLMixin, ViewTestCases.PrimaryObjectViewTestCase):
-    """Test cases for PeeringNetwork views."""
-
     model = PeeringNetwork
 
     @classmethod
@@ -731,8 +408,6 @@ class PeeringNetworkTestCase(PluginURLMixin, ViewTestCases.PrimaryObjectViewTest
 
 
 class PeeringConnectionTestCase(PluginURLMixin, ViewTestCases.PrimaryObjectViewTestCase):
-    """Test cases for PeeringConnection views."""
-
     model = PeeringConnection
 
     @classmethod
@@ -793,190 +468,4 @@ class PeeringConnectionTestCase(PluginURLMixin, ViewTestCases.PrimaryObjectViewT
         cls.bulk_edit_data = {
             "description": "Bulk updated",
             "status": "decommissioned",
-        }
-
-
-class ASPathListRuleTestCase(PluginURLMixin, ViewTestCases.PrimaryObjectViewTestCase):
-    """Test cases for ASPathListRule views."""
-
-    model = ASPathListRule
-
-    @classmethod
-    def setUpTestData(cls):
-        aspath_list = ASPathList.objects.create(name="Test AS Path List")
-
-        rules = (
-            ASPathListRule(aspath_list=aspath_list, index=10, action="permit", pattern="^65000$"),
-            ASPathListRule(aspath_list=aspath_list, index=20, action="permit", pattern="^65001$"),
-            ASPathListRule(aspath_list=aspath_list, index=30, action="deny", pattern=".*"),
-        )
-        ASPathListRule.objects.bulk_create(rules)
-
-        tags = create_tags("Alpha", "Bravo", "Charlie")
-
-        cls.form_data = {
-            "aspath_list": aspath_list.pk,
-            "index": 40,
-            "action": "permit",
-            "pattern": "^65002_",
-            "tags": [t.pk for t in tags],
-        }
-
-        cls.csv_data = (
-            "aspath_list,index,action,pattern",
-            f"{aspath_list.pk},50,permit,^65003$",
-            f"{aspath_list.pk},60,permit,^65004$",
-            f"{aspath_list.pk},70,deny,.*",
-        )
-
-        cls.csv_update_data = (
-            "id,description",
-            f"{rules[0].pk},Updated",
-            f"{rules[1].pk},Updated",
-            f"{rules[2].pk},Updated",
-        )
-
-        cls.bulk_edit_data = {
-            "description": "Bulk updated",
-        }
-
-
-class PrefixListRuleTestCase(PluginURLMixin, ViewTestCases.PrimaryObjectViewTestCase):
-    """Test cases for PrefixListRule views."""
-
-    model = PrefixListRule
-    validation_excluded_fields = ["prefix_custom"]
-
-    @classmethod
-    def setUpTestData(cls):
-        prefix_list = PrefixList.objects.create(name="Test Prefix List", family=4)
-
-        rules = (
-            PrefixListRule(prefix_list=prefix_list, index=10, action="permit", prefix_custom="192.0.2.0/24"),
-            PrefixListRule(prefix_list=prefix_list, index=20, action="permit", prefix_custom="198.51.100.0/24"),
-            PrefixListRule(prefix_list=prefix_list, index=30, action="deny", prefix_custom="0.0.0.0/0", le=32),
-        )
-        PrefixListRule.objects.bulk_create(rules)
-
-        tags = create_tags("Alpha", "Bravo", "Charlie")
-
-        cls.form_data = {
-            "prefix_list": prefix_list.pk,
-            "index": 40,
-            "action": "permit",
-            "prefix_custom": "203.0.113.0/24",
-            "tags": [t.pk for t in tags],
-        }
-
-        cls.csv_data = (
-            "prefix_list,index,action,prefix_custom",
-            f"{prefix_list.pk},50,permit,10.0.0.0/8",
-            f"{prefix_list.pk},60,permit,172.16.0.0/12",
-            f"{prefix_list.pk},70,deny,0.0.0.0/0",
-        )
-
-        cls.csv_update_data = (
-            "id,comments",
-            f"{rules[0].pk},Updated",
-            f"{rules[1].pk},Updated",
-            f"{rules[2].pk},Updated",
-        )
-
-        cls.bulk_edit_data = {
-            "description": "Bulk updated",
-        }
-
-
-class CommunityListRuleTestCase(PluginURLMixin, ViewTestCases.PrimaryObjectViewTestCase):
-    """Test cases for CommunityListRule views."""
-
-    model = CommunityListRule
-
-    @classmethod
-    def setUpTestData(cls):
-        community_list = CommunityList.objects.create(name="Test Community List")
-
-        communities = (
-            Community(value="65000:100"),
-            Community(value="65000:200"),
-            Community(value="65000:300"),
-            Community(value="65000:400"),
-        )
-        Community.objects.bulk_create(communities)
-
-        rules = (
-            CommunityListRule(community_list=community_list, action="permit", community=communities[0]),
-            CommunityListRule(community_list=community_list, action="permit", community=communities[1]),
-            CommunityListRule(community_list=community_list, action="deny", community=communities[2]),
-        )
-        CommunityListRule.objects.bulk_create(rules)
-
-        tags = create_tags("Alpha", "Bravo", "Charlie")
-
-        cls.form_data = {
-            "community_list": community_list.pk,
-            "action": "permit",
-            "community": communities[3].pk,
-            "tags": [t.pk for t in tags],
-        }
-
-        cls.csv_data = (
-            "community_list,action,community",
-            f"{community_list.pk},permit,{communities[3].pk}",
-        )
-
-        cls.csv_update_data = (
-            "id,description",
-            f"{rules[0].pk},Updated",
-            f"{rules[1].pk},Updated",
-            f"{rules[2].pk},Updated",
-        )
-
-        cls.bulk_edit_data = {
-            "description": "Bulk updated",
-        }
-
-
-class RoutingPolicyRuleTestCase(PluginURLMixin, ViewTestCases.PrimaryObjectViewTestCase):
-    """Test cases for RoutingPolicyRule views."""
-
-    model = RoutingPolicyRule
-
-    @classmethod
-    def setUpTestData(cls):
-        routing_policy = RoutingPolicy.objects.create(name="Test Routing Policy")
-
-        rules = (
-            RoutingPolicyRule(routing_policy=routing_policy, index=10, action="permit"),
-            RoutingPolicyRule(routing_policy=routing_policy, index=20, action="permit"),
-            RoutingPolicyRule(routing_policy=routing_policy, index=30, action="deny"),
-        )
-        RoutingPolicyRule.objects.bulk_create(rules)
-
-        tags = create_tags("Alpha", "Bravo", "Charlie")
-
-        cls.form_data = {
-            "routing_policy": routing_policy.pk,
-            "index": 40,
-            "action": "permit",
-            "description": "New rule",
-            "tags": [t.pk for t in tags],
-        }
-
-        cls.csv_data = (
-            "routing_policy,index,action",
-            f"{routing_policy.pk},50,permit",
-            f"{routing_policy.pk},60,permit",
-            f"{routing_policy.pk},70,deny",
-        )
-
-        cls.csv_update_data = (
-            "id,description",
-            f"{rules[0].pk},Updated",
-            f"{rules[1].pk},Updated",
-            f"{rules[2].pk},Updated",
-        )
-
-        cls.bulk_edit_data = {
-            "description": "Bulk updated",
         }
