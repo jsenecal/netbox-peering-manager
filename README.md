@@ -1,72 +1,145 @@
 # netbox-peering-manager
 
-[NetBox Peering Manager](https://github.com/jsenecal/netbox-peering-manager) is a BGP session management plugin for [NetBox](https://github.com/netbox-community/netbox). Meant as a way to document Internet Exchanges points and peering sessions, it also provides a source of truth and configuration management for external BGP sessions of all kind (transit, customers, peering, etc).
+[NetBox Peering Manager](https://github.com/jsenecal/netbox-peering-manager) is a peering management plugin for [NetBox](https://github.com/netbox-community/netbox). It provides a way to document Internet Exchange points, peering sessions, and IRR prefix list synchronization, serving as both a source of truth and a configuration management layer for external BGP sessions (transit, customers, peering, etc).
 
-This project gets its name from the [original *Peering Manager* project](https://github.com/peering-manager/peering-manager), and most functionality is inspired by that project. I needed a tighter integration and the existing models within NetBox allowed to do much more rather than copy/pasting/api glueing information between the two tools (even though they both have a lot in common).
-
-Currently the codebase is mostly a fork of the original [NetBox BGP Plugin](https://github.com/k01ek/netbox-bgp) by [Nikolay Yuzefovich](https://github.com/k01ek) but over time the two will diverge significantly as I work on the plugin.
+Starting with v0.2.0, this plugin builds on top of [netbox-routing](https://github.com/DanSheps/netbox-routing), which provides the core BGP data models (peers, peer groups, routing policies, prefix lists, communities, BFD profiles, etc). netbox-peering-manager extends those models with peering-specific functionality rather than duplicating them.
 
 ## Features
 
-This plugin provides the following Models:
+This plugin provides the following on top of netbox-routing:
 
-**Core BGP Models:**
-* BGP Sessions (with MD5 auth, BFD, multihop support)
-* BGP Peer Groups
-* Peer ASNs (extends NetBox ASN with peering-specific attributes)
-* Relationship Types (transit, peer, customer, IXP)
-* BFD Profiles
-
-**Policy & Filtering:**
-* Routing Policies (with weight and address family)
-* BGP Communities (standard, extended, large)
-* Community Lists
-* Prefix Lists
-* AS Path Lists
+**Peering Session Management:**
+* Peering Sessions — thin wrapper around netbox-routing's BGPPeer, adding relationship type, peering network association, and service reference tracking
+* Relationship Types — classify sessions as transit, peer, customer, IXP, etc.
+* Peer ASNs — extends NetBox ASN with peering-specific attributes (IRR AS-SET, max prefixes, PeeringDB ID)
 
 **Internet Exchange Support:**
-* Peering Fabrics (IX, cloud exchange, private LAN)
-* Peering Networks (IX LANs with prefix/VLAN)
-* Peering Connections (device interface attachments)
+* Peering Fabric Types — classify fabric types (IX, cloud exchange, private LAN)
+* Peering Fabrics — represent IX or peering environments with PeeringDB integration
+* Peering Networks — IX LANs with prefix/VLAN associations
+* Peering Connections — device interface attachments to peering networks
+
+**IRR Prefix List Synchronization:**
+* IRR Sources — configure IRR query endpoints (via [fastbgpq4](https://github.com/jsenecal/fastbgpq4))
+* IRR Prefix List Configs — link netbox-routing PrefixLists to IRR sources for automatic sync
+* Background jobs for single and bulk prefix list synchronization
 
 **External Integrations:**
-* PeeringDB selective sync
-* IRR prefix list synchronization
-* Configuration templating (Jinja2 with multi-vendor support)
+* PeeringDB selective sync (IX discovery, peer discovery)
+* Configuration templating (Jinja2 with multi-vendor support via NetBox ConfigTemplates)
+
+**Provided by netbox-routing (required dependency):**
+* BGP Peers and Peer Templates (peer groups)
+* BGP Routers and Scopes
+* Routing Policies (route maps) with address family support
+* Prefix Lists and Prefix List Entries
+* Communities and Community Lists
+* AS Path Lists
+* BFD Profiles
 
 ## Compatibility
 
-| NetBox Version | Plugin Version |
-|----------------|----------------|
-| NetBox 4.4.x   | >= 0.0.1       |
+| NetBox Version | Plugin Version | netbox-routing Version |
+|----------------|----------------|------------------------|
+| NetBox 4.5.x   | >= 0.2.0       | 0.4.x+                |
+| NetBox 4.4.x   | 0.1.x          | N/A (standalone)       |
+
+## Prerequisites
+
+**netbox-routing** must be installed and enabled before installing netbox-peering-manager. The plugin declares `netbox_routing` as a required plugin and will not load without it.
+
+```bash
+pip install git+https://github.com/DanSheps/netbox-routing.git@14318f1c
+```
+
+Enable it in your NetBox configuration:
+
+```python
+PLUGINS = [
+    'netbox_routing',
+    'netbox_peering_manager',
+]
+```
+
+> **Important:** `netbox_routing` must appear before `netbox_peering_manager` in the `PLUGINS` list.
 
 ## Installation
 
-The plugin can be installed with pip:
+Install the plugin (this will also pull in netbox-routing as a dependency):
 
 ```bash
 pip install git+https://github.com/jsenecal/netbox-peering-manager.git
 ```
 
-Enable the plugin in /opt/netbox/netbox/netbox/configuration.py:
+Enable both plugins in `/opt/netbox/netbox/netbox/configuration.py`:
+
 ```python
-PLUGINS = ['netbox_peering_manager']
+PLUGINS = [
+    'netbox_routing',
+    'netbox_peering_manager',
+]
 ```
 
-Restart NetBox and add `netbox-peering-manager` to your local_requirements.txt
+Run database migrations:
 
-See [NetBox Documentation](https://docs.netbox.dev/en/stable/plugins/#installing-plugins) for details
+```bash
+cd /opt/netbox/netbox
+python manage.py migrate
+```
+
+Restart NetBox and add `netbox-peering-manager` to your `local_requirements.txt`.
+
+See [NetBox Documentation](https://docs.netbox.dev/en/stable/plugins/#installing-plugins) for details.
 
 ## Configuration
 
-The following options are available:
-* `device_ext_page`: String (default right) Device related BGP sessions display mode. The following values are available:
-  - `left`: Display BGP sessions in the left column of the device detail page
-  - `right`: Display BGP sessions in the right column of the device detail page
-  - `full_width`: Display BGP sessions in full width at the bottom of the device detail page
-  - `tab`: Display BGP sessions in a dedicated tab on the device detail page
-  - Set empty value to disable device BGP sessions display
-* `top_level_menu`: Bool (default False) Enable top level section navigation menu for the plugin.
+```python
+PLUGINS_CONFIG = {
+    'netbox_peering_manager': {
+        # Enable top-level navigation menu (default: True)
+        'top_level_menu': True,
+
+        # PeeringDB integration (all optional)
+        'peeringdb_url': None,           # Falls back to default PeeringDB API
+        'peeringdb_api_key': None,       # Optional, needed for contact info
+        'peeringdb_timeout': None,       # Falls back to 30s
+        'peeringdb_local_asns': [],      # Your ASN(s) for filtering
+    }
+}
+```
+
+## Model Architecture
+
+netbox-peering-manager v0.2.0 follows a layered architecture where netbox-routing provides the core BGP models and this plugin adds peering-specific extensions:
+
+```
+netbox-routing (dependency)          netbox-peering-manager (this plugin)
+─────────────────────────────        ────────────────────────────────────
+BGPPeer ◄──────────────────────────── PeeringSession (1:1)
+  ├── peer (remote IP)                 ├── relationship (FK → Relationship)
+  ├── source (local IP)                ├── peering_network (FK → PeeringNetwork)
+  ├── remote_as / local_as             └── service_reference
+  ├── peer_group (BGPPeerTemplate)
+  ├── bfd (BFDProfile)               Relationship
+  ├── address_families[]               ├── name, slug, color
+  └── enabled, status, ttl
+                                     PeerASN (1:1 → ipam.ASN)
+PrefixList ◄─────────────────────────  ├── affiliated, irr_as_set
+  ├── name, family                     ├── max prefixes (v4/v6)
+  └── entries[]                        └── peeringdb_id
+
+                                     IRRPrefixListConfig (1:1 → PrefixList)
+                                       ├── irr_source (FK → IRRSource)
+                                       ├── source_as_set
+                                       └── sync_interval
+
+                                     IRRSource
+                                       ├── name, url, sources
+                                       └── enabled, sync_interval
+
+                                     PeeringFabric / PeeringNetwork / PeeringConnection
+                                       └── IX infrastructure models
+```
 
 ## External Dependencies
 
@@ -88,36 +161,97 @@ bgpq4 is a command-line tool, not a library. fastbgpq4 provides a REST API inter
    - **Sources** (optional): Comma-separated IRR sources to query (e.g., `RADB,RIPE,ARIN`)
    - **Cache TTL** (optional): Cache duration for query results
 
-3. On your PeerASN records, set the **IRR AS-SET** field (e.g., `AS-HURRICANE`, `AS15169:AS-GOOGLE`)
-
-4. Create Prefix Lists with:
+3. Create an IRR Prefix List Config linking a netbox-routing Prefix List to the IRR Source:
+   - **Prefix List**: Select a netbox-routing prefix list
    - **IRR Source**: Select your configured IRR source
    - **Source AS-SET**: The AS-SET to query (e.g., `AS-HURRICANE`)
-   - **Family**: IPv4 or IPv6
 
-5. Use the sync action on Prefix Lists to populate them from IRR data
+4. Use the sync action to populate the prefix list entries from IRR data
 
 **Background Jobs:**
 
 IRR synchronization runs as NetBox background jobs via the RQ worker:
-- **Sync Prefix List from IRR** - Syncs a single prefix list
-- **Sync All Prefix Lists from IRR** - Syncs all prefix lists associated with an IRR source
+- **Sync Prefix List from IRR** — Syncs a single prefix list
+- **Sync All Prefix Lists from IRR** — Syncs all prefix lists associated with an IRR source
 
 Ensure the NetBox RQ worker is running (`make rqworker` in development, or your production worker service).
 
-**API Endpoint:**
+## Configuration Templating
 
-The plugin queries fastbgpq4 at `GET /api/v1/as-set/expand` with parameters:
-- `target`: The AS-SET to expand
-- `format`: Response format (json)
-- `sources`: IRR sources to query
-- `cache_ttl`: Cache duration
+netbox-peering-manager provides a configuration rendering service that builds Jinja2 template context from your BGP data. It uses NetBox's built-in `ConfigTemplate` model for template storage.
 
-For large AS-SETs, fastbgpq4 returns a 202 status with a job ID, and the plugin polls for completion.
+### Template Context Variables
+
+The `ConfigRenderer` service provides the following context:
+
+| Variable | Type | Description |
+|----------|------|-------------|
+| `device` | dict | Device info: `name`, `platform.name`, `platform.slug`, `site.name`, `site.slug` |
+| `sessions` | list[dict] | Peering sessions (see below) |
+| `peer_groups` | list[dict] | Deduplicated peer groups: `id`, `name` |
+| `route_maps` | list[dict] | Deduplicated route maps: `id`, `name` |
+| `prefix_lists` | list[dict] | Reserved for future use |
+| `communities` | list[dict] | Reserved for future use |
+
+### Session Context
+
+Each session in `sessions` contains:
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `name` | str | BGP peer name |
+| `description` | str | Peer description |
+| `enabled` | bool | Whether the peer is enabled |
+| `status` | str | Peer status |
+| `local_asn` | int | Local AS number |
+| `peer_asn` | int | Remote AS number |
+| `local_ip` | str | Local IP address |
+| `remote_ip` | str | Remote IP address |
+| `password` | str | MD5 authentication password |
+| `ttl` | int | TTL / multihop value |
+| `relationship` | str | Relationship type name |
+| `service_reference` | str | Service ticket reference |
+| `peer_name` | str | PeerASN name (if exists) |
+| `irr_as_set` | str | IRR AS-SET from PeerASN |
+| `ipv4_max_prefixes` | int | Max IPv4 prefixes from PeerASN |
+| `ipv6_max_prefixes` | int | Max IPv6 prefixes from PeerASN |
+| `bfd_profile` | dict | BFD config: `name`, `minimum_interval`, `minimum_rx_interval`, `multiplier`, `hold` |
+| `peer_group` | dict | Peer group: `id`, `name` |
+| `peering_network` | dict | IX network: `id`, `name`, `fabric` |
+| `afi_safis` | list[str] | Address families (e.g., `["ipv4-unicast"]`) |
+| `address_families` | list[dict] | Per-AFI config with `route_map_in`, `route_map_out`, `prefix_list_in`, `prefix_list_out` |
+
+### Custom Jinja2 Filters
+
+The plugin registers custom Jinja2 filters for use in templates:
+
+| Filter | Description |
+|--------|-------------|
+| `as_path_regex` | Convert AS path to regex pattern |
+| `ip_network` | Parse IP network string |
+| `group_by` | Group objects by attribute |
+| `to_community_list` | Format community list entries |
+| `to_prefix_set` | Format prefix set entries |
+
+### Example Templates
+
+Example templates are provided in [`docs/examples/templates/`](docs/examples/templates/) for:
+- **Juniper Junos** (`junos-bgp.j2`)
+- **Cisco IOS-XR** (`ios-xr-bgp.j2`)
+- **Arista EOS** (`eos-bgp.j2`)
+- **Nokia SR OS** (`nokia-sros-bgp.j2`)
+
+### API Endpoint
+
+Render configuration via the REST API:
+
+```
+POST /api/plugins/bgp/render-config/
+```
 
 ## Development
 
-This plugin uses a VS Code devcontainer for development. The devcontainer provides a complete NetBox environment with the plugin installed in editable mode.
+This plugin uses a VS Code devcontainer for development. The devcontainer provides a complete NetBox environment with both netbox-routing and netbox-peering-manager installed in editable mode.
 
 ### Prerequisites
 
@@ -148,7 +282,7 @@ This plugin uses a VS Code devcontainer for development. The devcontainer provid
 
 ### Development Workflow
 
-The plugin is installed in editable mode (`pip install -e`), so changes to the code will be reflected immediately. You may need to restart the NetBox service for some changes.
+Both netbox-routing and netbox-peering-manager are installed in editable mode (`pip install -e`), so changes to the code will be reflected immediately. You may need to restart the NetBox service for some changes.
 
 #### Using Make Commands
 
@@ -210,22 +344,14 @@ python manage.py makemigrations netbox_peering_manager
 python manage.py migrate
 ```
 
-## Screenshots
+## Upgrading from v0.1.x
 
-BGP Session
-![BGP Session](docs/img/session.png)
+v0.2.0 is a **breaking change**. All BGP routing models (BGPSession, BGPPeerGroup, BFD, RoutingPolicy, PrefixList, Community, ASPathList, and their rule models) have been removed in favor of netbox-routing.
 
-BGP Sessions
-![BGP Session Table](docs/img/sessions.png)
+**Migration steps:**
 
-Community
-![Community](docs/img/commun.png)
-
-Peer Group
-![Peer Group](docs/img/peer_group.png)
-
-Routing Policy
-![Routing Policy](docs/img/routepolicy.png)
-
-Prefix List
-![Prefix List](docs/img/preflist.png)
+1. Install netbox-routing and run its migrations
+2. Migrate your data from the old plugin tables to netbox-routing models
+3. Update `PLUGINS` configuration to include both `netbox_routing` and `netbox_peering_manager`
+4. Upgrade netbox-peering-manager to v0.2.0 and run migrations
+5. Update any configuration templates to use the new context variables (see [Configuration Templating](#configuration-templating))
