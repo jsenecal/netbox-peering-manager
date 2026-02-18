@@ -59,7 +59,7 @@ class SyncPrefixListJob(JobRunner):
                     entries.append(
                         PrefixListEntry(
                             prefix_list=prefix_list,
-                            sequence=(idx + 1) * 10,
+                            sequence=idx + 1,
                             action="permit",
                             prefix=prefix,
                         )
@@ -145,7 +145,7 @@ class SyncAllPrefixListsJob(JobRunner):
                         entries.append(
                             PrefixListEntry(
                                 prefix_list=prefix_list,
-                                sequence=(idx + 1) * 10,
+                                sequence=idx + 1,
                                 action="permit",
                                 prefix=prefix,
                             )
