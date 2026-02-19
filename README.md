@@ -351,7 +351,38 @@ v0.2.0 is a **breaking change**. All BGP routing models (BGPSession, BGPPeerGrou
 **Migration steps:**
 
 1. Install netbox-routing and run its migrations
-2. Migrate your data from the old plugin tables to netbox-routing models
+2. Migrate your data from the old plugin tables to netbox-routing models (manual process — see below)
 3. Update `PLUGINS` configuration to include both `netbox_routing` and `netbox_peering_manager`
-4. Upgrade netbox-peering-manager to v0.2.0 and run migrations
-5. Update any configuration templates to use the new context variables (see [Configuration Templating](#configuration-templating))
+4. Clear old migration state and drop removed tables:
+
+   ```sql
+   -- Connect to your NetBox database and run:
+
+   -- Remove old migration records
+   DELETE FROM django_migrations WHERE app = 'netbox_peering_manager';
+
+   -- Drop tables that have been replaced by netbox-routing
+   DROP TABLE IF EXISTS
+     netbox_peering_manager_bgpsession,
+     netbox_peering_manager_bgppeergroup,
+     netbox_peering_manager_prefixlist,
+     netbox_peering_manager_prefixlistrule,
+     netbox_peering_manager_routingpolicy,
+     netbox_peering_manager_routingpolicyrule,
+     netbox_peering_manager_community,
+     netbox_peering_manager_communitylist,
+     netbox_peering_manager_communitylistrule,
+     netbox_peering_manager_bfd,
+     netbox_peering_manager_aspathlist,
+     netbox_peering_manager_aspathlistrule
+     CASCADE;
+   ```
+
+5. Upgrade netbox-peering-manager to v0.2.0 and run migrations:
+
+   ```bash
+   cd /opt/netbox/netbox
+   python manage.py migrate netbox_peering_manager
+   ```
+
+6. Update any configuration templates to use the new context variables (see [Configuration Templating](#configuration-templating))
