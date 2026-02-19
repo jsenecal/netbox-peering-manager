@@ -1,100 +1,119 @@
 {# Juniper Junos BGP Configuration Template #}
 {#
-   Context Variables:
-   - device: Device object with name, platform, site
-   - sessions: List of BGP session objects
-   - peer_groups: List of peer group objects
-   - routing_policies: List of routing policy objects
+   Context Variables (from ConfigRenderer):
+   - device: Device dict with name, platform, site
+   - sessions: List of session dicts (see README for full schema)
+   - peer_groups: List of peer group dicts (id, name)
+   - route_maps: List of route map dicts (id, name)
 #}
 
 {# Generate BGP configuration for device: {{ device.name }} #}
 protocols {
     bgp {
-        group BGP-SESSIONS {
+{% for pg in peer_groups %}
+        group {{ pg.name }} {
             type external;
+        }
+{% endfor %}
 {% for session in sessions %}
 {% if session.enabled %}
-            neighbor {{ session.remote_ip }} {
-                description "{{ session.name }}{% if session.description %} - {{ session.description }}{% endif %}";
-                peer-as {{ session.peer_asn }};
-                local-as {{ session.local_asn }};
+        neighbor {{ session.remote_ip }} {
+            description "{{ session.name }}{% if session.description %} - {{ session.description }}{% endif %}";
+            peer-as {{ session.peer_asn }};
+            local-as {{ session.local_asn }};
 {% if session.local_ip %}
-                local-address {{ session.local_ip }};
+            local-address {{ session.local_ip }};
 {% endif %}
 {% if session.password %}
-                authentication-key "{{ session.password }}";
+            authentication-key "{{ session.password }}";
 {% endif %}
-{% if session.multihop_ttl %}
-                multihop {
-                    ttl {{ session.multihop_ttl }};
-                }
+{% if session.ttl %}
+            multihop {
+                ttl {{ session.ttl }};
+            }
 {% endif %}
 {% if session.bfd_profile %}
-                bfd-liveness-detection {
-                    minimum-interval {{ session.bfd_profile.minimum_interval }};
-                    multiplier {{ session.bfd_profile.multiplier }};
+            bfd-liveness-detection {
+                minimum-interval {{ session.bfd_profile.minimum_interval }};
+                multiplier {{ session.bfd_profile.multiplier }};
 {% if session.bfd_profile.name %}
-                    /* BFD Profile: {{ session.bfd_profile.name }} */
-{% endif %}
-                }
-{% endif %}
-{% if session.peer_group %}
-                group {{ session.peer_group.name }};
-{% endif %}
-{# Apply import policies sorted by weight (highest weight = highest priority) #}
-{% if session.import_policies %}
-                import [ {% for policy in session.import_policies | sort(attribute='weight', reverse=True) %}{{ policy.name }}{% if not loop.last %} {% endif %}{% endfor %} ];
-{% endif %}
-{# Apply export policies sorted by weight (highest weight = highest priority) #}
-{% if session.export_policies %}
-                export [ {% for policy in session.export_policies | sort(attribute='weight', reverse=True) %}{{ policy.name }}{% if not loop.last %} {% endif %}{% endfor %} ];
-{% endif %}
-{# Configure address families #}
-{% if session.afi_safis %}
-                family {
-{% for afi_safi in session.afi_safis %}
-{% if afi_safi == 'ipv4-unicast' %}
-                    inet {
-                        unicast;
-                    }
-{% elif afi_safi == 'ipv6-unicast' %}
-                    inet6 {
-                        unicast;
-                    }
-{% elif afi_safi == 'ipv4-labeled-unicast' %}
-                    inet {
-                        labeled-unicast;
-                    }
-{% elif afi_safi == 'l3vpn-ipv4-unicast' %}
-                    inet-vpn {
-                        unicast;
-                    }
-{% elif afi_safi == 'l3vpn-ipv6-unicast' %}
-                    inet6-vpn {
-                        unicast;
-                    }
-{% elif afi_safi == 'evpn' %}
-                    evpn {
-                        signaling;
-                    }
-{% endif %}
-{% endfor %}
-                }
+                /* BFD Profile: {{ session.bfd_profile.name }} */
 {% endif %}
             }
 {% endif %}
+{% if session.peer_group %}
+            group {{ session.peer_group.name }};
+{% endif %}
+{% if session.ipv4_max_prefixes %}
+            family inet {
+                unicast {
+                    prefix-limit {
+                        maximum {{ session.ipv4_max_prefixes }};
+                    }
+                }
+            }
+{% endif %}
+{% if session.ipv6_max_prefixes %}
+            family inet6 {
+                unicast {
+                    prefix-limit {
+                        maximum {{ session.ipv6_max_prefixes }};
+                    }
+                }
+            }
+{% endif %}
+{# Apply per-address-family route maps #}
+{% for af in session.address_families %}
+{% if af.route_map_in %}
+            import {{ af.route_map_in.name }};
+{% endif %}
+{% if af.route_map_out %}
+            export {{ af.route_map_out.name }};
+{% endif %}
 {% endfor %}
+{# Configure address families from afi_safis #}
+{% if session.afi_safis %}
+            family {
+{% for afi_safi in session.afi_safis %}
+{% if afi_safi == 'ipv4-unicast' %}
+                inet {
+                    unicast;
+                }
+{% elif afi_safi == 'ipv6-unicast' %}
+                inet6 {
+                    unicast;
+                }
+{% elif afi_safi == 'ipv4-labeled-unicast' %}
+                inet {
+                    labeled-unicast;
+                }
+{% elif afi_safi == 'l3vpn-ipv4-unicast' %}
+                inet-vpn {
+                    unicast;
+                }
+{% elif afi_safi == 'l3vpn-ipv6-unicast' %}
+                inet6-vpn {
+                    unicast;
+                }
+{% elif afi_safi == 'evpn' %}
+                evpn {
+                    signaling;
+                }
+{% endif %}
+{% endfor %}
+            }
+{% endif %}
         }
+{% endif %}
+{% endfor %}
     }
 }
 
 {# Policy configuration referenced by sessions #}
-{% if routing_policies %}
+{% if route_maps %}
 policy-options {
-{% for policy in routing_policies %}
-    policy-statement {{ policy.name }} {
-        /* Weight: {{ policy.weight | default(1000) }} */
-        /* {{ policy.description | default('No description') }} */
+{% for rm in route_maps %}
+    policy-statement {{ rm.name }} {
         term accept {
             then accept;
         }

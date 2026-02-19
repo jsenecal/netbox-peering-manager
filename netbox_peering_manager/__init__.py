@@ -6,7 +6,7 @@ from .version import __version__
 class BGPConfig(PluginConfig):
     name = "netbox_peering_manager"
     verbose_name = "BGP"
-    description = "Subsystem for tracking bgp related objects"
+    description = "Peering management for NetBox, built on netbox-routing"
     version = __version__
     author = "Jonathan Senecal"
     author_email = "jonathan.senecal@metrooptic.com"
@@ -14,8 +14,8 @@ class BGPConfig(PluginConfig):
     required_settings = []
     min_version = "4.5.0"
     max_version = "4.5.99"
+    required_plugins = ["netbox_routing"]
     default_settings = {
-        "device_ext_page": "right",
         "top_level_menu": True,
         "peeringdb_url": None,
         "peeringdb_api_key": None,

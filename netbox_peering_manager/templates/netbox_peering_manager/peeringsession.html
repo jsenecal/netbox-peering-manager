@@ -1,0 +1,71 @@
+{% extends 'generic/object.html' %}
+{% load buttons %}
+{% load custom_links %}
+{% load helpers %}
+{% load plugins %}
+
+{% block breadcrumbs %}
+<li class="breadcrumb-item"><a href="{% url 'plugins:netbox_peering_manager:peeringsession_list' %}">Peering Sessions</a></li>
+{% endblock %}
+
+
+{% block content %}
+<div class="row mb-3">
+    <div class="col-md-6">
+        <div class="card">
+            <h5 class="card-header">
+                Peering Session
+            </h5>
+            <div class="card-body">
+                <table class="table table-hover attr-table">
+                    <tr>
+                        <td>BGP Peer</td>
+                        <td>
+                            {% if object.bgp_peer %}
+                                <a href="{{ object.bgp_peer.get_absolute_url }}">{{ object.bgp_peer }}</a>
+                            {% else %}
+                                {{ ''|placeholder }}
+                            {% endif %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Relationship</td>
+                        <td>
+                            {% if object.relationship %}
+                                <a href="{{ object.relationship.get_absolute_url }}">{{ object.relationship }}</a>
+                            {% else %}
+                                {{ ''|placeholder }}
+                            {% endif %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Peering Network</td>
+                        <td>
+                            {% if object.peering_network %}
+                                <a href="{{ object.peering_network.get_absolute_url }}">{{ object.peering_network }}</a>
+                            {% else %}
+                                {{ ''|placeholder }}
+                            {% endif %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Service Reference</td>
+                        <td>{{ object.service_reference|placeholder }}</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+        {% include 'inc/panels/custom_fields.html' %}
+        {% include 'inc/panels/tags.html' %}
+        {% plugin_left_page object %}
+    </div>
+    <div class="col-md-6">
+        {% plugin_right_page object %}
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-12">
+        {% plugin_full_width_page object %}
+    </div>
+</div>
+{% endblock %}

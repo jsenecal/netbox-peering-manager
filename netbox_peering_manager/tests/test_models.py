@@ -1,145 +1,205 @@
 from dcim.models import Device, DeviceRole, DeviceType, Interface, Manufacturer, Site
 from django.core.exceptions import ValidationError
+from django.db import models
 from django.db.utils import IntegrityError
 from django.test import TestCase
 from ipam.models import ASN, RIR, IPAddress, Prefix
+from netbox_routing.models import BGPPeer, PrefixList
 from tenancy.models import Tenant
 
 from netbox_peering_manager.models import (
-    BGPPeerGroup,
-    BGPSession,
-    Community,
-    CommunityList,
+    IRRPrefixListConfig,
+    IRRSource,
     PeerASN,
     PeeringConnection,
     PeeringFabric,
     PeeringFabricType,
     PeeringNetwork,
-    RoutingPolicy,
+    PeeringSession,
+    Relationship,
 )
 
 
-class RoutingPolicyTestCase(TestCase):
+class IRRSourceTestCase(TestCase):
     def setUp(self):
-        rp_name = "test_policy"
-        self.rp = RoutingPolicy.objects.create(name=rp_name, description=rp_name)
-
-    def test_create_routing_policy(self):
-        self.assertTrue(isinstance(self.rp, RoutingPolicy))
-        self.assertEqual(self.rp.__str__(), self.rp.name)
-
-    def test_unique_together(self):
-        rp = RoutingPolicy(name=self.rp.name, description=self.rp.description)
-        with self.assertRaises(IntegrityError):
-            rp.save()
-
-
-class BGPPeerGroupTestCase(TestCase):
-    def setUp(self):
-        self.in_policy1 = RoutingPolicy.objects.create(name="in_policy_1")
-        self.in_policy2 = RoutingPolicy.objects.create(name="in_policy_2")
-        self.out_policy1 = RoutingPolicy.objects.create(name="out_policy_1")
-        self.out_policy2 = RoutingPolicy.objects.create(name="out_policy_2")
-        self.peer_group = BGPPeerGroup.objects.create(name="peer_group", description="peer_group")
-
-    def test_create_peer_group(self):
-        self.assertTrue(isinstance(self.peer_group, BGPPeerGroup))
-        self.assertEqual(self.peer_group.__str__(), self.peer_group.name)
-
-    def test_peer_group_polciy_realtions(self):
-        peer_group = BGPPeerGroup.objects.create(
-            name="group1",
-        )
-        peer_group.import_policies.add(self.in_policy1)
-        peer_group.import_policies.add(self.in_policy2)
-        peer_group.export_policies.add(self.out_policy1)
-        peer_group.export_policies.add(self.out_policy2)
-        self.assertEqual(peer_group.import_policies.get(pk=self.in_policy1.pk), self.in_policy1)
-        self.assertEqual(peer_group.import_policies.get(pk=self.in_policy2.pk), self.in_policy2)
-        self.assertEqual(peer_group.export_policies.get(pk=self.out_policy1.pk), self.out_policy1)
-        self.assertEqual(peer_group.export_policies.get(pk=self.out_policy2.pk), self.out_policy2)
-
-    def test_unique_together(self):
-        peer_group = BGPPeerGroup(name="peer_group", description="peer_group")
-        with self.assertRaises(IntegrityError):
-            peer_group.save()
-
-    def test_ununique_together(self):
-        peer_group1 = BGPPeerGroup(name="peer_group1", description="peer_group")
-        peer_group1.save()
-
-
-class CommunityTestCase(TestCase):
-    def setUp(self):
-        self.community = Community.objects.create(value="65001:65001", description="test_community")
-
-    def test_create_community(self):
-        self.assertTrue(isinstance(self.community, Community))
-        self.assertEqual(self.community.__str__(), self.community.value)
-
-    def test_invalid_community(self):
-        community = Community(value=0)
-        self.assertRaises(ValidationError, community.full_clean)
-
-
-class CommunityListTestCase(TestCase):
-    def setUp(self):
-        self.communitylist = CommunityList.objects.create(
-            name="community_list_1", description="test_community_list", comments="comment_cl1"
+        self.irr_source = IRRSource.objects.create(
+            name="Test IRR",
+            slug="test-irr",
+            url="http://irr.example.com/",
         )
 
-    def test_create_community(self):
-        self.assertTrue(isinstance(self.communitylist, CommunityList))
-        self.assertEqual(self.communitylist.__str__(), self.communitylist.name)
+    def test_create_irr_source(self):
+        self.assertTrue(isinstance(self.irr_source, IRRSource))
+        self.assertEqual(str(self.irr_source), self.irr_source.name)
 
-    def test_unique_together(self):
-        communitylist2 = CommunityList(
-            name="community_list_1",
-            description="test_community_list",
-        )
+    def test_unique_name(self):
         with self.assertRaises(IntegrityError):
-            communitylist2.save()
+            IRRSource.objects.create(name="Test IRR", slug="test-irr-2", url="http://irr2.example.com/")
+
+    def test_get_absolute_url(self):
+        url = self.irr_source.get_absolute_url()
+        self.assertIn(str(self.irr_source.pk), url)
+
+    def test_sync_interval_rejects_zero(self):
+        """sync_interval=0 should fail validation (MinValueValidator(1))."""
+        irr = IRRSource(
+            name="Zero Interval IRR",
+            slug="zero-interval-irr",
+            url="http://irr.example.com/",
+            sync_interval=0,
+        )
+        with self.assertRaises(ValidationError) as ctx:
+            irr.full_clean()
+        self.assertIn("sync_interval", ctx.exception.message_dict)
+
+    def test_sync_interval_accepts_one(self):
+        """sync_interval=1 should pass validation."""
+        irr = IRRSource(
+            name="One Minute IRR",
+            slug="one-minute-irr",
+            url="http://irr.example.com/",
+            sync_interval=1,
+        )
+        irr.full_clean()  # Should not raise
 
 
-class BGPSessionTestCase(TestCase):
+class RelationshipTestCase(TestCase):
     def setUp(self):
-        manufacturer = Manufacturer.objects.create(name="manufacturer")
-        device_type = DeviceType.objects.create(manufacturer=manufacturer, model="device type")
-        device_role = DeviceRole.objects.create(name="device role")
-        self.site = Site.objects.create(name="site")
-        self.tenant = Tenant.objects.create(name="tenant")
-        self.device = Device.objects.create(name="device", site=self.site, role=device_role, device_type=device_type)
-        self.rir = RIR.objects.create(name="rir")
-        self.local_as = ASN.objects.create(asn=65001, rir=self.rir)
-        remote_as_asn = ASN.objects.create(asn=65002, rir=self.rir)
-        self.remote_as = PeerASN.objects.create(asn=remote_as_asn)
-        self.peer_group = BGPPeerGroup.objects.create(name="peer_group")
-        self.routing_policy_in = RoutingPolicy.objects.create(name="policy_in")
-        self.routing_policy_out = RoutingPolicy.objects.create(name="policy_out")
-        self.local_ip = IPAddress.objects.create(address="1.1.1.1/32")
-        self.remote_ip = IPAddress.objects.create(address="1.1.1.2/32")
-        self.session = BGPSession.objects.create(
-            name="session",
-            site=self.site,
-            tenant=self.tenant,
-            device=self.device,
-            local_address=self.local_ip,
-            remote_address=self.remote_ip,
-            local_as=self.local_as,
-            remote_as=self.remote_as,
-            status="active",
-            peer_group=self.peer_group,
+        self.relationship = Relationship.objects.create(name="Transit", slug="transit")
+
+    def test_create_relationship(self):
+        self.assertTrue(isinstance(self.relationship, Relationship))
+        self.assertEqual(str(self.relationship), self.relationship.name)
+
+    def test_unique_name(self):
+        with self.assertRaises(IntegrityError):
+            Relationship.objects.create(name="Transit", slug="transit-2")
+
+
+class PeerASNTestCase(TestCase):
+    def setUp(self):
+        self.rir = RIR.objects.create(name="Test RIR")
+        self.asn = ASN.objects.create(asn=65001, rir=self.rir)
+        self.peer_asn = PeerASN.objects.create(asn=self.asn)
+
+    def test_create_peer_asn(self):
+        self.assertTrue(isinstance(self.peer_asn, PeerASN))
+        self.assertEqual(str(self.peer_asn), "AS65001")
+
+    def test_asn_number_property(self):
+        self.assertEqual(self.peer_asn.asn_number, 65001)
+
+    def test_unique_asn(self):
+        with self.assertRaises(IntegrityError):
+            PeerASN.objects.create(asn=self.asn)
+
+
+class IRRPrefixListConfigTestCase(TestCase):
+    def setUp(self):
+        self.irr_source = IRRSource.objects.create(name="Test IRR", slug="test-irr", url="http://irr.example.com/")
+        self.prefix_list = PrefixList.objects.create(name="Test PL", family=4)
+        self.config = IRRPrefixListConfig.objects.create(
+            prefix_list=self.prefix_list,
+            irr_source=self.irr_source,
+            source_as_set="AS-TEST",
+        )
+
+    def test_create_config(self):
+        self.assertTrue(isinstance(self.config, IRRPrefixListConfig))
+        self.assertIn("Test PL", str(self.config))
+
+    def test_is_irr_managed(self):
+        self.assertTrue(self.config.is_irr_managed)
+
+    def test_not_irr_managed_without_source(self):
+        config = IRRPrefixListConfig(prefix_list=self.prefix_list)
+        self.assertFalse(config.is_irr_managed)
+
+    def test_validation_source_without_as_set(self):
+        config = IRRPrefixListConfig(
+            prefix_list=self.prefix_list,
+            irr_source=self.irr_source,
+            source_as_set="",
+        )
+        with self.assertRaises(ValidationError):
+            config.full_clean()
+
+    def test_validation_as_set_without_source(self):
+        pl2 = PrefixList.objects.create(name="Test PL 2", family=4)
+        config = IRRPrefixListConfig(
+            prefix_list=pl2,
+            source_as_set="AS-TEST",
+        )
+        with self.assertRaises(ValidationError):
+            config.full_clean()
+
+    def test_get_absolute_url(self):
+        url = self.config.get_absolute_url()
+        self.assertIn(str(self.config.pk), url)
+
+    def test_sync_interval_rejects_zero(self):
+        """sync_interval=0 should fail validation (MinValueValidator(1))."""
+        pl = PrefixList.objects.create(name="Zero Interval PL", family=4)
+        config = IRRPrefixListConfig(
+            prefix_list=pl,
+            sync_interval=0,
+        )
+        with self.assertRaises(ValidationError) as ctx:
+            config.full_clean()
+        self.assertIn("sync_interval", ctx.exception.message_dict)
+
+    def test_sync_interval_accepts_one(self):
+        """sync_interval=1 should pass validation."""
+        pl = PrefixList.objects.create(name="One Min PL", family=4)
+        config = IRRPrefixListConfig(
+            prefix_list=pl,
+            sync_interval=1,
+        )
+        config.full_clean()  # Should not raise
+
+
+class PeeringSessionTestCase(TestCase):
+    def setUp(self):
+        self.rir = RIR.objects.create(name="Test RIR")
+        remote_asn = ASN.objects.create(asn=65001, rir=self.rir)
+        remote_ip = IPAddress.objects.create(address="192.0.2.1/32")
+        self.bgp_peer = BGPPeer.objects.create(
+            name="test-peer",
+            peer=remote_ip,
+            remote_as=remote_asn,
+        )
+        self.relationship = Relationship.objects.create(name="Peer", slug="peer")
+        self.session = PeeringSession.objects.create(
+            bgp_peer=self.bgp_peer,
+            relationship=self.relationship,
+            service_reference="TICKET-123",
         )
 
     def test_create_session(self):
-        self.assertTrue(isinstance(self.session, BGPSession))
-        self.assertEqual(self.session.__str__(), f"{self.session.device}:{self.session.name}")
+        self.assertTrue(isinstance(self.session, PeeringSession))
+        self.assertIn("test-peer", str(self.session))
 
-    def test_policies(self):
-        pass
+    def test_session_has_relationship(self):
+        self.assertEqual(self.session.relationship, self.relationship)
 
-    def test_unique_together(self):
-        pass
+    def test_session_unique_bgp_peer(self):
+        with self.assertRaises(IntegrityError):
+            PeeringSession.objects.create(bgp_peer=self.bgp_peer)
+
+    def test_bgp_peer_protect_on_delete(self):
+        """Deleting a BGPPeer with a PeeringSession should raise ProtectedError."""
+        with self.assertRaises(models.ProtectedError):
+            self.bgp_peer.delete()
+
+    def test_bgp_peer_deletable_after_session_removed(self):
+        """Deleting a BGPPeer should succeed once the PeeringSession is removed."""
+        self.session.delete()
+        self.bgp_peer.delete()
+        self.assertFalse(BGPPeer.objects.filter(pk=self.bgp_peer.pk).exists())
+
+    def test_get_absolute_url(self):
+        url = self.session.get_absolute_url()
+        self.assertIn(str(self.session.pk), url)
 
 
 class PeeringFabricTypeTestCase(TestCase):
@@ -152,21 +212,15 @@ class PeeringFabricTypeTestCase(TestCase):
 
     def test_create_fabric_type(self):
         self.assertTrue(isinstance(self.fabric_type, PeeringFabricType))
-        self.assertEqual(self.fabric_type.__str__(), self.fabric_type.name)
+        self.assertEqual(str(self.fabric_type), self.fabric_type.name)
 
     def test_unique_name(self):
         with self.assertRaises(IntegrityError):
-            PeeringFabricType.objects.create(
-                name="Internet Exchange",
-                slug="internet-exchange-2",
-            )
+            PeeringFabricType.objects.create(name="Internet Exchange", slug="internet-exchange-2")
 
     def test_unique_slug(self):
         with self.assertRaises(IntegrityError):
-            PeeringFabricType.objects.create(
-                name="Internet Exchange 2",
-                slug="internet-exchange",
-            )
+            PeeringFabricType.objects.create(name="Internet Exchange 2", slug="internet-exchange")
 
     def test_get_absolute_url(self):
         url = self.fabric_type.get_absolute_url()
@@ -177,10 +231,7 @@ class PeeringFabricTestCase(TestCase):
     def setUp(self):
         self.site = Site.objects.create(name="Test Site", slug="test-site")
         self.tenant = Tenant.objects.create(name="Test Tenant", slug="test-tenant")
-        self.fabric_type = PeeringFabricType.objects.create(
-            name="Internet Exchange",
-            slug="internet-exchange",
-        )
+        self.fabric_type = PeeringFabricType.objects.create(name="Internet Exchange", slug="internet-exchange")
         self.fabric = PeeringFabric.objects.create(
             name="AMS-IX",
             slug="ams-ix",
@@ -192,7 +243,7 @@ class PeeringFabricTestCase(TestCase):
 
     def test_create_fabric(self):
         self.assertTrue(isinstance(self.fabric, PeeringFabric))
-        self.assertEqual(self.fabric.__str__(), self.fabric.name)
+        self.assertEqual(str(self.fabric), self.fabric.name)
 
     def test_fabric_with_type(self):
         self.assertEqual(self.fabric.type, self.fabric_type)
@@ -205,11 +256,7 @@ class PeeringFabricTestCase(TestCase):
 
     def test_unique_together_name_site(self):
         with self.assertRaises(IntegrityError):
-            PeeringFabric.objects.create(
-                name="AMS-IX",
-                slug="ams-ix-2",
-                site=self.site,
-            )
+            PeeringFabric.objects.create(name="AMS-IX", slug="ams-ix-2", site=self.site)
 
     def test_get_status_color(self):
         color = self.fabric.get_status_color()
@@ -223,11 +270,7 @@ class PeeringFabricTestCase(TestCase):
 class PeeringNetworkTestCase(TestCase):
     def setUp(self):
         self.site = Site.objects.create(name="Test Site", slug="test-site")
-        self.fabric = PeeringFabric.objects.create(
-            name="AMS-IX",
-            slug="ams-ix",
-            site=self.site,
-        )
+        self.fabric = PeeringFabric.objects.create(name="AMS-IX", slug="ams-ix", site=self.site)
         self.prefix = Prefix.objects.create(prefix="80.249.208.0/21")
         self.network = PeeringNetwork.objects.create(
             fabric=self.fabric,
@@ -238,7 +281,7 @@ class PeeringNetworkTestCase(TestCase):
 
     def test_create_network(self):
         self.assertTrue(isinstance(self.network, PeeringNetwork))
-        self.assertEqual(self.network.__str__(), f"{self.fabric.name}: {self.network.name}")
+        self.assertEqual(str(self.network), f"{self.fabric.name}: {self.network.name}")
 
     def test_network_belongs_to_fabric(self):
         self.assertEqual(self.network.fabric, self.fabric)
@@ -248,11 +291,7 @@ class PeeringNetworkTestCase(TestCase):
 
     def test_unique_together_fabric_name(self):
         with self.assertRaises(IntegrityError):
-            PeeringNetwork.objects.create(
-                fabric=self.fabric,
-                name="Production Peering LAN",
-                prefix=self.prefix,
-            )
+            PeeringNetwork.objects.create(fabric=self.fabric, name="Production Peering LAN", prefix=self.prefix)
 
     def test_cascade_delete_fabric(self):
         network_pk = self.network.pk
@@ -275,36 +314,21 @@ class PeeringConnectionTestCase(TestCase):
         self.device_type = DeviceType.objects.create(manufacturer=self.manufacturer, model="Test Model")
         self.device_role = DeviceRole.objects.create(name="Router", slug="router")
         self.device = Device.objects.create(
-            name="router1",
-            site=self.site,
-            role=self.device_role,
-            device_type=self.device_type,
+            name="router1", site=self.site, role=self.device_role, device_type=self.device_type
         )
-        self.interface = Interface.objects.create(
-            device=self.device,
-            name="eth0",
-            type="1000base-t",
-        )
-        self.fabric = PeeringFabric.objects.create(
-            name="AMS-IX",
-            slug="ams-ix",
-            site=self.site,
-        )
+        self.interface = Interface.objects.create(device=self.device, name="eth0", type="1000base-t")
+        self.fabric = PeeringFabric.objects.create(name="AMS-IX", slug="ams-ix", site=self.site)
         self.prefix = Prefix.objects.create(prefix="80.249.208.0/21")
         self.network = PeeringNetwork.objects.create(
-            fabric=self.fabric,
-            name="Production Peering LAN",
-            prefix=self.prefix,
+            fabric=self.fabric, name="Production Peering LAN", prefix=self.prefix
         )
         self.connection = PeeringConnection.objects.create(
-            peering_network=self.network,
-            interface=self.interface,
-            description="Primary connection",
+            peering_network=self.network, interface=self.interface, description="Primary connection"
         )
 
     def test_create_connection(self):
         self.assertTrue(isinstance(self.connection, PeeringConnection))
-        self.assertEqual(self.connection.__str__(), f"{self.network}: {self.interface}")
+        self.assertEqual(str(self.connection), f"{self.network}: {self.interface}")
 
     def test_connection_belongs_to_network(self):
         self.assertEqual(self.connection.peering_network, self.network)
@@ -317,10 +341,7 @@ class PeeringConnectionTestCase(TestCase):
 
     def test_unique_together_network_interface(self):
         with self.assertRaises(IntegrityError):
-            PeeringConnection.objects.create(
-                peering_network=self.network,
-                interface=self.interface,
-            )
+            PeeringConnection.objects.create(peering_network=self.network, interface=self.interface)
 
     def test_cascade_delete_network(self):
         connection_pk = self.connection.pk

@@ -38,16 +38,15 @@ class IRRClientTestCase(TestCase):
         self.assertEqual(params["format"], "json")
         self.assertEqual(params["sources"], "RIPE,RADB")
         self.assertEqual(params["cache_ttl"], 3600)
-        self.assertEqual(params["max_masklen"], 32)
-        self.assertNotIn("min_masklen", params)
+        self.assertEqual(params["protocol"], 4)
+        self.assertNotIn("protocol", {k: v for k, v in params.items() if v == 6})
 
     def test_build_params_ipv6(self):
         """Test parameter building for IPv6."""
         params = self.client._build_params("AS-TEST", "ipv6")
 
         self.assertEqual(params["target"], "AS-TEST")
-        self.assertEqual(params["min_masklen"], 33)
-        self.assertNotIn("max_masklen", params)
+        self.assertEqual(params["protocol"], 6)
 
     def test_build_params_no_sources(self):
         """Test parameter building when no sources configured."""

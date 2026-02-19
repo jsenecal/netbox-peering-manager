@@ -1,45 +1,6 @@
 from utilities.choices import ChoiceSet
 
 
-class CommunityStatusChoices(ChoiceSet):
-    key = "Community.status"
-
-    STATUS_ACTIVE = "active"
-    STATUS_RESERVED = "reserved"
-    STATUS_DEPRECATED = "deprecated"
-
-    CHOICES = [
-        (STATUS_ACTIVE, "Active", "blue"),
-        (STATUS_RESERVED, "Reserved", "cyan"),
-        (STATUS_DEPRECATED, "Deprecated", "red"),
-    ]
-
-
-class SessionStatusChoices(ChoiceSet):
-    key = "Session.status"
-
-    STATUS_OFFLINE = "offline"
-    STATUS_ACTIVE = "active"
-    STATUS_PLANNED = "planned"
-    STATUS_FAILED = "failed"
-
-    CHOICES = [
-        (STATUS_OFFLINE, "Offline", "orange"),
-        (STATUS_ACTIVE, "Active", "green"),
-        (STATUS_PLANNED, "Planned", "cyan"),
-        (STATUS_FAILED, "Failed", "red"),
-    ]
-
-
-class ActionChoices(ChoiceSet):
-    key = "Action.status"
-
-    CHOICES = [
-        ("permit", "Permit", "green"),
-        ("deny", "Deny", "red"),
-    ]
-
-
 class AFISAFIChoices(ChoiceSet):
     key = "AFISAFI.options"
 

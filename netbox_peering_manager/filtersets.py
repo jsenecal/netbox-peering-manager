@@ -1,35 +1,22 @@
 import django_filters
-import netaddr
 from dcim.models import Device, Site
 from django.db.models import Q
-from ipam.choices import IPAddressFamilyChoices as CoreIPAddressFamilyChoices
-from ipam.models import ASN, IPAddress
-from netaddr.core import AddrFormatError
+from ipam.models import ASN
 from netbox.filtersets import NetBoxModelFilterSet
+from netbox_routing.models import BGPPeer, PrefixList
 from tenancy.filtersets import TenancyFilterSet
-from virtualization.models import VirtualMachine
 
 from .choices import PeeringStatusChoices
 from .models import (
-    BFD,
-    ASPathList,
-    ASPathListRule,
-    BGPPeerGroup,
-    BGPSession,
-    Community,
-    CommunityList,
-    CommunityListRule,
+    IRRPrefixListConfig,
     IRRSource,
     PeerASN,
     PeeringConnection,
     PeeringFabric,
     PeeringFabricType,
     PeeringNetwork,
-    PrefixList,
-    PrefixListRule,
+    PeeringSession,
     Relationship,
-    RoutingPolicy,
-    RoutingPolicyRule,
 )
 
 # =============================================================================
@@ -47,423 +34,6 @@ class RelationshipFilterSet(NetBoxModelFilterSet):
         if not value.strip():
             return queryset
         qs_filter = Q(name__icontains=value) | Q(slug__icontains=value) | Q(description__icontains=value)
-        return queryset.filter(qs_filter)
-
-
-# =============================================================================
-# BFD FilterSet
-# =============================================================================
-
-
-class BFDFilterSet(NetBoxModelFilterSet):
-    class Meta:
-        model = BFD
-        fields = (
-            "id",
-            "name",
-            "description",
-            "minimum_transmit_interval",
-            "minimum_receive_interval",
-            "detect_multiplier",
-        )
-
-    def search(self, queryset, _name, value):
-        """Perform the filtered search."""
-        if not value.strip():
-            return queryset
-        qs_filter = Q(name__icontains=value) | Q(description__icontains=value)
-        return queryset.filter(qs_filter)
-
-
-# =============================================================================
-# AS Path List FilterSets
-# =============================================================================
-
-
-class ASPathListFilterSet(NetBoxModelFilterSet):
-    class Meta:
-        model = ASPathList
-        fields = ["id", "name", "description"]
-
-    def search(self, queryset, _name, value):
-        """Perform the filtered search."""
-        if not value.strip():
-            return queryset
-        qs_filter = Q(name__icontains=value) | Q(description__icontains=value)
-        return queryset.filter(qs_filter)
-
-
-class ASPathListRuleFilterSet(NetBoxModelFilterSet):
-    class Meta:
-        model = ASPathListRule
-        fields = ["id", "action", "aspath_list", "aspath_list_id"]
-
-    def search(self, queryset, _name, value):
-        """Perform the filtered search."""
-        if not value.strip():
-            return queryset
-        qs_filter = Q(action__icontains=value) | Q(aspath_list__icontains=value) | Q(aspath_list_id__icontains=value)
-        return queryset.filter(qs_filter)
-
-
-class CommunityFilterSet(NetBoxModelFilterSet, TenancyFilterSet):
-    class Meta:
-        model = Community
-        fields = (
-            "id",
-            "value",
-            "description",
-            "status",
-            "tenant",
-        )
-
-    def search(self, queryset, _name, value):
-        """Perform the filtered search."""
-        if not value.strip():
-            return queryset
-        qs_filter = Q(value__icontains=value) | Q(description__icontains=value)
-        return queryset.filter(qs_filter)
-
-
-class CommunityListFilterSet(NetBoxModelFilterSet):
-    class Meta:
-        model = CommunityList
-        fields = (
-            "id",
-            "name",
-            "description",
-        )
-
-    def search(self, queryset, _name, value):
-        """Perform the filtered search."""
-        if not value.strip():
-            return queryset
-        qs_filter = Q(name__icontains=value) | Q(description__icontains=value)
-        return queryset.filter(qs_filter)
-
-
-class CommunityListRuleFilterSet(NetBoxModelFilterSet):
-    class Meta:
-        model = CommunityListRule
-        fields = (
-            "id",
-            "action",
-            "community_list",
-            "community_list_id",
-        )
-
-    def search(self, queryset, _name, value):
-        """Perform the filtered search."""
-        if not value.strip():
-            return queryset
-        qs_filter = (
-            Q(action__icontains=value) | Q(community_list__icontains=value) | Q(community_list_id__icontains=value)
-        )
-        return queryset.filter(qs_filter)
-
-
-class BGPSessionFilterSet(NetBoxModelFilterSet, TenancyFilterSet):
-    remote_as = django_filters.ModelMultipleChoiceFilter(
-        field_name="remote_as__asn",
-        queryset=ASN.objects.all(),
-        to_field_name="asn",
-        label="Remote AS (Number)",
-    )
-    remote_as_id = django_filters.ModelMultipleChoiceFilter(
-        field_name="remote_as__id",
-        queryset=ASN.objects.all(),
-        to_field_name="id",
-        label="Remote AS (ID)",
-    )
-    local_as = django_filters.ModelMultipleChoiceFilter(
-        field_name="local_as__asn",
-        queryset=ASN.objects.all(),
-        to_field_name="asn",
-        label="Local AS (Number)",
-    )
-    local_as_id = django_filters.ModelMultipleChoiceFilter(
-        field_name="local_as__id",
-        queryset=ASN.objects.all(),
-        to_field_name="id",
-        label="Local AS (ID)",
-    )
-    peer_group = django_filters.ModelMultipleChoiceFilter(
-        queryset=BGPPeerGroup.objects.all(),
-    )
-    relationship = django_filters.ModelMultipleChoiceFilter(
-        queryset=Relationship.objects.all(),
-        label="Relationship",
-    )
-    bfd = django_filters.ModelMultipleChoiceFilter(
-        queryset=BFD.objects.all(),
-        label="BFD Profile",
-    )
-    enabled = django_filters.BooleanFilter(
-        label="Enabled",
-    )
-    import_policies = django_filters.ModelMultipleChoiceFilter(
-        queryset=RoutingPolicy.objects.all(),
-    )
-    export_policies = django_filters.ModelMultipleChoiceFilter(
-        queryset=RoutingPolicy.objects.all(),
-    )
-    local_address_id = django_filters.ModelMultipleChoiceFilter(
-        field_name="local_address__id",
-        queryset=IPAddress.objects.all(),
-        to_field_name="id",
-        label="Local Address (ID)",
-    )
-    local_address = django_filters.ModelMultipleChoiceFilter(
-        field_name="local_address__address",
-        queryset=IPAddress.objects.all(),
-        to_field_name="address",
-        label="Local Address",
-    )
-    remote_address_id = django_filters.ModelMultipleChoiceFilter(
-        field_name="remote_address__id",
-        queryset=IPAddress.objects.all(),
-        to_field_name="id",
-        label="Remote Address (ID)",
-    )
-    remote_address = django_filters.ModelMultipleChoiceFilter(
-        field_name="remote_address__address",
-        queryset=IPAddress.objects.all(),
-        to_field_name="address",
-        label="Remote Address",
-    )
-    device_id = django_filters.ModelMultipleChoiceFilter(
-        field_name="device__id",
-        queryset=Device.objects.all(),
-        to_field_name="id",
-        label="Device (ID)",
-    )
-    device = django_filters.ModelMultipleChoiceFilter(
-        field_name="device__name",
-        queryset=Device.objects.all(),
-        to_field_name="name",
-        label="Device (name)",
-    )
-    virtualmachine_id = django_filters.ModelMultipleChoiceFilter(
-        field_name="virtualmachine__id",
-        queryset=VirtualMachine.objects.all(),
-        to_field_name="id",
-        label="VirtualMachine (ID)",
-    )
-    virtualmachine = django_filters.ModelMultipleChoiceFilter(
-        field_name="virtualmachine__name",
-        queryset=VirtualMachine.objects.all(),
-        to_field_name="name",
-        label="VirtualMachine (name)",
-    )
-    site_id = django_filters.ModelMultipleChoiceFilter(
-        field_name="site__id",
-        queryset=Site.objects.all(),
-        to_field_name="id",
-        label="Site (ID)",
-    )
-    site = django_filters.ModelMultipleChoiceFilter(
-        field_name="site__name",
-        queryset=Site.objects.all(),
-        to_field_name="name",
-        label="Site (name)",
-    )
-    by_remote_address = django_filters.CharFilter(
-        method="search_by_remote_ip",
-        label="Remote Address",
-    )
-    by_local_address = django_filters.CharFilter(
-        method="search_by_local_ip",
-        label="Local Address",
-    )
-    has_password = django_filters.BooleanFilter(
-        method="filter_has_password",
-        label="Has password",
-    )
-
-    class Meta:
-        model = BGPSession
-        fields = (
-            "id",
-            "name",
-            "description",
-            "status",
-            "enabled",
-            "tenant",
-        )
-
-    def search(self, queryset, _name, value):
-        """Perform the filtered search."""
-        if not value.strip():
-            return queryset
-        qs_filter = (
-            Q(remote_as__asn__icontains=value)
-            | Q(name__icontains=value)
-            | Q(local_as__asn__icontains=value)
-            | Q(description__icontains=value)
-        )
-        return queryset.filter(qs_filter)
-
-    def search_by_remote_ip(self, queryset, _name, value):
-        if not value.strip():
-            return queryset
-        try:
-            query = str(netaddr.IPNetwork(value).cidr)
-            return queryset.filter(remote_address__address=query)
-        except (AddrFormatError, ValueError):
-            return queryset.none()
-
-    def search_by_local_ip(self, queryset, _name, value):
-        if not value.strip():
-            return queryset
-        try:
-            query = str(netaddr.IPNetwork(value).cidr)
-            return queryset.filter(local_address__address=query)
-        except (AddrFormatError, ValueError):
-            return queryset.none()
-
-    def filter_has_password(self, queryset, _name, value):
-        if value is True:
-            return queryset.exclude(password="")
-        if value is False:
-            return queryset.filter(password="")
-        return queryset
-
-
-class RoutingPolicyFilterSet(NetBoxModelFilterSet):
-    weight = django_filters.NumberFilter()
-    weight__gte = django_filters.NumberFilter(field_name="weight", lookup_expr="gte")
-    weight__lte = django_filters.NumberFilter(field_name="weight", lookup_expr="lte")
-    address_family = django_filters.MultipleChoiceFilter(choices=CoreIPAddressFamilyChoices)
-
-    class Meta:
-        model = RoutingPolicy
-        fields = (
-            "id",
-            "name",
-            "description",
-        )
-
-    def search(self, queryset, _name, value):
-        """Perform the filtered search."""
-        if not value.strip():
-            return queryset
-        qs_filter = Q(name__icontains=value) | Q(description__icontains=value)
-        return queryset.filter(qs_filter)
-
-
-class RoutingPolicyRuleFilterSet(NetBoxModelFilterSet):
-    class Meta:
-        model = RoutingPolicyRule
-        fields = (
-            "id",
-            "index",
-            "action",
-            "description",
-            "routing_policy_id",
-            "continue_entry",
-        )
-
-    def search(self, queryset, _name, value):
-        """Perform the filtered search."""
-        if not value.strip():
-            return queryset
-        qs_filter = (
-            Q(index__icontains=value)
-            | Q(action__icontains=value)
-            | Q(description__icontains=value)
-            | Q(routing_policy_id__icontains=value)
-            | Q(continue_entry__icontains=value)
-        )
-        return queryset.filter(qs_filter)
-
-
-class BGPPeerGroupFilterSet(NetBoxModelFilterSet):
-    class Meta:
-        model = BGPPeerGroup
-        fields = (
-            "id",
-            "name",
-            "description",
-        )
-
-    def search(self, queryset, _name, value):
-        """Perform the filtered search."""
-        if not value.strip():
-            return queryset
-        qs_filter = Q(name__icontains=value) | Q(description__icontains=value)
-        return queryset.filter(qs_filter)
-
-
-class IRRSourceFilterSet(NetBoxModelFilterSet):
-    class Meta:
-        model = IRRSource
-        fields = (
-            "id",
-            "name",
-            "slug",
-            "url",
-            "enabled",
-        )
-
-    def search(self, queryset, _name, value):
-        if not value.strip():
-            return queryset
-        qs_filter = (
-            Q(name__icontains=value)
-            | Q(slug__icontains=value)
-            | Q(description__icontains=value)
-            | Q(url__icontains=value)
-        )
-        return queryset.filter(qs_filter)
-
-
-class PrefixListFilterSet(NetBoxModelFilterSet):
-    class Meta:
-        model = PrefixList
-        fields = (
-            "id",
-            "name",
-            "description",
-            "family",
-            "source_as_set",
-            "irr_source",
-        )
-
-    def search(self, queryset, _name, value):
-        """Perform the filtered search."""
-        if not value.strip():
-            return queryset
-        qs_filter = Q(name__icontains=value) | Q(description__icontains=value)
-        return queryset.filter(qs_filter)
-
-
-class PrefixListRuleFilterSet(NetBoxModelFilterSet):
-    class Meta:
-        model = PrefixListRule
-        # fields = ['index', 'action', 'prefix_custom', 'ge', 'le', 'prefix_list', 'prefix_list_id']
-        fields = (
-            "id",
-            "index",
-            "action",
-            "ge",
-            "le",
-            "prefix_list",
-            "prefix_list_id",
-        )
-
-    def search(self, queryset, _name, value):
-        """Perform the filtered search."""
-        if not value.strip():
-            return queryset
-        qs_filter = (
-            Q(index__icontains=value)
-            | Q(action__icontains=value)
-            # | Q(prefix_custom__icontains=value)
-            | Q(ge__icontains=value)
-            | Q(le__icontains=value)
-            | Q(prefix_list__icontains=value)
-            | Q(prefix_list_id__icontains=value)
-        )
         return queryset.filter(qs_filter)
 
 
@@ -490,6 +60,100 @@ class PeerASNFilterSet(NetBoxModelFilterSet):
         return queryset.filter(
             Q(asn__asn__icontains=value) | Q(asn__description__icontains=value) | Q(irr_as_set__icontains=value)
         )
+
+
+# =============================================================================
+# IRRSource FilterSet
+# =============================================================================
+
+
+class IRRSourceFilterSet(NetBoxModelFilterSet):
+    class Meta:
+        model = IRRSource
+        fields = (
+            "id",
+            "name",
+            "slug",
+            "url",
+            "enabled",
+        )
+
+    def search(self, queryset, _name, value):
+        if not value.strip():
+            return queryset
+        qs_filter = (
+            Q(name__icontains=value)
+            | Q(slug__icontains=value)
+            | Q(description__icontains=value)
+            | Q(url__icontains=value)
+        )
+        return queryset.filter(qs_filter)
+
+
+# =============================================================================
+# IRRPrefixListConfig FilterSet
+# =============================================================================
+
+
+class IRRPrefixListConfigFilterSet(NetBoxModelFilterSet):
+    prefix_list_id = django_filters.ModelMultipleChoiceFilter(
+        queryset=PrefixList.objects.all(),
+        label="Prefix List (ID)",
+    )
+    irr_source_id = django_filters.ModelMultipleChoiceFilter(
+        queryset=IRRSource.objects.all(),
+        label="IRR Source (ID)",
+    )
+    source_as_set = django_filters.CharFilter(lookup_expr="icontains")
+
+    class Meta:
+        model = IRRPrefixListConfig
+        fields = ("id", "prefix_list_id", "irr_source_id", "source_as_set", "sync_interval")
+
+    def search(self, queryset, _name, value):
+        if not value.strip():
+            return queryset
+        qs_filter = (
+            Q(prefix_list__name__icontains=value)
+            | Q(source_as_set__icontains=value)
+            | Q(irr_source__name__icontains=value)
+        )
+        return queryset.filter(qs_filter)
+
+
+# =============================================================================
+# PeeringSession FilterSet
+# =============================================================================
+
+
+class PeeringSessionFilterSet(NetBoxModelFilterSet):
+    bgp_peer_id = django_filters.ModelMultipleChoiceFilter(
+        queryset=BGPPeer.objects.all(),
+        label="BGP Peer (ID)",
+    )
+    relationship_id = django_filters.ModelMultipleChoiceFilter(
+        queryset=Relationship.objects.all(),
+        label="Relationship (ID)",
+    )
+    peering_network_id = django_filters.ModelMultipleChoiceFilter(
+        queryset=PeeringNetwork.objects.all(),
+        label="Peering Network (ID)",
+    )
+
+    class Meta:
+        model = PeeringSession
+        fields = ("id", "bgp_peer_id", "relationship_id", "peering_network_id", "service_reference")
+
+    def search(self, queryset, _name, value):
+        if not value.strip():
+            return queryset
+        qs_filter = (
+            Q(bgp_peer__name__icontains=value)
+            | Q(relationship__name__icontains=value)
+            | Q(peering_network__name__icontains=value)
+            | Q(service_reference__icontains=value)
+        )
+        return queryset.filter(qs_filter)
 
 
 # =============================================================================

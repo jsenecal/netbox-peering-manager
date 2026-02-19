@@ -5,18 +5,12 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any
 
 from dcim.models import Device, Platform, Site
-from django.db.models import Prefetch
 
-from netbox_peering_manager.models import (
-    BFD,
-    BGPPeerGroup,
-    BGPSession,
-    PeeringNetwork,
-    RoutingPolicy,
-)
+from netbox_peering_manager.models import PeeringNetwork, PeeringSession
 
 if TYPE_CHECKING:
     from django.db.models import QuerySet
+    from netbox_routing.models import BFDProfile, BGPPeer, BGPPeerTemplate
 
 
 class ConfigRenderer:
@@ -31,94 +25,84 @@ class ConfigRenderer:
     def build_context(
         self,
         device: Device | None = None,
-        sessions: list[BGPSession] | None = None,
+        sessions: list[PeeringSession] | None = None,
     ) -> dict[str, Any]:
         """
         Build template context for BGP configuration rendering.
 
         Args:
             device: Device to get all sessions for (if sessions not provided).
-            sessions: Specific BGPSession instances to include.
+            sessions: Specific PeeringSession instances to include.
 
         Returns:
-            Dict with keys: device, sessions, peer_groups, routing_policies,
+            Dict with keys: device, sessions, peer_groups, route_maps,
             prefix_lists, communities.
 
         Note:
             If sessions is provided, those sessions are used.
-            If only device is provided, all sessions for that device are fetched.
+            If only device is provided, all PeeringSessions for BGPPeers
+            on that device (via BGPRouter->BGPScope->BGPPeer) are fetched.
             If neither is provided, returns empty context.
         """
-        # Determine which sessions to use
         if sessions is not None:
             session_queryset = self._optimize_session_queryset(
-                BGPSession.objects.filter(pk__in=[s.pk for s in sessions])
+                PeeringSession.objects.filter(pk__in=[s.pk for s in sessions])
             )
         elif device is not None:
-            session_queryset = self._optimize_session_queryset(BGPSession.objects.filter(device=device))
-        else:
-            session_queryset = BGPSession.objects.none()
+            # Find PeeringSessions via BGPRouter -> BGPScope -> BGPPeer chain
+            from netbox_routing.models import BGPRouter
 
-        # Fetch optimized sessions
+            router_ids = BGPRouter.objects.filter(
+                assigned_object_type__model="device",
+                assigned_object_id=device.pk,
+            ).values_list("pk", flat=True)
+
+            session_queryset = self._optimize_session_queryset(
+                PeeringSession.objects.filter(bgp_peer__scope__router__pk__in=router_ids)
+            )
+        else:
+            session_queryset = PeeringSession.objects.none()
+
         sessions_list = list(session_queryset)
 
-        # Build context
+        # Prefetch PeerASN data for all remote ASNs to avoid N+1 queries
+        peer_asn_map = self._build_peer_asn_map(sessions_list)
+
         context = {
             "device": self._serialize_device(device),
-            "sessions": [self._serialize_session(s) for s in sessions_list],
+            "sessions": [self._serialize_session(s, peer_asn_map) for s in sessions_list],
             "peer_groups": self._extract_peer_groups(sessions_list),
-            "routing_policies": self._extract_routing_policies(sessions_list),
-            "prefix_lists": [],  # Placeholder for future
-            "communities": [],  # Placeholder for future
+            "route_maps": self._extract_route_maps(sessions_list),
+            "prefix_lists": [],
+            "communities": [],
         }
 
         return context
 
-    def _optimize_session_queryset(self, queryset: QuerySet[BGPSession]) -> QuerySet[BGPSession]:
-        """
-        Apply select_related and prefetch_related for efficient session loading.
-
-        Args:
-            queryset: Base BGPSession queryset.
-
-        Returns:
-            Optimized queryset with related objects prefetched.
-        """
+    def _optimize_session_queryset(self, queryset: QuerySet[PeeringSession]) -> QuerySet[PeeringSession]:
+        """Apply select_related and prefetch_related for efficient session loading."""
         return queryset.select_related(
-            "device",
-            "device__platform",
-            "device__site",
-            "local_as",
-            "remote_as",
-            "remote_as__asn",  # PeerASN -> ASN
-            "local_address",
-            "remote_address",
-            "peer_group",
+            "bgp_peer",
+            "bgp_peer__peer",  # remote IP
+            "bgp_peer__source",  # local IP
+            "bgp_peer__local_as",
+            "bgp_peer__remote_as",
+            "bgp_peer__peer_group",
+            "bgp_peer__bfd",
+            "bgp_peer__scope",
+            "bgp_peer__scope__router",
             "relationship",
-            "bfd",
             "peering_network",
             "peering_network__fabric",
         ).prefetch_related(
-            Prefetch(
-                "import_policies",
-                queryset=RoutingPolicy.objects.order_by("-weight", "name"),
-            ),
-            Prefetch(
-                "export_policies",
-                queryset=RoutingPolicy.objects.order_by("-weight", "name"),
-            ),
+            "bgp_peer__address_families",
+            "bgp_peer__address_families__routemap_in",
+            "bgp_peer__address_families__routemap_out",
+            "bgp_peer__address_families__prefixlist_in",
+            "bgp_peer__address_families__prefixlist_out",
         )
 
     def _serialize_device(self, device: Device | None) -> dict[str, Any] | None:
-        """
-        Serialize device to context dict.
-
-        Args:
-            device: Device instance or None.
-
-        Returns:
-            Serialized device dict or None.
-        """
         if device is None:
             return None
 
@@ -130,166 +114,125 @@ class ConfigRenderer:
         }
 
     def _serialize_platform(self, platform: Platform) -> dict[str, Any]:
-        """
-        Serialize platform to context dict.
-
-        Args:
-            platform: Platform instance.
-
-        Returns:
-            Serialized platform dict.
-        """
         return {
             "name": platform.name,
             "slug": platform.slug,
         }
 
     def _serialize_site(self, site: Site) -> dict[str, Any]:
-        """
-        Serialize site to context dict.
-
-        Args:
-            site: Site instance.
-
-        Returns:
-            Serialized site dict.
-        """
         return {
             "name": site.name,
             "slug": site.slug,
         }
 
-    def _serialize_session(self, session: BGPSession) -> dict[str, Any]:
-        """
-        Serialize BGPSession to context dict.
+    def _serialize_session(self, session: PeeringSession, peer_asn_map: dict[int, Any]) -> dict[str, Any]:
+        """Serialize PeeringSession + its underlying BGPPeer to context dict."""
+        peer = session.bgp_peer
 
-        Args:
-            session: BGPSession instance.
+        # Look up PeerASN from prefetched map
+        peer_asn_info = self._get_peer_asn_info(peer, peer_asn_map)
 
-        Returns:
-            Serialized session dict with all related data.
-        """
-        # Extract PeerASN fields
-        peer_asn = session.remote_as
-        peer_asn_number = peer_asn.asn.asn if peer_asn and peer_asn.asn else None
-        peer_name = peer_asn.name if peer_asn else None
-        irr_as_set = peer_asn.irr_as_set if peer_asn else None
-        ipv4_max_prefixes = peer_asn.ipv4_max_prefixes if peer_asn else None
-        ipv6_max_prefixes = peer_asn.ipv6_max_prefixes if peer_asn else None
+        # Get address family config
+        address_families = self._serialize_address_families(peer)
 
         return {
             "id": session.pk,
-            "name": session.name,
-            "description": session.description,
-            "status": session.status,
-            "enabled": session.enabled,
-            "local_asn": session.local_as.asn if session.local_as else None,
-            "peer_asn": peer_asn_number,
-            "peer_name": peer_name,
-            "irr_as_set": irr_as_set,
-            "ipv4_max_prefixes": ipv4_max_prefixes,
-            "ipv6_max_prefixes": ipv6_max_prefixes,
-            "local_ip": str(session.local_address.address.ip) if session.local_address else None,
-            "remote_ip": str(session.remote_address.address.ip) if session.remote_address else None,
+            "name": peer.name,
+            "description": getattr(peer, "description", ""),
+            "status": peer.status,
+            "enabled": peer.enabled,
+            "local_asn": peer.local_as.asn if peer.local_as else None,
+            "peer_asn": peer.remote_as.asn if peer.remote_as else None,
+            "peer_name": peer_asn_info.get("name"),
+            "irr_as_set": peer_asn_info.get("irr_as_set"),
+            "ipv4_max_prefixes": peer_asn_info.get("ipv4_max_prefixes"),
+            "ipv6_max_prefixes": peer_asn_info.get("ipv6_max_prefixes"),
+            "local_ip": str(peer.source.address.ip) if peer.source else None,
+            "remote_ip": str(peer.peer.address.ip) if peer.peer else None,
             "relationship": session.relationship.name if session.relationship else None,
-            "password": session.password,
-            "multihop_ttl": session.multihop_ttl,
-            "bfd_profile": self._serialize_bfd(session.bfd) if session.bfd else None,
-            "peer_group": self._serialize_peer_group(session.peer_group) if session.peer_group else None,
+            "service_reference": session.service_reference,
+            "password": peer.password or "",
+            "ttl": peer.ttl,
+            "bfd_profile": self._serialize_bfd(peer.bfd) if peer.bfd else None,
+            "peer_group": self._serialize_peer_group(peer.peer_group) if peer.peer_group else None,
             "peering_network": self._serialize_peering_network(session.peering_network)
             if session.peering_network
             else None,
-            "import_policies": [self._serialize_policy(p) for p in session.import_policies.all()],
-            "export_policies": [self._serialize_policy(p) for p in session.export_policies.all()],
-            "afi_safis": self._derive_afi_safis(session),
+            "address_families": address_families,
+            "afi_safis": self._derive_afi_safis(peer),
         }
 
-    def _serialize_bfd(self, bfd: BFD) -> dict[str, Any]:
-        """
-        Serialize BFD profile to context dict.
+    def _build_peer_asn_map(self, sessions: list[PeeringSession]) -> dict[int, Any]:
+        """Prefetch all PeerASN records for sessions' remote ASNs in a single query."""
+        from netbox_peering_manager.models import PeerASN
 
-        Args:
-            bfd: BFD instance.
+        asn_pks = {s.bgp_peer.remote_as_id for s in sessions if s.bgp_peer.remote_as_id}
+        if not asn_pks:
+            return {}
 
-        Returns:
-            Serialized BFD dict.
-        """
+        return {pa.asn_id: pa for pa in PeerASN.objects.select_related("asn").filter(asn_id__in=asn_pks)}
+
+    def _get_peer_asn_info(self, peer: BGPPeer, peer_asn_map: dict[int, Any]) -> dict[str, Any]:
+        """Look up PeerASN metadata for a BGPPeer's remote_as."""
+        if not peer.remote_as:
+            return {}
+
+        peer_asn = peer_asn_map.get(peer.remote_as_id)
+        if peer_asn:
+            return {
+                "name": peer_asn.name,
+                "irr_as_set": peer_asn.irr_as_set,
+                "ipv4_max_prefixes": peer_asn.ipv4_max_prefixes,
+                "ipv6_max_prefixes": peer_asn.ipv6_max_prefixes,
+            }
+        return {"name": peer.remote_as.description or f"AS{peer.remote_as.asn}"}
+
+    def _serialize_bfd(self, bfd: BFDProfile) -> dict[str, Any]:
         return {
             "name": bfd.name,
-            "minimum_interval": bfd.minimum_transmit_interval,
-            "multiplier": bfd.detect_multiplier,
+            "minimum_interval": bfd.min_tx_int,
+            "minimum_rx_interval": bfd.min_rx_int,
+            "multiplier": bfd.multiplier,
+            "hold": bfd.hold,
         }
 
-    def _serialize_peer_group(self, peer_group: BGPPeerGroup) -> dict[str, Any]:
-        """
-        Serialize BGPPeerGroup to context dict.
-
-        Args:
-            peer_group: BGPPeerGroup instance.
-
-        Returns:
-            Serialized peer group dict.
-        """
+    def _serialize_peer_group(self, peer_group: BGPPeerTemplate) -> dict[str, Any]:
         return {
             "id": peer_group.pk,
             "name": peer_group.name,
-            "slug": peer_group.name.lower().replace(" ", "-"),  # Generate slug from name
-            "description": peer_group.description,
         }
 
     def _serialize_peering_network(self, peering_network: PeeringNetwork) -> dict[str, Any]:
-        """
-        Serialize PeeringNetwork to context dict.
-
-        Args:
-            peering_network: PeeringNetwork instance.
-
-        Returns:
-            Serialized peering network dict.
-        """
         return {
             "id": peering_network.pk,
             "name": peering_network.name,
             "fabric": peering_network.fabric.name if peering_network.fabric else None,
         }
 
-    def _serialize_policy(self, policy: RoutingPolicy) -> dict[str, Any]:
-        """
-        Serialize RoutingPolicy to context dict.
+    def _serialize_address_families(self, peer: BGPPeer) -> list[dict[str, Any]]:
+        """Serialize BGPPeerAddressFamily entries for a peer."""
+        result = []
+        for af in peer.address_families.all():
+            entry: dict[str, Any] = {
+                "afi": af.address_family.address_family if af.address_family else None,
+            }
+            if af.routemap_in:
+                entry["route_map_in"] = {"name": af.routemap_in.name}
+            if af.routemap_out:
+                entry["route_map_out"] = {"name": af.routemap_out.name}
+            if af.prefixlist_in:
+                entry["prefix_list_in"] = {"name": af.prefixlist_in.name}
+            if af.prefixlist_out:
+                entry["prefix_list_out"] = {"name": af.prefixlist_out.name}
+            result.append(entry)
+        return result
 
-        Args:
-            policy: RoutingPolicy instance.
-
-        Returns:
-            Serialized policy dict.
-        """
-        return {
-            "id": policy.pk,
-            "name": policy.name,
-            "slug": policy.name.lower().replace(" ", "-"),  # Generate slug from name
-            "description": policy.description,
-            "weight": policy.weight,
-            "address_family": policy.address_family,
-        }
-
-    def _derive_afi_safis(self, session: BGPSession) -> list[str]:
-        """
-        Derive AFI-SAFI list from session IP address families.
-
-        Since afi_safi is not yet implemented on BGPSession model,
-        derive from the local/remote address families.
-
-        Args:
-            session: BGPSession instance.
-
-        Returns:
-            List of AFI-SAFI strings (e.g., ["ipv4-unicast"]).
-        """
+    def _derive_afi_safis(self, peer: BGPPeer) -> list[str]:
+        """Derive AFI-SAFI list from peer IP address families."""
         afi_safis = []
 
-        # Check local address family
-        if session.local_address:
-            ip_version = session.local_address.address.version
+        if peer.source:
+            ip_version = peer.source.address.version
             if ip_version == 4:
                 afi_safis.append("ipv4-unicast")
             elif ip_version == 6:
@@ -297,48 +240,29 @@ class ConfigRenderer:
 
         return afi_safis
 
-    def _extract_peer_groups(self, sessions: list[BGPSession]) -> list[dict[str, Any]]:
-        """
-        Extract deduplicated peer groups from sessions.
-
-        Args:
-            sessions: List of BGPSession instances.
-
-        Returns:
-            List of serialized peer group dicts, deduplicated by ID.
-        """
+    def _extract_peer_groups(self, sessions: list[PeeringSession]) -> list[dict[str, Any]]:
+        """Extract deduplicated peer groups from sessions."""
         seen_ids: set[int] = set()
         peer_groups: list[dict[str, Any]] = []
 
         for session in sessions:
-            if session.peer_group and session.peer_group.pk not in seen_ids:
-                seen_ids.add(session.peer_group.pk)
-                peer_groups.append(self._serialize_peer_group(session.peer_group))
+            pg = session.bgp_peer.peer_group
+            if pg and pg.pk not in seen_ids:
+                seen_ids.add(pg.pk)
+                peer_groups.append(self._serialize_peer_group(pg))
 
         return peer_groups
 
-    def _extract_routing_policies(self, sessions: list[BGPSession]) -> list[dict[str, Any]]:
-        """
-        Extract deduplicated routing policies from sessions.
-
-        Args:
-            sessions: List of BGPSession instances.
-
-        Returns:
-            List of serialized policy dicts, deduplicated by ID.
-        """
+    def _extract_route_maps(self, sessions: list[PeeringSession]) -> list[dict[str, Any]]:
+        """Extract deduplicated route maps from sessions' address families."""
         seen_ids: set[int] = set()
-        policies: list[dict[str, Any]] = []
+        route_maps: list[dict[str, Any]] = []
 
         for session in sessions:
-            for policy in session.import_policies.all():
-                if policy.pk not in seen_ids:
-                    seen_ids.add(policy.pk)
-                    policies.append(self._serialize_policy(policy))
+            for af in session.bgp_peer.address_families.all():
+                for rm in [af.routemap_in, af.routemap_out]:
+                    if rm and rm.pk not in seen_ids:
+                        seen_ids.add(rm.pk)
+                        route_maps.append({"id": rm.pk, "name": rm.name})
 
-            for policy in session.export_policies.all():
-                if policy.pk not in seen_ids:
-                    seen_ids.add(policy.pk)
-                    policies.append(self._serialize_policy(policy))
-
-        return policies
+        return route_maps

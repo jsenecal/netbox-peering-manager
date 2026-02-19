@@ -1,17 +1,9 @@
 import django_tables2 as tables
-from django.utils.safestring import mark_safe
 from netbox.tables import NetBoxTable
 from netbox.tables.columns import BooleanColumn, ChoiceFieldColumn, ColorColumn, TagColumn
 
 from .models import (
-    BFD,
-    ASPathList,
-    ASPathListRule,
-    BGPPeerGroup,
-    BGPSession,
-    Community,
-    CommunityList,
-    CommunityListRule,
+    IRRPrefixListConfig,
     IRRSource,
     PeerASN,
     PeeringConnection,
@@ -19,30 +11,9 @@ from .models import (
     PeeringFabric,
     PeeringFabricType,
     PeeringNetwork,
-    PrefixList,
-    PrefixListRule,
+    PeeringSession,
     Relationship,
-    RoutingPolicy,
-    RoutingPolicyRule,
 )
-
-AVAILABLE_LABEL = mark_safe('<span class="label label-success">Available</span>')
-COL_TENANT = """
- {% if record.tenant %}
-     <a href="{{ record.tenant.get_absolute_url }}" title="{{ record.tenant.description }}">{{ record.tenant }}</a>
- {% else %}
-     &mdash;
- {% endif %}
- """
-
-POLICIES = """
-{% for rp in value.all %}
-    <a href="{{ rp.get_absolute_url }}">{{ rp }}</a>{% if not forloop.last %}<br />{% endif %}
-{% empty %}
-    &mdash;
-{% endfor %}
-"""
-
 
 # =============================================================================
 # Relationship Table
@@ -91,230 +62,55 @@ class IRRSourceTable(NetBoxTable):
 
 
 # =============================================================================
-# BFD Table
+# IRRPrefixListConfig Table
 # =============================================================================
 
 
-class BFDTable(NetBoxTable):
-    name = tables.LinkColumn()
-    tags = TagColumn(url_name="plugins:netbox_peering_manager:bfd_list")
+class IRRPrefixListConfigTable(NetBoxTable):
+    prefix_list = tables.Column(linkify=True, verbose_name="Prefix List")
+    irr_source = tables.Column(linkify=True, verbose_name="IRR Source")
+    source_as_set = tables.Column(verbose_name="AS-SET")
+    sync_interval = tables.Column(verbose_name="Sync Interval (min)")
+    tags = TagColumn(url_name="plugins:netbox_peering_manager:irrprefixlistconfig_list")
 
     class Meta(NetBoxTable.Meta):
-        model = BFD
+        model = IRRPrefixListConfig
         fields = (
             "pk",
-            "name",
-            "description",
-            "minimum_transmit_interval",
-            "minimum_receive_interval",
-            "detect_multiplier",
-            "hold_time",
+            "prefix_list",
+            "irr_source",
+            "source_as_set",
+            "sync_interval",
             "tags",
             "actions",
         )
-        default_columns = (
-            "pk",
-            "name",
-            "minimum_transmit_interval",
-            "minimum_receive_interval",
-            "detect_multiplier",
-        )
+        default_columns = ("pk", "prefix_list", "irr_source", "source_as_set", "sync_interval")
 
 
 # =============================================================================
-# AS Path List Tables
+# PeeringSession Table
 # =============================================================================
 
 
-class ASPathListTable(NetBoxTable):
-    name = tables.LinkColumn()
+class PeeringSessionTable(NetBoxTable):
+    bgp_peer = tables.Column(linkify=True, verbose_name="BGP Peer")
+    relationship = tables.Column(linkify=True)
+    peering_network = tables.Column(linkify=True, verbose_name="Peering Network")
+    service_reference = tables.Column(verbose_name="Service Ref")
+    tags = TagColumn(url_name="plugins:netbox_peering_manager:peeringsession_list")
 
     class Meta(NetBoxTable.Meta):
-        model = ASPathList
-        fields = ("pk", "name", "description", "actions")
-
-
-class ASPathListRuleTable(NetBoxTable):
-    aspath_list = tables.Column(linkify=True)
-    index = tables.Column(linkify=True)
-    action = ChoiceFieldColumn()
-
-    class Meta(NetBoxTable.Meta):
-        model = ASPathListRule
+        model = PeeringSession
         fields = (
             "pk",
-            "aspath_list",
-            "index",
-            "action",
-            "pattern",
-        )
-
-
-class CommunityTable(NetBoxTable):
-    value = tables.LinkColumn()
-    status = ChoiceFieldColumn(default=AVAILABLE_LABEL)
-    tenant = tables.TemplateColumn(template_code=COL_TENANT)
-    tags = TagColumn(url_name="plugins:netbox_peering_manager:community_list")
-
-    class Meta(NetBoxTable.Meta):
-        model = Community
-        fields = ("pk", "value", "description", "status", "tenant", "tags", "actions")
-        default_columns = ("pk", "value", "description", "status", "tenant")
-
-
-class CommunityListTable(NetBoxTable):
-    name = tables.LinkColumn()
-
-    class Meta(NetBoxTable.Meta):
-        model = CommunityList
-        fields = ("pk", "name", "description", "actions")
-
-
-class CommunityListRuleTable(NetBoxTable):
-    community_list = tables.Column(linkify=True)
-    action = ChoiceFieldColumn()
-    community = tables.Column(
-        verbose_name="Community",
-        linkify=True,
-    )
-
-    class Meta(NetBoxTable.Meta):
-        model = CommunityListRule
-        fields = (
-            "pk",
-            "community_list",
-            "action",
-            "community",
-        )
-
-
-class BGPSessionTable(NetBoxTable):
-    name = tables.LinkColumn()
-    device = tables.LinkColumn()
-    virtualmachine = tables.LinkColumn()
-    local_address = tables.LinkColumn()
-    local_as = tables.LinkColumn()
-    remote_address = tables.LinkColumn()
-    remote_as = tables.LinkColumn()
-    site = tables.LinkColumn()
-    peer_group = tables.LinkColumn()
-    relationship = tables.LinkColumn()
-    bfd = tables.LinkColumn()
-    status = ChoiceFieldColumn(default=AVAILABLE_LABEL)
-    enabled = BooleanColumn()
-    has_password = BooleanColumn(
-        accessor="password",
-        verbose_name="Password",
-    )
-    tenant = tables.TemplateColumn(template_code=COL_TENANT)
-
-    class Meta(NetBoxTable.Meta):
-        model = BGPSession
-        fields = (
-            "pk",
-            "name",
-            "device",
-            "virtualmachine",
-            "local_address",
-            "local_as",
-            "remote_address",
-            "remote_as",
-            "description",
-            "peer_group",
+            "bgp_peer",
             "relationship",
-            "bfd",
-            "site",
-            "status",
-            "enabled",
-            "has_password",
-            "tenant",
-            "multihop_ttl",
+            "peering_network",
             "service_reference",
+            "tags",
             "actions",
         )
-        default_columns = (
-            "pk",
-            "name",
-            "device",
-            "virtualmachine",
-            "local_address",
-            "local_as",
-            "remote_address",
-            "remote_as",
-            "description",
-            "relationship",
-            "site",
-            "status",
-            "enabled",
-            "tenant",
-        )
-
-
-class RoutingPolicyTable(NetBoxTable):
-    name = tables.LinkColumn()
-    weight = tables.Column()
-    address_family = tables.Column()
-
-    class Meta(NetBoxTable.Meta):
-        model = RoutingPolicy
-        fields = ("pk", "name", "description", "weight", "address_family", "actions")
-
-
-class BGPPeerGroupTable(NetBoxTable):
-    name = tables.LinkColumn()
-    import_policies = tables.TemplateColumn(template_code=POLICIES, orderable=False)
-    export_policies = tables.TemplateColumn(template_code=POLICIES, orderable=False)
-    tags = TagColumn(url_name="plugins:netbox_peering_manager:bgppeergroup_list")
-
-    class Meta(NetBoxTable.Meta):
-        model = BGPPeerGroup
-        fields = ("pk", "name", "description", "tags", "import_policies", "export_policies", "actions")
-        default_columns = ("pk", "name", "description")
-
-
-class RoutingPolicyRuleTable(NetBoxTable):
-    routing_policy = tables.Column(linkify=True)
-    index = tables.Column(linkify=True)
-    action = ChoiceFieldColumn()
-
-    class Meta(NetBoxTable.Meta):
-        model = RoutingPolicyRule
-        fields = (
-            "pk",
-            "routing_policy",
-            "index",
-            "match_statements",
-            "set_statements",
-            "action",
-            "description",
-            "continue_entry",
-        )
-
-
-class PrefixListTable(NetBoxTable):
-    name = tables.LinkColumn()
-    family = ChoiceFieldColumn()
-    source_as_set = tables.Column(verbose_name="AS-SET")
-    irr_source = tables.Column(linkify=True, verbose_name="IRR Source")
-
-    class Meta(NetBoxTable.Meta):
-        model = PrefixList
-        fields = ("pk", "name", "description", "family", "source_as_set", "irr_source", "actions")
-        default_columns = ("pk", "name", "description", "family", "source_as_set")
-
-
-class PrefixListRuleTable(NetBoxTable):
-    prefix_list = tables.Column(linkify=True)
-    index = tables.Column(linkify=True)
-    action = ChoiceFieldColumn()
-    network = tables.Column(
-        verbose_name="Prefix",
-        linkify=True,
-    )
-
-    class Meta(NetBoxTable.Meta):
-        model = PrefixListRule
-        fields = ("pk", "prefix_list", "index", "action", "network", "ge", "le")
+        default_columns = ("pk", "bgp_peer", "relationship", "peering_network", "service_reference")
 
 
 # =============================================================================
@@ -328,11 +124,6 @@ class PeerASNTable(NetBoxTable):
     ipv4_max_prefixes = tables.Column(verbose_name="IPv4 Max Prefixes")
     ipv6_max_prefixes = tables.Column(verbose_name="IPv6 Max Prefixes")
     peeringdb_id = tables.Column(verbose_name="PeeringDB ID")
-    session_count = tables.Column(
-        verbose_name="Sessions",
-        accessor="sessions__count",
-        orderable=False,
-    )
     tags = TagColumn()
 
     class Meta(NetBoxTable.Meta):
@@ -346,7 +137,6 @@ class PeerASNTable(NetBoxTable):
             "ipv4_max_prefixes",
             "ipv6_max_prefixes",
             "peeringdb_id",
-            "session_count",
             "tags",
         )
         default_columns = (
@@ -355,7 +145,6 @@ class PeerASNTable(NetBoxTable):
             "irr_as_set",
             "ipv4_max_prefixes",
             "ipv6_max_prefixes",
-            "session_count",
         )
 
 

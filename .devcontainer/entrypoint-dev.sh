@@ -3,6 +3,7 @@
 USER=ubuntu
 
 sudo chown -R ${USER}:${USER} /etc/netbox/scripts
+sudo chown -R ${USER}:${USER} /home/${USER}/.claude
 
 # Reconfigure User id if set by user
 if [ ! -z "${USER_UID}" ] && [ "${USER_UID}" != "`id -u ${USER}`" ] ; then

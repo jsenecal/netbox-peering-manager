@@ -1,13 +1,13 @@
 {# Nokia SR OS (MD-CLI) BGP Configuration Template #}
 {#
-   Context Variables:
-   - device: Device object with name, platform, site
-   - sessions: List of BGP session objects
-   - peer_groups: List of peer group objects
-   - routing_policies: List of routing policy objects
+   Context Variables (from ConfigRenderer):
+   - device: Device dict with name, platform, site
+   - sessions: List of session dicts (see README for full schema)
+   - peer_groups: List of peer group dicts (id, name)
+   - route_maps: List of route map dicts (id, name)
 
    Note: Nokia SR OS supports policy lists for import/export.
-   This template includes all policies sorted by weight.
+   This template includes all route maps from address_families config.
 #}
 
 # BGP Configuration for {{ device.name }}
@@ -25,9 +25,6 @@ configure {
         bgp {
             group "{{ pg.name }}" {
                 admin-state enable
-{% if pg.description %}
-                description "{{ pg.description }}"
-{% endif %}
             }
         }
 {% endfor %}
@@ -54,27 +51,37 @@ configure {
 {% if session.password %}
                 authentication-key "{{ session.password }}"
 {% endif %}
-{% if session.multihop_ttl %}
-                multihop {{ session.multihop_ttl }}
+{% if session.ttl %}
+                multihop {{ session.ttl }}
 {% endif %}
 {% if session.bfd_profile %}
                 bfd-liveness {
                     admin-state enable
                     transmit-interval {{ session.bfd_profile.minimum_interval }}
-                    receive-interval {{ session.bfd_profile.minimum_interval }}
+                    receive-interval {{ session.bfd_profile.minimum_rx_interval }}
                     multiplier {{ session.bfd_profile.multiplier }}
                 }
 {% endif %}
-{# Configure address families with import/export policies #}
+{# Configure address families #}
 {% for afi_safi in session.afi_safis | default(['ipv4-unicast']) %}
 {% if afi_safi == 'ipv4-unicast' %}
                 family {
                     ipv4 true
                 }
+{% if session.ipv4_max_prefixes %}
+                prefix-limit ipv4 {
+                    maximum {{ session.ipv4_max_prefixes }}
+                }
+{% endif %}
 {% elif afi_safi == 'ipv6-unicast' %}
                 family {
                     ipv6 true
                 }
+{% if session.ipv6_max_prefixes %}
+                prefix-limit ipv6 {
+                    maximum {{ session.ipv6_max_prefixes }}
+                }
+{% endif %}
 {% elif afi_safi == 'l3vpn-ipv4-unicast' %}
                 family {
                     vpn-ipv4 true
@@ -89,16 +96,21 @@ configure {
                 }
 {% endif %}
 {% endfor %}
-{# Apply import policies sorted by weight (highest weight = highest priority) #}
-{% if session.import_policies %}
+{# Apply route maps from address_families config #}
+{% set import_policies = [] %}
+{% set export_policies = [] %}
+{% for af in session.address_families %}
+{% if af.route_map_in %}{% if import_policies.append(af.route_map_in.name) %}{% endif %}{% endif %}
+{% if af.route_map_out %}{% if export_policies.append(af.route_map_out.name) %}{% endif %}{% endif %}
+{% endfor %}
+{% if import_policies %}
                 import {
-                    policy [{% for policy in session.import_policies | sort(attribute='weight', reverse=True) %}"{{ policy.name }}"{% if not loop.last %} {% endif %}{% endfor %}]
+                    policy [{% for p in import_policies %}"{{ p }}"{% if not loop.last %} {% endif %}{% endfor %}]
                 }
 {% endif %}
-{# Apply export policies sorted by weight (highest weight = highest priority) #}
-{% if session.export_policies %}
+{% if export_policies %}
                 export {
-                    policy [{% for policy in session.export_policies | sort(attribute='weight', reverse=True) %}"{{ policy.name }}"{% if not loop.last %} {% endif %}{% endfor %}]
+                    policy [{% for p in export_policies %}"{{ p }}"{% if not loop.last %} {% endif %}{% endfor %}]
                 }
 {% endif %}
             }
@@ -108,11 +120,10 @@ configure {
     }
 
 {# Policy configuration #}
-{% if routing_policies %}
+{% if route_maps %}
     policy-options {
-{% for policy in routing_policies %}
-        policy-statement "{{ policy.name }}" {
-            description "{{ policy.description | default('No description') }} (Weight: {{ policy.weight | default(1000) }})"
+{% for rm in route_maps %}
+        policy-statement "{{ rm.name }}" {
             entry 10 {
                 action {
                     action-type accept
