@@ -246,7 +246,7 @@ class IRRPrefixListConfigBulkEditForm(NetBoxModelBulkEditForm):
     sync_interval = forms.IntegerField(required=False, min_value=1)
 
     model = IRRPrefixListConfig
-    nullable_fields = ["irr_source", "source_as_set"]
+    nullable_fields = []
 
 
 class IRRPrefixListConfigImportForm(NetBoxModelImportForm):

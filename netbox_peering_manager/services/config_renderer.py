@@ -204,7 +204,7 @@ class ConfigRenderer:
         result = []
         for af in peer.address_families.all():
             entry: dict[str, Any] = {
-                "afi": str(af.address_family) if af.address_family else None,
+                "afi": af.address_family.address_family if af.address_family else None,
             }
             if af.routemap_in:
                 entry["route_map_in"] = {"name": af.routemap_in.name}

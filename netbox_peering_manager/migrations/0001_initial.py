@@ -244,7 +244,7 @@ class Migration(migrations.Migration):
                 ('last_updated', models.DateTimeField(auto_now=True, null=True)),
                 ('custom_field_data', models.JSONField(blank=True, default=dict, encoder=utilities.json.CustomFieldJSONEncoder)),
                 ('service_reference', models.CharField(blank=True, max_length=100)),
-                ('bgp_peer', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='peering_session', to='netbox_routing.bgppeer')),
+                ('bgp_peer', models.OneToOneField(on_delete=django.db.models.deletion.PROTECT, related_name='peering_session', to='netbox_routing.bgppeer')),
                 ('peering_network', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='peering_sessions', to='netbox_peering_manager.peeringnetwork')),
                 ('tags', taggit.managers.TaggableManager(through='extras.TaggedItem', to='extras.Tag')),
                 ('relationship', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='peering_sessions', to='netbox_peering_manager.relationship')),

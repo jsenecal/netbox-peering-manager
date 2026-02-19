@@ -116,29 +116,6 @@ class PeerASNSerializer(NetBoxModelSerializer):
         brief_fields = ["id", "url", "display", "asn", "affiliated"]
 
 
-class PeeringSessionSerializer(NetBoxModelSerializer):
-    url = HyperlinkedIdentityField(view_name="plugins-api:netbox_peering_manager-api:peeringsession-detail")
-    bgp_peer = BGPPeerSerializer(nested=True)
-    relationship = RelationshipSerializer(nested=True, required=False, allow_null=True)
-
-    class Meta:
-        model = PeeringSession
-        fields = (
-            "id",
-            "url",
-            "display",
-            "bgp_peer",
-            "relationship",
-            "peering_network",
-            "service_reference",
-            "tags",
-            "custom_fields",
-            "created",
-            "last_updated",
-        )
-        brief_fields = ("id", "url", "display", "bgp_peer", "relationship")
-
-
 # =============================================================================
 # Peering Fabric Serializers
 # =============================================================================
@@ -224,6 +201,30 @@ class PeeringNetworkSerializer(NetBoxModelSerializer):
             "comments",
         )
         brief_fields = ("id", "url", "display", "name", "fabric", "status")
+
+
+class PeeringSessionSerializer(NetBoxModelSerializer):
+    url = HyperlinkedIdentityField(view_name="plugins-api:netbox_peering_manager-api:peeringsession-detail")
+    bgp_peer = BGPPeerSerializer(nested=True)
+    relationship = RelationshipSerializer(nested=True, required=False, allow_null=True)
+    peering_network = PeeringNetworkSerializer(nested=True, required=False, allow_null=True)
+
+    class Meta:
+        model = PeeringSession
+        fields = (
+            "id",
+            "url",
+            "display",
+            "bgp_peer",
+            "relationship",
+            "peering_network",
+            "service_reference",
+            "tags",
+            "custom_fields",
+            "created",
+            "last_updated",
+        )
+        brief_fields = ("id", "url", "display", "bgp_peer", "relationship")
 
 
 class PeeringConnectionSerializer(NetBoxModelSerializer):

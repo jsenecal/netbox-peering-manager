@@ -107,6 +107,8 @@ class SyncAllPrefixListsJob(JobRunner):
             self.job.status = JobStatusChoices.STATUS_ERRORED
             return
 
+        # Filter matches is_irr_managed: irr_source is non-null (matched
+        # by specific object) and source_as_set is non-empty.
         configs = (
             IRRPrefixListConfig.objects.filter(
                 irr_source=irr_source,
