@@ -67,11 +67,11 @@ class IRRClient:
         if self.irr_source.cache_ttl:
             params["cache_ttl"] = self.irr_source.cache_ttl
 
-        # Filter by address family
+        # Filter by address family using bgpq4's protocol flag
         if family == "ipv4":
-            params["max_masklen"] = 32
+            params["protocol"] = 4
         elif family == "ipv6":
-            params["min_masklen"] = 33  # Only IPv6 prefixes
+            params["protocol"] = 6
 
         return params
 

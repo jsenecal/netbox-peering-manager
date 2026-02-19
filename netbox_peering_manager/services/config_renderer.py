@@ -65,9 +65,12 @@ class ConfigRenderer:
 
         sessions_list = list(session_queryset)
 
+        # Prefetch PeerASN data for all remote ASNs to avoid N+1 queries
+        peer_asn_map = self._build_peer_asn_map(sessions_list)
+
         context = {
             "device": self._serialize_device(device),
-            "sessions": [self._serialize_session(s) for s in sessions_list],
+            "sessions": [self._serialize_session(s, peer_asn_map) for s in sessions_list],
             "peer_groups": self._extract_peer_groups(sessions_list),
             "route_maps": self._extract_route_maps(sessions_list),
             "prefix_lists": [],
@@ -122,12 +125,12 @@ class ConfigRenderer:
             "slug": site.slug,
         }
 
-    def _serialize_session(self, session: PeeringSession) -> dict[str, Any]:
+    def _serialize_session(self, session: PeeringSession, peer_asn_map: dict[int, Any]) -> dict[str, Any]:
         """Serialize PeeringSession + its underlying BGPPeer to context dict."""
         peer = session.bgp_peer
 
-        # Try to find PeerASN via the remote ASN
-        peer_asn_info = self._get_peer_asn_info(peer)
+        # Look up PeerASN from prefetched map
+        peer_asn_info = self._get_peer_asn_info(peer, peer_asn_map)
 
         # Get address family config
         address_families = self._serialize_address_families(peer)
@@ -159,23 +162,30 @@ class ConfigRenderer:
             "afi_safis": self._derive_afi_safis(peer),
         }
 
-    def _get_peer_asn_info(self, peer: BGPPeer) -> dict[str, Any]:
+    def _build_peer_asn_map(self, sessions: list[PeeringSession]) -> dict[int, Any]:
+        """Prefetch all PeerASN records for sessions' remote ASNs in a single query."""
+        from netbox_peering_manager.models import PeerASN
+
+        asn_pks = {s.bgp_peer.remote_as_id for s in sessions if s.bgp_peer.remote_as_id}
+        if not asn_pks:
+            return {}
+
+        return {pa.asn_id: pa for pa in PeerASN.objects.select_related("asn").filter(asn_id__in=asn_pks)}
+
+    def _get_peer_asn_info(self, peer: BGPPeer, peer_asn_map: dict[int, Any]) -> dict[str, Any]:
         """Look up PeerASN metadata for a BGPPeer's remote_as."""
         if not peer.remote_as:
             return {}
 
-        try:
-            from netbox_peering_manager.models import PeerASN
-
-            peer_asn = PeerASN.objects.select_related("asn").get(asn=peer.remote_as)
+        peer_asn = peer_asn_map.get(peer.remote_as_id)
+        if peer_asn:
             return {
                 "name": peer_asn.name,
                 "irr_as_set": peer_asn.irr_as_set,
                 "ipv4_max_prefixes": peer_asn.ipv4_max_prefixes,
                 "ipv6_max_prefixes": peer_asn.ipv6_max_prefixes,
             }
-        except PeerASN.DoesNotExist:
-            return {"name": peer.remote_as.description or f"AS{peer.remote_as.asn}"}
+        return {"name": peer.remote_as.description or f"AS{peer.remote_as.asn}"}
 
     def _serialize_bfd(self, bfd: BFDProfile) -> dict[str, Any]:
         return {

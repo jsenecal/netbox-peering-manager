@@ -586,7 +586,8 @@ class PeeringNetworkImportForm(NetBoxModelImportForm):
     vlan = CSVModelChoiceField(
         queryset=VLAN.objects.all(),
         required=False,
-        to_field_name="vid",
+        to_field_name="pk",
+        help_text="VLAN ID (database PK). VIDs are not globally unique.",
     )
     status = CSVChoiceField(choices=PeeringStatusChoices, required=False)
 

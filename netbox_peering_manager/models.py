@@ -50,11 +50,13 @@ class IRRSource(NetBoxModel):
     @property
     def prefix_list_count(self):
         """Return the count of IRRPrefixListConfigs using this IRRSource."""
+        if "_prefix_list_count" in self.__dict__:
+            return self.__dict__["_prefix_list_count"]
         return self.irr_prefix_list_configs.count()
 
     @prefix_list_count.setter
     def prefix_list_count(self, value):
-        pass  # Allow queryset annotation to set this attribute
+        self.__dict__["_prefix_list_count"] = value
 
 
 class Relationship(NetBoxModel):
@@ -71,6 +73,8 @@ class Relationship(NetBoxModel):
 
     class Meta:
         ordering = ["name"]
+        verbose_name = "Relationship"
+        verbose_name_plural = "Relationships"
 
     def __str__(self):
         return self.name

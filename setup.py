@@ -35,7 +35,7 @@ setup(
     install_requires=[
         "httpx",
         "tenacity",
-        "netbox-routing @ git+https://github.com/DanSheps/netbox-routing.git@14318f1c",
+        "netbox-routing",
     ],
     packages=find_packages(),
     include_package_data=True,
