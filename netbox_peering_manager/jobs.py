@@ -17,6 +17,25 @@ logger = logging.getLogger(__name__)
 FAMILY_MAP = {4: "ipv4", 6: "ipv6"}
 
 
+def _build_entries(prefix_list, prefixes):
+    """Build PrefixListEntry objects linked to CustomPrefix instances."""
+    from django.contrib.contenttypes.models import ContentType
+    from netbox_routing.models import CustomPrefix, PrefixListEntry
+
+    ct = ContentType.objects.get_for_model(CustomPrefix)
+    custom_prefixes = CustomPrefix.objects.bulk_create([CustomPrefix(prefix=pfx) for pfx in prefixes])
+    return [
+        PrefixListEntry(
+            prefix_list=prefix_list,
+            sequence=idx + 1,
+            action="permit",
+            assigned_prefix_type=ct,
+            assigned_prefix_id=cp.pk,
+        )
+        for idx, cp in enumerate(custom_prefixes)
+    ]
+
+
 class SyncPrefixListJob(JobRunner):
     """Sync a single PrefixList from IRR via its IRRPrefixListConfig."""
 
@@ -54,17 +73,7 @@ class SyncPrefixListJob(JobRunner):
                 deleted_count = prefix_list.prefix_list_entries.count()
                 prefix_list.prefix_list_entries.all().delete()
 
-                entries = []
-                for idx, prefix in enumerate(prefixes):
-                    entries.append(
-                        PrefixListEntry(
-                            prefix_list=prefix_list,
-                            sequence=idx + 1,
-                            action="permit",
-                            prefix=prefix,
-                        )
-                    )
-
+                entries = _build_entries(prefix_list, prefixes)
                 PrefixListEntry.objects.bulk_create(entries)
 
             self.job.data.update(
@@ -142,17 +151,7 @@ class SyncAllPrefixListsJob(JobRunner):
                 with transaction.atomic():
                     prefix_list.prefix_list_entries.all().delete()
 
-                    entries = []
-                    for idx, prefix in enumerate(prefixes):
-                        entries.append(
-                            PrefixListEntry(
-                                prefix_list=prefix_list,
-                                sequence=idx + 1,
-                                action="permit",
-                                prefix=prefix,
-                            )
-                        )
-
+                    entries = _build_entries(prefix_list, prefixes)
                     PrefixListEntry.objects.bulk_create(entries)
 
                 self.job.data["synced"] += 1

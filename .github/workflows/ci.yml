@@ -27,15 +27,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        netbox-version: ['v4.5.0', 'v4.5.5', 'v4.5.8']
+        netbox-version: ['v4.5.5', 'v4.5.8']
         python-version: ['3.12', '3.13']
-        include:
-          - netbox-version: 'v4.5.0'
-            netbox-routing-ref: '14318f1c'
-          - netbox-version: 'v4.5.5'
-            netbox-routing-ref: 'e4d954ca'
-          - netbox-version: 'v4.5.8'
-            netbox-routing-ref: 'e4d954ca'
 
     services:
       postgres:
@@ -79,7 +72,7 @@ jobs:
           pip install -r /tmp/netbox/requirements.txt
 
       - name: Install netbox-routing dependency
-        run: pip install git+https://github.com/DanSheps/netbox-routing.git@${{ matrix.netbox-routing-ref }}
+        run: pip install git+https://github.com/DanSheps/netbox-routing.git@e4d954ca
 
       - name: Configure NetBox
         run: |

@@ -3,12 +3,26 @@
 from unittest.mock import MagicMock, patch
 
 from core.choices import JobStatusChoices
+from django.contrib.contenttypes.models import ContentType
 from django.test import TestCase
-from netbox_routing.models import PrefixList, PrefixListEntry
+from netbox_routing.models import CustomPrefix, PrefixList, PrefixListEntry
 
 from netbox_peering_manager.irr_client import IRRClientError
 from netbox_peering_manager.jobs import FAMILY_MAP, SyncAllPrefixListsJob, SyncPrefixListJob
 from netbox_peering_manager.models import IRRPrefixListConfig, IRRSource
+
+
+def _create_prefix_list_entry(prefix_list, sequence, action, prefix_str):
+    """Helper to create a PrefixListEntry with a CustomPrefix."""
+    ct = ContentType.objects.get_for_model(CustomPrefix)
+    cp = CustomPrefix.objects.create(prefix=prefix_str)
+    return PrefixListEntry.objects.create(
+        prefix_list=prefix_list,
+        sequence=sequence,
+        action=action,
+        assigned_prefix_type=ct,
+        assigned_prefix_id=cp.pk,
+    )
 
 
 class SyncPrefixListJobTestCase(TestCase):
@@ -61,10 +75,8 @@ class SyncPrefixListJobTestCase(TestCase):
 
     @patch("netbox_peering_manager.jobs.IRRClient")
     def test_sync_replaces_existing_entries(self, mock_client_class):
-        PrefixListEntry.objects.create(prefix_list=self.prefix_list, sequence=10, action="permit", prefix="10.0.0.0/8")
-        PrefixListEntry.objects.create(
-            prefix_list=self.prefix_list, sequence=20, action="permit", prefix="172.16.0.0/12"
-        )
+        _create_prefix_list_entry(self.prefix_list, 10, "permit", "10.0.0.0/8")
+        _create_prefix_list_entry(self.prefix_list, 20, "permit", "172.16.0.0/12")
 
         mock_client = MagicMock()
         mock_client.fetch_prefixes.return_value = ["192.0.2.0/24"]
@@ -140,10 +152,8 @@ class SyncPrefixListJobTestCase(TestCase):
     def test_sync_atomic_rollback_on_bulk_create_failure(self, mock_client_class):
         """Verify entries are not deleted if bulk_create fails (atomic rollback)."""
         # Pre-populate entries
-        PrefixListEntry.objects.create(prefix_list=self.prefix_list, sequence=10, action="permit", prefix="10.0.0.0/8")
-        PrefixListEntry.objects.create(
-            prefix_list=self.prefix_list, sequence=20, action="permit", prefix="172.16.0.0/12"
-        )
+        _create_prefix_list_entry(self.prefix_list, 10, "permit", "10.0.0.0/8")
+        _create_prefix_list_entry(self.prefix_list, 20, "permit", "172.16.0.0/12")
         self.assertEqual(PrefixListEntry.objects.filter(prefix_list=self.prefix_list).count(), 2)
 
         mock_client = MagicMock()
@@ -235,7 +245,7 @@ class SyncAllPrefixListsJobTestCase(TestCase):
     @patch("netbox_peering_manager.jobs.IRRClient")
     def test_sync_all_atomic_rollback(self, mock_client_class):
         """Verify entries not deleted if bulk_create fails in SyncAllPrefixListsJob."""
-        PrefixListEntry.objects.create(prefix_list=self.prefix_list1, sequence=10, action="permit", prefix="10.0.0.0/8")
+        _create_prefix_list_entry(self.prefix_list1, 10, "permit", "10.0.0.0/8")
 
         mock_client = MagicMock()
         mock_client.fetch_prefixes.return_value = ["192.0.2.0/24"]
