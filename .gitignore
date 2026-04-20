@@ -7,6 +7,7 @@ build
 .idea/
 *.env
 !.env.example
+!*.env.example
 .devcontainer/home/
 # Claude Code settings
 .claude/

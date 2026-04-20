@@ -24,6 +24,11 @@ jobs:
   test:
     needs: changes
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        netbox-version: ['v4.5.0', 'v4.5.5', 'v4.5.8']
+        python-version: ['3.12', '3.13']
 
     services:
       postgres:
@@ -57,12 +62,12 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.12'
+          python-version: ${{ matrix.python-version }}
           cache: 'pip'
 
       - name: Install NetBox
         run: |
-          git clone --depth 1 --branch v4.5.0 https://github.com/netbox-community/netbox.git /tmp/netbox
+          git clone --depth 1 --branch ${{ matrix.netbox-version }} https://github.com/netbox-community/netbox.git /tmp/netbox
           pip install --upgrade pip
           pip install -r /tmp/netbox/requirements.txt
 
