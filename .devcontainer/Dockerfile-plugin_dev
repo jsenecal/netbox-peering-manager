@@ -1,5 +1,5 @@
 ARG NETBOX_VARIANT=v4.5.8-4.0.2
-ARG NETBOX_ROUTING_TAG=e4d954ca
+ARG NETBOX_ROUTING_TAG=v0.4.2
 
 FROM ghcr.io/netbox-community/netbox:${NETBOX_VARIANT}
 
@@ -43,11 +43,10 @@ ARG USERNAME=ubuntu
 ARG USER_UID=1000
 ARG USER_GID=$USER_UID
 
-RUN chsh -s /usr/bin/fish $USERNAME; \
-    chown -R $USER_UID:$USER_GID /home/ubuntu; \
-    chown -R $USER_UID:$USER_GID /etc/netbox/scripts; \
-    mkdir -p /home/ubuntu/.claude && chown $USER_UID:$USER_GID /home/ubuntu/.claude; \
-    usermod -aG sudo $USERNAME \
+RUN chsh -s /usr/bin/fish $USERNAME \
+    && mkdir -p /etc/netbox/scripts /home/ubuntu/.claude \
+    && chown -R $USER_UID:$USER_GID /home/ubuntu /etc/netbox/scripts \
+    && usermod -aG sudo $USERNAME \
     && echo '%sudo ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers.d/nopasswd
 
 # Copy the plugin code
@@ -58,7 +57,7 @@ RUN git clone https://github.com/DanSheps/netbox-routing.git /opt/netbox-routing
     && cd /opt/netbox-routing && git checkout ${NETBOX_ROUTING_TAG} \
     && uv pip install --no-cache-dir -e /opt/netbox-routing
 
-RUN chown $USERNAME:$USERNAME /opt/netbox-peering-manager /opt/netbox-routing /opt/netbox /etc/netbox /opt/unit -R
+RUN chown -R $USERNAME:$USERNAME /opt/netbox-peering-manager /opt/netbox-routing /opt/netbox /etc/netbox
 
 USER ${USERNAME}
 

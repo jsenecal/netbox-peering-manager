@@ -35,7 +35,7 @@ setup(
     install_requires=[
         "httpx",
         "tenacity",
-        "netbox-routing",
+        "netbox-routing==0.4.2",
     ],
     packages=find_packages(),
     include_package_data=True,
