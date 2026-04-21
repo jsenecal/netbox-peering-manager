@@ -48,7 +48,7 @@ services:
   # redis
   redis:
     container_name: netbox-peering-manager-redis
-    image: redis:7-alpine
+    image: redis:8-alpine
     command:
       - sh
       - -c # this is to evaluate the $REDIS_PASSWORD from the env
