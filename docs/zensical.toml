@@ -1,0 +1,35 @@
+[project]
+site_name = "NetBox Peering Manager"
+site_url = "https://jsenecal.github.io/netbox-peering-manager/"
+site_description = "NetBox plugin for peering session management with PeeringDB and IRR integration; builds on netbox-routing"
+site_author = "Jonathan Senecal"
+repo_url = "https://github.com/jsenecal/netbox-peering-manager"
+repo_name = "jsenecal/netbox-peering-manager"
+edit_uri = "edit/main/docs/"
+docs_dir = "."
+nav = [
+  { "Home" = "index.md" },
+]
+
+[project.theme]
+features = [
+  "content.action.edit",
+  "content.action.view",
+]
+
+[[project.theme.palette]]
+scheme = "default"
+primary = "indigo"
+accent = "indigo"
+toggle.icon = "lucide/sun"
+toggle.name = "Switch to dark mode"
+
+[[project.theme.palette]]
+scheme = "slate"
+primary = "indigo"
+accent = "indigo"
+toggle.icon = "lucide/moon"
+toggle.name = "Switch to light mode"
+
+[project.theme.icon]
+repo = "fontawesome/brands/github"

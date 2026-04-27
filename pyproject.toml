@@ -1,37 +1,72 @@
-[tool.ruff]
-# Exclude common directories
-exclude = [
-    ".bzr",
-    ".direnv",
-    ".eggs",
-    ".git",
-    ".git-rewrite",
-    ".hg",
-    ".mypy_cache",
-    ".nox",
-    ".pants.d",
-    ".pytype",
-    ".ruff_cache",
-    ".svn",
-    ".tox",
-    ".venv",
-    "__pypackages__",
-    "_build",
-    "buck-out",
-    "build",
-    "dist",
-    "node_modules",
-    "venv",
-    "migrations",
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["netbox_peering_manager", "netbox_peering_manager.*"]
+
+[tool.setuptools.package-data]
+netbox_peering_manager = ["templates/**/*"]
+
+[tool.setuptools.dynamic]
+version = { attr = "netbox_peering_manager.version.__version__" }
+
+[project]
+name = "netbox-peering-manager"
+dynamic = ["version"]
+description = "NetBox plugin for peering session management with PeeringDB and IRR integration. Builds on netbox-routing."
+readme = "README.md"
+license = "Apache-2.0"
+license-files = ["LICENSE"]
+requires-python = ">=3.12"
+authors = [
+    { name = "Jonathan Senecal", email = "jonathan.senecal@metrooptic.com" },
+]
+keywords = ["netbox", "netbox-plugin", "bgp", "peering", "peeringdb", "irr"]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Framework :: Django",
+    "Intended Audience :: System Administrators",
+    "Intended Audience :: Telecommunications Industry",
+    "Natural Language :: English",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Topic :: System :: Networking",
+]
+dependencies = [
+    "httpx",
+    "tenacity",
+    "netbox-routing>=0.4.2",
 ]
 
-line-length = 120
-indent-width = 4
+[project.optional-dependencies]
+dev = [
+    "bumpver",
+    "pre-commit>=4.0.0",
+    "pytest",
+    "pytest-django>=4.5.0",
+    "pytest-cov>=3.0.0",
+    "ruff",
+]
+docs = [
+    "zensical",
+]
 
+[project.urls]
+Homepage = "https://github.com/jsenecal/netbox-peering-manager"
+Documentation = "https://jsenecal.github.io/netbox-peering-manager/"
+Source = "https://github.com/jsenecal/netbox-peering-manager"
+Tracker = "https://github.com/jsenecal/netbox-peering-manager/issues"
+
+[tool.ruff]
+line-length = 120
 target-version = "py312"
+extend-exclude = ["**/migrations/*.py"]
 
 [tool.ruff.lint]
-# Enable pycodestyle (E, W), Pyflakes (F), isort (I), and others
 select = [
     "E",   # pycodestyle errors
     "W",   # pycodestyle warnings
@@ -39,7 +74,9 @@ select = [
     "I",   # isort
     "N",   # pep8-naming
     "UP",  # pyupgrade
+    "S",   # flake8-bandit
     "B",   # flake8-bugbear
+    "A",   # flake8-builtins
     "C4",  # flake8-comprehensions
     "DTZ", # flake8-datetimez
     "T10", # flake8-debugger
@@ -53,34 +90,58 @@ select = [
     "SIM", # flake8-simplify
     "TID", # flake8-tidy-imports
     "ARG", # flake8-unused-arguments
-    "PTH", # flake8-use-pathlib
 ]
-
-# Ignore specific rules
 ignore = [
     "E501",   # Line too long (handled by formatter)
-    "B008",   # Do not perform function calls in argument defaults
-    "DJ001",  # Django model text-based fields shouldn't be nullable
-    "RET504", # Unnecessary variable assignment before return statement
-    "SIM108", # Use ternary operator instead of if-else
+    "N806",   # Django `User = get_user_model()` idiom
+    "S101",   # assert OK in test code
+    "B008",   # Function calls in argument defaults
+    "DJ001",  # CharField with null=True
+    "RET504", # Unnecessary variable assignment before return
+    "SIM108", # Use ternary operator
     "T201",   # print found (useful for debugging)
-    "PTH",    # flake8-use-pathlib (suggestion to use pathlib over os.path)
+    "A001",   # builtin shadowing -- existing `id` parameter naming, follow-up
 ]
-
 fixable = ["ALL"]
-unfixable = []
-
-# Allow unused variables when underscore-prefixed
 dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
 
 [tool.ruff.lint.per-file-ignores]
-"__init__.py" = ["F401"]  # Allow unused imports in __init__.py
-"**/tests/**" = ["ARG", "S"]  # Allow unused args and security issues in tests
-"**/migrations/**" = ["ALL"]  # Ignore all rules in migrations
-"**/graphql/types.py" = ["F821"]  # Allow forward references in GraphQL type annotations
+"__init__.py" = ["F401"]
+"**/tests/**" = ["ARG", "S", "E402", "F841", "B017"]
+"**/migrations/**" = ["ALL"]
+"**/graphql/types.py" = ["F821"]
 
 [tool.ruff.format]
 quote-style = "double"
 indent-style = "space"
 skip-magic-trailing-comma = false
 line-ending = "auto"
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "netbox.settings"
+testpaths = ["netbox_peering_manager/tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = "-v --cov=netbox_peering_manager --cov-report=term-missing --reuse-db"
+
+[tool.bumpver]
+current_version = "0.2.1"
+version_pattern = "MAJOR.MINOR.PATCH"
+commit_message = "chore: bump version {old_version} -> {new_version}"
+tag_pattern = "vMAJOR.MINOR.PATCH"
+commit = true
+tag = true
+push = true
+
+[tool.bumpver.file_patterns]
+"pyproject.toml" = [
+    'current_version = "{version}"',
+]
+"netbox_peering_manager/version.py" = [
+    '__version__ = "{version}"',
+]
+"CHANGELOG.md" = [
+    '## \[Unreleased\]',
+    '## \[{version}\] - {now:%Y-%m-%d}',
+]
