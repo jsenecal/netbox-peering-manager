@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.2] - 2026-04-28
+
+First release on the canonical toolkit. Behaviour and plugin code unchanged.
+
 ### Added
 
 - Canonical 5 GHA workflows: `ci.yml`, `publish.yml`, `docs.yml`, `release-drafter.yml`, `pr-title.yml`. Plus `.github/release-drafter.yml`.
@@ -27,3 +31,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `publish.yml`: build switched to `uv build`; `actions/upload-artifact` and `actions/download-artifact` pinned to v4.
 - `pyproject.toml`: gained the full `[project]` section, switched build to setuptools, expanded ruff selectors with `A` and `S`; ignored `N806`, `S101`, `DJ001`. Added test per-file ignores for `E402`, `F841`, `B017`.
 - `.pre-commit-config.yaml`: added `pre-commit-hooks` (whitespace, EOF, YAML/TOML, merge-conflict, line-endings) and the local `commit-msg` stage.
+
+### Fixed
+
+- CI tests on Python 3.14 / NetBox 4.5.5 / 4.5.8 now pass: defined `API_TOKEN_PEPPERS` in the test configuration so v2 API tests can run, and patched `get_netixlans_batch` in the PeeringDB sync tests so they no longer hit the live PeeringDB API and timeout under pytest collection order.
