@@ -1,8 +1,21 @@
 # netbox-peering-manager
 
-[NetBox Peering Manager](https://github.com/jsenecal/netbox-peering-manager) is a peering management plugin for [NetBox](https://github.com/netbox-community/netbox). It provides a way to document Internet Exchange points, peering sessions, and IRR prefix list synchronization, serving as both a source of truth and a configuration management layer for external BGP sessions (transit, customers, peering, etc).
+> A peering management plugin for [NetBox](https://github.com/netbox-community/netbox): IX points, peering sessions, IRR prefix list synchronization. Source of truth and configuration management layer for external BGP sessions (transit, customers, peering).
+
+[![PyPI](https://img.shields.io/pypi/v/netbox-peering-manager.svg)](https://pypi.org/project/netbox-peering-manager/)
+[![Python](https://img.shields.io/pypi/pyversions/netbox-peering-manager.svg)](https://pypi.org/project/netbox-peering-manager/)
+[![NetBox](https://img.shields.io/badge/NetBox-4.5%2B-success.svg)](https://github.com/netbox-community/netbox)
+[![CI](https://github.com/jsenecal/netbox-peering-manager/actions/workflows/ci.yml/badge.svg)](https://github.com/jsenecal/netbox-peering-manager/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/gh/jsenecal/netbox-peering-manager/branch/main/graph/badge.svg)](https://codecov.io/gh/jsenecal/netbox-peering-manager)
+[![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 
 Starting with v0.2.0, this plugin builds on top of [netbox-routing](https://github.com/DanSheps/netbox-routing), which provides the core BGP data models (peers, peer groups, routing policies, prefix lists, communities, BFD profiles, etc). netbox-peering-manager extends those models with peering-specific functionality rather than duplicating them.
+
+## Compatibility
+
+| Plugin version | NetBox version | Python    |
+|----------------|----------------|-----------|
+| 0.2.x          | 4.5            | 3.12-3.14 |
 
 ## Features
 

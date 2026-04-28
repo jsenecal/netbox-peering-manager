@@ -185,8 +185,8 @@ class PeeringDBSyncServiceTestCase(TestCase):
 
     @patch.object(PeeringDBClient, "get_ix")
     @patch.object(PeeringDBClient, "get_ixlans")
-    @patch.object(PeeringDBClient, "get_netixlans")
-    def test_sync_fabric_updates_peeringdb_info(self, mock_get_netixlans, mock_get_ixlans, mock_get_ix):
+    @patch.object(PeeringDBClient, "get_netixlans_batch")
+    def test_sync_fabric_updates_peeringdb_info(self, mock_get_netixlans_batch, mock_get_ixlans, mock_get_ix):
         """Test sync updates IX details from PeeringDB."""
         # Link fabric to PeeringDB
         PeeringFabricPeeringDB.objects.create(
@@ -204,7 +204,7 @@ class PeeringDBSyncServiceTestCase(TestCase):
             "tech_email": "new@example.com",
         }
         mock_get_ixlans.return_value = []
-        mock_get_netixlans.return_value = []
+        mock_get_netixlans_batch.return_value = []
 
         service = PeeringDBSyncService()
         result = service.sync_fabric(self.fabric)
@@ -222,10 +222,10 @@ class PeeringDBSyncServiceTestCase(TestCase):
     @patch.object(PeeringDBClient, "get_ix")
     @patch.object(PeeringDBClient, "get_ixlans")
     @patch.object(PeeringDBClient, "get_ixlan_prefixes")
-    @patch.object(PeeringDBClient, "get_netixlans")
+    @patch.object(PeeringDBClient, "get_netixlans_batch")
     def test_sync_fabric_creates_network(
         self,
-        mock_get_netixlans,
+        mock_get_netixlans_batch,
         mock_get_ixlan_prefixes,
         mock_get_ixlans,
         mock_get_ix,
@@ -254,7 +254,7 @@ class PeeringDBSyncServiceTestCase(TestCase):
         mock_get_ixlan_prefixes.return_value = [
             {"prefix": "192.0.2.0/24"},
         ]
-        mock_get_netixlans.return_value = []
+        mock_get_netixlans_batch.return_value = []
 
         service = PeeringDBSyncService()
         result = service.sync_fabric(self.fabric)
@@ -271,8 +271,8 @@ class PeeringDBSyncServiceTestCase(TestCase):
 
     @patch.object(PeeringDBClient, "get_ix")
     @patch.object(PeeringDBClient, "get_ixlans")
-    @patch.object(PeeringDBClient, "get_netixlans")
-    def test_sync_fabric_matches_existing_network(self, mock_get_netixlans, mock_get_ixlans, mock_get_ix):
+    @patch.object(PeeringDBClient, "get_netixlans_batch")
+    def test_sync_fabric_matches_existing_network(self, mock_get_netixlans_batch, mock_get_ixlans, mock_get_ix):
         """Test sync matches existing network by IXLAN ID."""
         PeeringFabricPeeringDB.objects.create(
             fabric=self.fabric,
@@ -307,7 +307,7 @@ class PeeringDBSyncServiceTestCase(TestCase):
                 "dot1q_support": True,
             }
         ]
-        mock_get_netixlans.return_value = []
+        mock_get_netixlans_batch.return_value = []
 
         service = PeeringDBSyncService()
         result = service.sync_fabric(self.fabric)
@@ -324,7 +324,7 @@ class PeeringDBSyncServiceTestCase(TestCase):
 
     @patch.object(PeeringDBClient, "get_ix")
     @patch.object(PeeringDBClient, "get_ixlans")
-    @patch.object(PeeringDBClient, "get_netixlans")
+    @patch.object(PeeringDBClient, "get_netixlans_batch")
     @patch(
         "netbox_peering_manager.services.peeringdb_sync.get_plugin_config",
         return_value=[65001],
@@ -332,7 +332,7 @@ class PeeringDBSyncServiceTestCase(TestCase):
     def test_sync_fabric_creates_peers(
         self,
         mock_get_plugin_config,
-        mock_get_netixlans,
+        mock_get_netixlans_batch,
         mock_get_ixlans,
         mock_get_ix,
     ):
@@ -351,7 +351,7 @@ class PeeringDBSyncServiceTestCase(TestCase):
         mock_get_ixlans.return_value = [
             {"id": 100, "name": "LAN"},
         ]
-        mock_get_netixlans.return_value = [
+        mock_get_netixlans_batch.return_value = [
             {
                 "asn": 65001,  # Local ASN - should be filtered
                 "name": "Our Network",
@@ -402,7 +402,7 @@ class PeeringDBSyncServiceTestCase(TestCase):
 
     @patch.object(PeeringDBClient, "get_ix")
     @patch.object(PeeringDBClient, "get_ixlans")
-    @patch.object(PeeringDBClient, "get_netixlans")
+    @patch.object(PeeringDBClient, "get_netixlans_batch")
     @patch(
         "netbox_peering_manager.services.peeringdb_sync.get_plugin_config",
         return_value=[],
@@ -410,7 +410,7 @@ class PeeringDBSyncServiceTestCase(TestCase):
     def test_sync_fabric_clears_old_peers(
         self,
         mock_get_plugin_config,
-        mock_get_netixlans,
+        mock_get_netixlans_batch,
         mock_get_ixlans,
         mock_get_ix,
     ):
@@ -430,7 +430,7 @@ class PeeringDBSyncServiceTestCase(TestCase):
 
         mock_get_ix.return_value = {"id": 123, "name": "Test IX"}
         mock_get_ixlans.return_value = [{"id": 100}]
-        mock_get_netixlans.return_value = [
+        mock_get_netixlans_batch.return_value = [
             {
                 "asn": 65001,
                 "name": "New Peer",
@@ -503,8 +503,8 @@ class LinkFabricToPeeringDBTestCase(TestCase):
 
     @patch.object(PeeringDBClient, "get_ix")
     @patch.object(PeeringDBClient, "get_ixlans")
-    @patch.object(PeeringDBClient, "get_netixlans")
-    def test_link_with_sync(self, mock_get_netixlans, mock_get_ixlans, mock_get_ix):
+    @patch.object(PeeringDBClient, "get_netixlans_batch")
+    def test_link_with_sync(self, mock_get_netixlans_batch, mock_get_ixlans, mock_get_ix):
         """Test sync=True performs sync after linking."""
         mock_get_ix.return_value = {
             "id": 123,
@@ -513,7 +513,7 @@ class LinkFabricToPeeringDBTestCase(TestCase):
             "country": "US",
         }
         mock_get_ixlans.return_value = []
-        mock_get_netixlans.return_value = []
+        mock_get_netixlans_batch.return_value = []
 
         result = link_fabric_to_peeringdb(self.fabric, ix_id=123, sync=True)
 
