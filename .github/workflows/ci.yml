@@ -95,6 +95,7 @@ jobs:
           }
 
           SECRET_KEY = "ci-only-secret-key-do-not-use-in-production-aaaaaaaaaaaaaaaaaaaa"
+          API_TOKEN_PEPPERS = {1: (SECRET_KEY * 2)[:50]}
 
           PLUGINS = ["netbox_routing", "netbox_peering_manager"]
           PLUGINS_CONFIG = {"netbox_peering_manager": {}}
