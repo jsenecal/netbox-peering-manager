@@ -7,6 +7,7 @@
 [![NetBox](https://img.shields.io/badge/NetBox-4.5%2B-success.svg)](https://github.com/netbox-community/netbox)
 [![CI](https://github.com/jsenecal/netbox-peering-manager/actions/workflows/ci.yml/badge.svg)](https://github.com/jsenecal/netbox-peering-manager/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/gh/jsenecal/netbox-peering-manager/branch/main/graph/badge.svg)](https://codecov.io/gh/jsenecal/netbox-peering-manager)
+[![Documentation](https://img.shields.io/badge/docs-jsenecal.github.io-blue)](https://jsenecal.github.io/netbox-peering-manager/)
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 
 Starting with v0.2.0, this plugin builds on top of [netbox-routing](https://github.com/DanSheps/netbox-routing), which provides the core BGP data models (peers, peer groups, routing policies, prefix lists, communities, BFD profiles, etc). netbox-peering-manager extends those models with peering-specific functionality rather than duplicating them.
