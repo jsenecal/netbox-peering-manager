@@ -9,12 +9,41 @@ edit_uri = "edit/main/docs/"
 docs_dir = "."
 nav = [
   { "Home" = "index.md" },
+  { "Getting Started" = [
+    { "Installation" = "getting-started/installation.md" },
+    { "Configuration" = "getting-started/configuration.md" },
+    { "First Peering Fabric" = "getting-started/first-fabric.md" },
+    { "First Peering Session" = "getting-started/first-session.md" },
+  ] },
+  { "Concepts" = [
+    { "Architecture" = "concepts/architecture.md" },
+    { "Models" = "concepts/models.md" },
+  ] },
+  { "User Guide" = [
+    { "PeeringDB Sync" = "user-guide/peeringdb-sync.md" },
+    { "IRR Prefix Lists" = "user-guide/irr-prefix-lists.md" },
+    { "Configuration Templating" = "user-guide/configuration-templating.md" },
+  ] },
+  { "Integrations" = [
+    { "PeeringDB" = "integrations/peeringdb.md" },
+    { "IRR / fastbgpq4" = "integrations/irr.md" },
+    { "netbox-routing" = "integrations/netbox-routing.md" },
+  ] },
+  { "Reference" = [
+    { "REST API" = "reference/rest-api.md" },
+    { "Jinja2 Filters" = "reference/jinja2-filters.md" },
+    { "Management Commands" = "reference/management-commands.md" },
+  ] },
+  { "Development" = "development/contributing.md" },
 ]
 
 [project.theme]
 features = [
   "content.action.edit",
   "content.action.view",
+  "navigation.sections",
+  "navigation.tabs",
+  "navigation.top",
 ]
 
 [[project.theme.palette]]
