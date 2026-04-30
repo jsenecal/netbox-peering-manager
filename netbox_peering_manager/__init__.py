@@ -1,6 +1,10 @@
+import logging
+
 from netbox.plugins import PluginConfig
 
 from .version import __version__
+
+logger = logging.getLogger(__name__)
 
 
 class BGPConfig(PluginConfig):
@@ -39,6 +43,7 @@ class BGPConfig(PluginConfig):
             from . import initializers  # noqa: F401
 
         self._register_jinja2_filters()
+        logger.info("%s plugin loaded", self.name)
 
     def _register_jinja2_filters(self):
         """Register custom Jinja2 filters with NetBox's settings.
