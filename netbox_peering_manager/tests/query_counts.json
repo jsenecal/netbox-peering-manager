@@ -1,0 +1,14 @@
+{
+  "irrprefixlistconfig:api_list_objects": 13,
+  "irrprefixlistconfig:list_objects_with_permission": 19,
+  "irrsource:list_objects_with_permission": 19,
+  "peerasn:api_list_objects": 13,
+  "peerasn:list_objects_with_permission": 20,
+  "peeringconnection:list_objects_with_permission": 23,
+  "peeringfabric:list_objects_with_permission": 21,
+  "peeringfabrictype:list_objects_with_permission": 19,
+  "peeringnetwork:list_objects_with_permission": 21,
+  "peeringsession:api_list_objects": 15,
+  "peeringsession:list_objects_with_permission": 25,
+  "relationship:list_objects_with_permission": 19
+}
