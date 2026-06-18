@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-06-18
+
 ### Added
 
 - NetBox 4.6 support: CI now tests against NetBox 4.6.3 (alongside 4.5.10) and

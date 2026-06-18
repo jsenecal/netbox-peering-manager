@@ -126,7 +126,7 @@ python_functions = ["test_*"]
 addopts = "-v --cov=netbox_peering_manager --cov-report=term-missing --reuse-db"
 
 [tool.bumpversion]
-current_version = "0.2.2"
+current_version = "0.3.0"
 commit = true
 tag = true
 tag_name = "v{new_version}"
