@@ -17,7 +17,7 @@ class BGPConfig(PluginConfig):
     base_url = "bgp"
     required_settings = []
     min_version = "4.5.0"
-    max_version = "4.5.99"
+    max_version = "4.6.99"
     required_plugins = ["netbox_routing"]
     default_settings = {
         "top_level_menu": True,
