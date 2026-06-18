@@ -135,3 +135,19 @@ class NetBoxBGPPeeringConnectionFilter(NetBoxModelFilter):
     ) = strawberry_django.filter_field()
     peering_network_id: ID | None = strawberry_django.filter_field()
     interface_id: ID | None = strawberry_django.filter_field()
+
+
+# NetBox 4.6+ auto-discovers a model's GraphQL filter at the conventional
+# `<app>.graphql.filters.<Model>Filter` path. These plugin filters keep their
+# historical `NetBoxBGP*` names (which also name the GraphQL schema input types,
+# so renaming them would be a breaking schema change); expose conventional-name
+# aliases so the canonical class is discoverable without altering the schema.
+RelationshipFilter = NetBoxBGPRelationshipFilter
+IRRSourceFilter = NetBoxBGPIRRSourceFilter
+IRRPrefixListConfigFilter = NetBoxBGPIRRPrefixListConfigFilter
+PeerASNFilter = NetBoxBGPPeerASNFilter
+PeeringSessionFilter = NetBoxBGPPeeringSessionFilter
+PeeringFabricTypeFilter = NetBoxBGPPeeringFabricTypeFilter
+PeeringFabricFilter = NetBoxBGPPeeringFabricFilter
+PeeringNetworkFilter = NetBoxBGPPeeringNetworkFilter
+PeeringConnectionFilter = NetBoxBGPPeeringConnectionFilter

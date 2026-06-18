@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- NetBox 4.6 support: CI now tests against NetBox 4.6.3 (alongside 4.5.10) and
+  `max_version` is raised to 4.6.99.
+
+### Changed
+
+- GraphQL: expose conventional `<Model>Filter` aliases so NetBox 4.6's filter
+  auto-discovery resolves each model's filter. The canonical `NetBoxBGP*` filter
+  classes (and the GraphQL schema input-type names) are unchanged.
+
 ## [0.2.2] - 2026-04-28
 
 First release on the canonical toolkit. Behaviour and plugin code unchanged.
