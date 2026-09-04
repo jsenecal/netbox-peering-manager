@@ -300,3 +300,24 @@ class PeeringFiltersExportTestCase(TestCase):
 
         for name, func in PEERING_FILTERS.items():
             self.assertTrue(callable(func), f"Filter '{name}' is not callable")
+
+
+class JinjaFilterRegistrationTestCase(TestCase):
+    """Test cases for the plugin's Jinja filter registration.
+
+    BGPConfig registers PEERING_FILTERS at ready() time, and the mechanism NetBox
+    exposes for that differs per release: 4.7 added the register_jinja_filters()
+    plugin API, while 4.5/4.6 only read a settings dict. This asserts the outcome
+    rather than the branch taken, so it holds on every supported NetBox version.
+    """
+
+    def test_plugin_filters_are_reachable_from_netbox_rendering(self):
+        """A NetBox-rendered template must be able to call a plugin filter."""
+        from utilities.jinja2 import render_jinja2
+
+        rendered = render_jinja2(
+            "{{ prefixes|to_prefix_set('EXAMPLE') }}",
+            {"prefixes": [{"prefix": "192.0.2.0/24", "le": 32}]},
+        )
+
+        self.assertEqual(rendered, "ip prefix-list EXAMPLE seq 10 permit 192.0.2.0/24 le 32")
