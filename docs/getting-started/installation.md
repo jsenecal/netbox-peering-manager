@@ -9,8 +9,8 @@ otherwise.
 
 ## Requirements
 
-- NetBox 4.5.x (the plugin pins `min_version = "4.5.0"` and
-  `max_version = "4.5.99"`).
+- NetBox 4.5.x, 4.6.x, or 4.7.x (the plugin pins `min_version = "4.5.0"`
+  and `max_version = "4.7.99"`).
 - Python 3.12, 3.13, or 3.14.
 - PostgreSQL (whatever NetBox itself supports).
 - A running NetBox RQ worker if you plan to use IRR prefix-list sync jobs

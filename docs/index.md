@@ -62,6 +62,8 @@ relationship taxonomy, and PeeringDB integration.
 
 | NetBox    | Plugin   | netbox-routing | Python    |
 |-----------|----------|----------------|-----------|
+| 4.7.x     | 0.3.x    | 0.4.x+         | 3.12-3.14 |
+| 4.6.x     | 0.3.x    | 0.4.x+         | 3.12-3.14 |
 | 4.5.x     | 0.2.x    | 0.4.x+         | 3.12-3.14 |
 | 4.4.x     | 0.1.x    | n/a            | 3.10+     |
 

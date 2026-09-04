@@ -7,12 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- NetBox 4.7 support: `max_version` is raised to 4.7.99 and the
+  `netbox-plugin.yaml` compatibility range follows.
+
 ### Changed
 
-- CI now tests against the latest NetBox 4.5 and 4.6 releases (4.5.10
-  and 4.6.10), with Renovate keeping the matrix pinned to the newest
-  release of each supported minor. The README compatibility matrix
-  gains a 0.3.x / NetBox 4.5-4.6 row.
+- Jinja filters are now registered through NetBox 4.7's
+  `register_jinja_filters()` plugin API when it is available, so the
+  plugin's filters (`to_prefix_set`, `as_path_regex`, ...) stay reachable
+  after 4.7 renamed the `JINJA2_FILTERS` setting to `JINJA_FILTERS`.
+  NetBox 4.5/4.6 keep the previous settings-based registration.
+- CI now tests against the latest NetBox 4.5, 4.6 and 4.7 releases
+  (4.5.10, 4.6.10 and 4.7.0), with Renovate keeping the matrix pinned to
+  the newest release of each supported minor, and coverage is uploaded
+  from the 4.7 lane. The README compatibility matrix gains a 0.3.x /
+  NetBox 4.5-4.7 row.
 
 ## [0.3.0] - 2026-06-18
 

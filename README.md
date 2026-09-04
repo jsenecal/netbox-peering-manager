@@ -16,7 +16,7 @@ Starting with v0.2.0, this plugin builds on top of [netbox-routing](https://gith
 
 | Plugin version | NetBox version | Python    |
 |----------------|----------------|-----------|
-| 0.3.x          | 4.5-4.6        | 3.12-3.14 |
+| 0.3.x          | 4.5-4.7        | 3.12-3.14 |
 | 0.2.x          | 4.5            | 3.12-3.14 |
 
 ## Features
@@ -56,7 +56,9 @@ This plugin provides the following on top of netbox-routing:
 
 | NetBox Version | Plugin Version | netbox-routing Version |
 |----------------|----------------|------------------------|
-| NetBox 4.5.x   | >= 0.2.0       | 0.4.x+                |
+| NetBox 4.7.x   | 0.3.x          | 0.4.x+                 |
+| NetBox 4.6.x   | 0.3.x          | 0.4.x+                 |
+| NetBox 4.5.x   | >= 0.2.0       | 0.4.x+                 |
 | NetBox 4.4.x   | 0.1.x          | N/A (standalone)       |
 
 ## Prerequisites
