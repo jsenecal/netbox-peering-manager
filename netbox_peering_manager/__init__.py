@@ -17,7 +17,7 @@ class BGPConfig(PluginConfig):
     base_url = "bgp"
     required_settings = []
     min_version = "4.5.0"
-    max_version = "4.6.99"
+    max_version = "4.7.99"
     required_plugins = ["netbox_routing"]
     default_settings = {
         "top_level_menu": True,
@@ -42,23 +42,34 @@ class BGPConfig(PluginConfig):
         with contextlib.suppress(ImportError):
             from . import initializers  # noqa: F401
 
-        self._register_jinja2_filters()
+        self._register_jinja_filters()
         logger.info("%s plugin loaded", self.name)
 
-    def _register_jinja2_filters(self):
-        """Register custom Jinja2 filters with NetBox's settings.
+    def _register_jinja_filters(self):
+        """Make the plugin's Jinja filters available to NetBox template rendering.
 
-        NetBox's render_jinja2() function reads filters from
-        settings.JINJA2_FILTERS and adds them to the Jinja2 environment.
+        NetBox 4.7 added register_jinja_filters(), a supported plugin API that keeps
+        plugin filters in the plugin registry, below the instance-level JINJA_FILTERS
+        so an administrator can always override them. Earlier releases offer no such
+        API, so 4.5/4.6 fall back to writing straight into the settings dict that
+        render_jinja2() reads -- JINJA_FILTERS where that name exists, and the
+        pre-4.7 JINJA2_FILTERS spelling otherwise.
         """
-        from django.conf import settings
-
         from .jinja2_filters import PEERING_FILTERS
 
-        if not hasattr(settings, "JINJA2_FILTERS"):
-            settings.JINJA2_FILTERS = {}
+        try:
+            from netbox.plugins.registration import register_jinja_filters
+        except ImportError:
+            from django.conf import settings
 
-        settings.JINJA2_FILTERS.update(PEERING_FILTERS)
+            if hasattr(settings, "JINJA_FILTERS"):
+                settings.JINJA_FILTERS.update(PEERING_FILTERS)
+                return
+            if not hasattr(settings, "JINJA2_FILTERS"):
+                settings.JINJA2_FILTERS = {}
+            settings.JINJA2_FILTERS.update(PEERING_FILTERS)
+        else:
+            register_jinja_filters(PEERING_FILTERS)
 
 
 config = BGPConfig  # noqa

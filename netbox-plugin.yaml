@@ -1,6 +1,6 @@
 version: 0.1
 package_name: netbox-peering-manager
 compatibility:
-  - release: 0.1.0
+  - release: 0.3.0
     netbox_min: 4.5.0
-    netbox_max: 4.5.99
+    netbox_max: 4.7.99

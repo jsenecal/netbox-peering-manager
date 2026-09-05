@@ -1,5 +1,9 @@
 """Tests for Jinja2 filters for BGP config templating."""
 
+import sys
+from types import SimpleNamespace
+from unittest import mock
+
 from django.test import TestCase
 
 
@@ -300,3 +304,59 @@ class PeeringFiltersExportTestCase(TestCase):
 
         for name, func in PEERING_FILTERS.items():
             self.assertTrue(callable(func), f"Filter '{name}' is not callable")
+
+
+class JinjaFilterRegistrationTestCase(TestCase):
+    """Test cases for the plugin's Jinja filter registration.
+
+    BGPConfig registers PEERING_FILTERS at ready() time, and the mechanism NetBox
+    exposes for that differs per release: 4.7 added the register_jinja_filters()
+    plugin API, while 4.5/4.6 only read a settings dict. This asserts the outcome
+    rather than the branch taken, so it holds on every supported NetBox version.
+    """
+
+    def test_plugin_filters_are_reachable_from_netbox_rendering(self):
+        """A NetBox-rendered template must be able to call a plugin filter."""
+        from utilities.jinja2 import render_jinja2
+
+        rendered = render_jinja2(
+            "{{ prefixes|to_prefix_set('EXAMPLE') }}",
+            {"prefixes": [{"prefix": "192.0.2.0/24", "le": 32}]},
+        )
+
+        self.assertEqual(rendered, "ip prefix-list EXAMPLE seq 10 permit 192.0.2.0/24 le 32")
+
+
+class JinjaFilterRegistrationFallbackTestCase(TestCase):
+    """Test cases for the pre-4.7 settings-dict registration fallback.
+
+    On NetBox 4.7 the register_jinja_filters() import succeeds, so the fallback
+    branches in BGPConfig._register_jinja_filters() can never execute naturally
+    there. These simulate the API's absence to exercise the 4.5/4.6 paths.
+    """
+
+    def _run_fallback(self, fake_settings):
+        from django.apps import apps
+
+        config = apps.get_app_config("netbox_peering_manager")
+        with (
+            mock.patch.dict(sys.modules, {"netbox.plugins.registration": None}),
+            mock.patch("django.conf.settings", fake_settings),
+        ):
+            config._register_jinja_filters()
+
+    def test_fallback_updates_jinja_filters_when_present(self):
+        """With the plugin API absent, an existing JINJA_FILTERS dict is updated."""
+        fake_settings = SimpleNamespace(JINJA_FILTERS={})
+
+        self._run_fallback(fake_settings)
+
+        self.assertIn("to_prefix_set", fake_settings.JINJA_FILTERS)
+
+    def test_fallback_creates_jinja2_filters_when_neither_exists(self):
+        """With no filter setting at all, the pre-4.7 JINJA2_FILTERS dict is created."""
+        fake_settings = SimpleNamespace()
+
+        self._run_fallback(fake_settings)
+
+        self.assertIn("to_prefix_set", fake_settings.JINJA2_FILTERS)
