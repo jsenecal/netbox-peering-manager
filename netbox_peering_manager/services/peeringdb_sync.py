@@ -192,14 +192,16 @@ class PeeringDBSyncService:
                 if not ixlan_id:
                     continue
 
-                # Try to match to existing network
-                network = self._match_existing_network(fabric, ixlan_id)
+                # An IXLAN maps to one network per prefix (IPv4 and IPv6),
+                # so several networks may share the same IXLAN ID.
+                networks = self._match_existing_networks(fabric, ixlan_id)
 
-                if network:
-                    # Update existing network's PeeringDB info
-                    self._update_network_peeringdb(network, ixlan, result)
+                if networks:
+                    # Update each linked network's PeeringDB info
+                    for network in networks:
+                        self._update_network_peeringdb(network, ixlan, result)
                 else:
-                    # Try to create new network from IXLAN
+                    # Try to create new networks from IXLAN
                     self._create_network_from_ixlan(fabric, ixlan, result)
 
         except PeeringDBError as e:
@@ -207,29 +209,32 @@ class PeeringDBSyncService:
             logger.error(error_msg)
             result.errors.append(error_msg)
 
-    def _match_existing_network(self, fabric: PeeringFabric, ixlan_id: int) -> PeeringNetwork | None:
+    def _match_existing_networks(self, fabric: PeeringFabric, ixlan_id: int) -> list[PeeringNetwork]:
         """
-        Match an IXLAN to an existing PeeringNetwork.
+        Match an IXLAN to the existing PeeringNetworks linked to it.
 
-        First tries to find a network already linked to this IXLAN ID,
-        then falls back to matching by prefix.
+        An IXLAN produces one network per prefix (typically IPv4 and IPv6),
+        so a single IXLAN ID may be linked to several networks.
 
         Args:
             fabric: The PeeringFabric to search in.
             ixlan_id: The PeeringDB IXLAN ID to match.
 
         Returns:
-            Matching PeeringNetwork or None.
+            List of PeeringNetworks in this fabric linked to the IXLAN.
         """
-        # First check if already linked by IXLAN ID
-        try:
-            pdb_network = PeeringNetworkPeeringDB.objects.get(ixlan_id=ixlan_id)
-            if pdb_network.network.fabric_id == fabric.id:
-                return pdb_network.network
-        except PeeringNetworkPeeringDB.DoesNotExist:
-            pass
+        return list(PeeringNetwork.objects.filter(fabric=fabric, peeringdb__ixlan_id=ixlan_id))
 
-        return None
+    @staticmethod
+    def _ixlan_pdb_fields(ixlan: dict) -> dict:
+        """Map an IXLAN payload to PeeringNetworkPeeringDB field values."""
+        return {
+            "ixlan_id": ixlan.get("id"),
+            "name": ixlan.get("name", "")[:200],
+            "mtu": ixlan.get("mtu"),
+            "rs_asn": ixlan.get("rs_asn"),
+            "dot1q_support": ixlan.get("dot1q_support", False),
+        }
 
     def _update_network_peeringdb(self, network: PeeringNetwork, ixlan: dict, result: SyncResult) -> None:
         """
@@ -241,18 +246,10 @@ class PeeringDBSyncService:
             result: SyncResult to update.
         """
         try:
-            pdb_info, created = PeeringNetworkPeeringDB.objects.get_or_create(
+            PeeringNetworkPeeringDB.objects.update_or_create(
                 network=network,
-                defaults={"ixlan_id": ixlan.get("id")},
+                defaults=self._ixlan_pdb_fields(ixlan),
             )
-
-            pdb_info.ixlan_id = ixlan.get("id")
-            pdb_info.name = ixlan.get("name", "")[:200]
-            pdb_info.mtu = ixlan.get("mtu")
-            pdb_info.rs_asn = ixlan.get("rs_asn")
-            pdb_info.dot1q_support = ixlan.get("dot1q_support", False)
-            pdb_info.last_sync = timezone.now()
-            pdb_info.save()
 
             result.networks_updated += 1
             logger.debug(f"Updated PeeringDB info for network {network.name}")
@@ -334,11 +331,7 @@ class PeeringDBSyncService:
                 # Create PeeringDB info for the network
                 PeeringNetworkPeeringDB.objects.create(
                     network=network,
-                    ixlan_id=ixlan_id,
-                    name=ixlan.get("name", "")[:200],
-                    mtu=ixlan.get("mtu"),
-                    rs_asn=ixlan.get("rs_asn"),
-                    dot1q_support=ixlan.get("dot1q_support", False),
+                    **self._ixlan_pdb_fields(ixlan),
                 )
 
                 result.networks_created += 1

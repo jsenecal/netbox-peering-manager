@@ -175,6 +175,42 @@ class PeeringDBSyncServiceTestCase(TestCase):
             site=self.site,
         )
 
+    def _mock_dual_stack_ixlan(
+        self,
+        mock_get_ix,
+        mock_get_ixlans,
+        mock_get_ixlan_prefixes,
+        mock_get_netixlans_batch,
+        *,
+        mtu,
+    ):
+        """Link the fabric to IX 123 and mock one IXLAN carrying both an
+        IPv4 and an IPv6 prefix."""
+        PeeringFabricPeeringDB.objects.create(
+            fabric=self.fabric,
+            ix_id=123,
+        )
+        mock_get_ix.return_value = {
+            "id": 123,
+            "name": "Test IX",
+            "city": "City",
+            "country": "US",
+        }
+        mock_get_ixlans.return_value = [
+            {
+                "id": 100,
+                "name": "Production LAN",
+                "mtu": mtu,
+                "rs_asn": 65000,
+                "dot1q_support": False,
+            }
+        ]
+        mock_get_ixlan_prefixes.return_value = [
+            {"prefix": "192.0.2.0/24"},
+            {"prefix": "2001:db8::/64"},
+        ]
+        mock_get_netixlans_batch.return_value = []
+
     def test_sync_fabric_without_peeringdb_link(self):
         """Test sync fails gracefully when fabric has no PeeringDB link."""
         service = PeeringDBSyncService()
@@ -268,6 +304,81 @@ class PeeringDBSyncServiceTestCase(TestCase):
         self.assertTrue(hasattr(network, "peeringdb"))
         self.assertEqual(network.peeringdb.ixlan_id, 100)
         self.assertEqual(network.peeringdb.mtu, 9000)
+
+    @patch.object(PeeringDBClient, "get_ix")
+    @patch.object(PeeringDBClient, "get_ixlans")
+    @patch.object(PeeringDBClient, "get_ixlan_prefixes")
+    @patch.object(PeeringDBClient, "get_netixlans_batch")
+    def test_sync_fabric_creates_networks_for_dual_stack_ixlan(
+        self,
+        mock_get_netixlans_batch,
+        mock_get_ixlan_prefixes,
+        mock_get_ixlans,
+        mock_get_ix,
+    ):
+        """Regression test for issue #59: an IXLAN with both an IPv4 and an
+        IPv6 prefix must create one network per prefix without tripping a
+        duplicate-key error on the shared IXLAN ID."""
+        self._mock_dual_stack_ixlan(
+            mock_get_ix,
+            mock_get_ixlans,
+            mock_get_ixlan_prefixes,
+            mock_get_netixlans_batch,
+            mtu=9000,
+        )
+
+        service = PeeringDBSyncService()
+        result = service.sync_fabric(self.fabric)
+
+        self.assertTrue(result.success, f"Sync errors: {result.errors}")
+        self.assertEqual(result.networks_created, 2)
+
+        networks = PeeringNetwork.objects.filter(fabric=self.fabric)
+        self.assertEqual(networks.count(), 2)
+        self.assertEqual(
+            sorted(str(network.prefix.prefix) for network in networks),
+            ["192.0.2.0/24", "2001:db8::/64"],
+        )
+        for network in networks:
+            self.assertEqual(network.peeringdb.ixlan_id, 100)
+
+    @patch.object(PeeringDBClient, "get_ix")
+    @patch.object(PeeringDBClient, "get_ixlans")
+    @patch.object(PeeringDBClient, "get_ixlan_prefixes")
+    @patch.object(PeeringDBClient, "get_netixlans_batch")
+    def test_resync_fabric_updates_dual_stack_networks(
+        self,
+        mock_get_netixlans_batch,
+        mock_get_ixlan_prefixes,
+        mock_get_ixlans,
+        mock_get_ix,
+    ):
+        """Regression test for issue #59: re-syncing a fabric whose IXLAN
+        produced two networks (IPv4 + IPv6) must update both instead of
+        blowing up on the now-shared IXLAN ID."""
+        self._mock_dual_stack_ixlan(
+            mock_get_ix,
+            mock_get_ixlans,
+            mock_get_ixlan_prefixes,
+            mock_get_netixlans_batch,
+            mtu=1500,
+        )
+
+        service = PeeringDBSyncService()
+        first = service.sync_fabric(self.fabric)
+        self.assertTrue(first.success, f"Sync errors: {first.errors}")
+
+        mock_get_ixlans.return_value[0]["mtu"] = 9000
+        second = service.sync_fabric(self.fabric)
+
+        self.assertTrue(second.success, f"Sync errors: {second.errors}")
+        self.assertEqual(second.networks_created, 0)
+        self.assertEqual(second.networks_updated, 2)
+
+        networks = PeeringNetwork.objects.filter(fabric=self.fabric)
+        self.assertEqual(networks.count(), 2)
+        for network in networks:
+            self.assertEqual(network.peeringdb.mtu, 9000)
 
     @patch.object(PeeringDBClient, "get_ix")
     @patch.object(PeeringDBClient, "get_ixlans")
