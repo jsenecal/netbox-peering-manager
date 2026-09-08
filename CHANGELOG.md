@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.1] - 2026-09-08
+
+### Changed
+
+- netbox-routing 0.4.3 is now the minimum required version.
+
 ### Fixed
 
 - Importing an IX whose IXLAN carries both an IPv4 and an IPv6 prefix no
