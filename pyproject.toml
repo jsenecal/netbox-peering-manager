@@ -39,7 +39,7 @@ classifiers = [
 dependencies = [
     "httpx",
     "tenacity",
-    "netbox-routing>=0.4.2",
+    "netbox-routing>=0.4.3",
 ]
 
 [project.optional-dependencies]
