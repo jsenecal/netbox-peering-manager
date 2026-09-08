@@ -334,7 +334,7 @@ class PeeringNetworkPeeringDB(models.Model):
         related_name="peeringdb",
     )
     ixlan_id = models.PositiveIntegerField(
-        unique=True,
+        db_index=True,
         help_text="PeeringDB IXLAN ID",
     )
     name = models.CharField(max_length=200, blank=True)

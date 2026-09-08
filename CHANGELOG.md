@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Importing an IX whose IXLAN carries both an IPv4 and an IPv6 prefix no
+  longer fails with a duplicate-key error on the IXLAN ID. The sync
+  creates one peering network per prefix, so the `ixlan_id` field on
+  PeeringDB IXLAN info is no longer unique (migration included) and
+  re-syncs now update every network linked to the IXLAN. (#59)
+
 ### Added
 
 - NetBox 4.7 support: `max_version` is raised to 4.7.99 and the
