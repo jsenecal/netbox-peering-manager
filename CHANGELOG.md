@@ -31,6 +31,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - The plugin devcontainer is built on NetBox 4.7.1 with netbox-routing
   0.5.0.
 
+### Fixed
+
+- The plugin now identifies itself as "Peering Manager" instead of "BGP".
+  The name appears in the NetBox plugin list, in object type and
+  permission labels, and as the group heading in the Plugins menu when
+  `top_level_menu` is disabled. URLs and API paths are unchanged.
+
 ## [0.3.1] - 2026-09-08
 
 ### Changed

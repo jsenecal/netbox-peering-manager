@@ -9,7 +9,7 @@ logger = logging.getLogger(__name__)
 
 class BGPConfig(PluginConfig):
     name = "netbox_peering_manager"
-    verbose_name = "BGP"
+    verbose_name = "Peering Manager"
     description = "Peering management for NetBox, built on netbox-routing"
     version = __version__
     author = "Jonathan Senecal"
