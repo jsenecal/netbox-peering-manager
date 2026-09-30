@@ -128,128 +128,27 @@ PLUGINS_CONFIG = {
 
 ## Model Architecture
 
-netbox-peering-manager v0.2.0 follows a layered architecture where netbox-routing provides the core BGP models and this plugin adds peering-specific extensions:
+netbox-routing provides the core BGP models (peers, peer templates, prefix lists, route maps, BFD profiles) and this plugin adds peering-specific extension models on top: `PeeringSession` extends a `BGPPeer`, `PeerASN` extends an `ipam.ASN`, and `IRRPrefixListConfig` extends a `PrefixList`. Fabrics, networks, and connections model the IX infrastructure.
 
-```
-netbox-routing (dependency)          netbox-peering-manager (this plugin)
-─────────────────────────────        ────────────────────────────────────
-BGPPeer ◄──────────────────────────── PeeringSession (1:1)
-  ├── peer (remote IP)                 ├── relationship (FK → Relationship)
-  ├── source (local IP)                ├── peering_network (FK → PeeringNetwork)
-  ├── remote_as / local_as             └── service_reference
-  ├── peer_group (BGPPeerTemplate)
-  ├── bfd (BFDProfile)               Relationship
-  ├── address_families[]               ├── name, slug, color
-  └── enabled, status, ttl
-                                     PeerASN (1:1 → ipam.ASN)
-PrefixList ◄─────────────────────────  ├── affiliated, irr_as_set
-  ├── name, family                     ├── max prefixes (v4/v6)
-  └── entries[]                        └── peeringdb_id
-
-                                     IRRPrefixListConfig (1:1 → PrefixList)
-                                       ├── irr_source (FK → IRRSource)
-                                       ├── source_as_set
-                                       └── sync_interval
-
-                                     IRRSource
-                                       ├── name, url, sources
-                                       └── enabled, sync_interval
-
-                                     PeeringFabric / PeeringNetwork / PeeringConnection
-                                       └── IX infrastructure models
-```
+See [Architecture](https://jsenecal.github.io/netbox-peering-manager/concepts/architecture/) for the model graph and [Models](https://jsenecal.github.io/netbox-peering-manager/concepts/models/) for every field.
 
 ## External Dependencies
 
 ### IRR Prefix List Synchronization (fastbgpq4)
 
-The plugin supports automatic prefix list synchronization from Internet Routing Registry (IRR) databases. This feature requires [fastbgpq4](https://github.com/jsenecal/fastbgpq4), a separate REST API service that wraps [bgpq4](https://github.com/bgp/bgpq4) for querying IRR databases like RADB, RIPE, ARIN, etc.
+The plugin can populate netbox-routing prefix lists from Internet Routing Registry (IRR) databases. This feature requires [fastbgpq4](https://github.com/jsenecal/fastbgpq4), a separate REST API service that wraps [bgpq4](https://github.com/bgp/bgpq4), and a running NetBox RQ worker (`make rqworker` in development, or your production worker service).
 
-**Why a separate service?**
-
-bgpq4 is a command-line tool, not a library. fastbgpq4 provides a REST API interface that allows netbox-peering-manager to query IRR data without requiring bgpq4 to be installed on the NetBox server itself. This also enables caching, async queries for large AS-SETs, and centralized IRR query infrastructure.
-
-**Setup:**
-
-1. Deploy fastbgpq4 (see [fastbgpq4 documentation](https://github.com/jsenecal/fastbgpq4) for installation options including Docker)
-
-2. In NetBox, create an IRR Source under *Peering Manager > IRR Sources* with:
-   - **Name**: A descriptive name (e.g., "RADB via fastbgpq4")
-   - **URL**: The fastbgpq4 API base URL (e.g., `http://fastbgpq4:8000`)
-   - **Sources** (optional): Comma-separated IRR sources to query (e.g., `RADB,RIPE,ARIN`)
-   - **Cache TTL** (optional): Cache duration for query results
-
-3. Create an IRR Prefix List Config linking a netbox-routing Prefix List to the IRR Source:
-   - **Prefix List**: Select a netbox-routing prefix list
-   - **IRR Source**: Select your configured IRR source
-   - **Source AS-SET**: The AS-SET to query (e.g., `AS-HURRICANE`)
-
-4. Use the sync action to populate the prefix list entries from IRR data
-
-**Background Jobs:**
-
-IRR synchronization runs as NetBox background jobs via the RQ worker:
-- **Sync Prefix List from IRR** — Syncs a single prefix list
-- **Sync All Prefix Lists from IRR** — Syncs all prefix lists associated with an IRR source
-
-Ensure the NetBox RQ worker is running (`make rqworker` in development, or your production worker service).
+- [IRR prefix lists](https://jsenecal.github.io/netbox-peering-manager/user-guide/irr-prefix-lists/) - setup and sync workflow
+- [IRR / fastbgpq4 integration](https://jsenecal.github.io/netbox-peering-manager/integrations/irr/) - why a separate service, and the API contract
 
 ## Configuration Templating
 
 netbox-peering-manager provides a configuration rendering service that builds Jinja2 template context from your BGP data. It uses NetBox's built-in `ConfigTemplate` model for template storage.
 
-### Template Context Variables
+The template context, the rendering workflow, and the custom Jinja2 filters are documented on the docs site:
 
-The `ConfigRenderer` service provides the following context:
-
-| Variable | Type | Description |
-|----------|------|-------------|
-| `device` | dict | Device info: `name`, `platform.name`, `platform.slug`, `site.name`, `site.slug` |
-| `sessions` | list[dict] | Peering sessions (see below) |
-| `peer_groups` | list[dict] | Deduplicated peer groups: `id`, `name` |
-| `route_maps` | list[dict] | Deduplicated route maps: `id`, `name` |
-| `prefix_lists` | list[dict] | Reserved for future use |
-| `communities` | list[dict] | Reserved for future use |
-
-### Session Context
-
-Each session in `sessions` contains:
-
-| Field | Type | Description |
-|-------|------|-------------|
-| `name` | str | BGP peer name |
-| `description` | str | Peer description |
-| `enabled` | bool | Whether the peer is enabled |
-| `status` | str | Peer status |
-| `local_asn` | int | Local AS number |
-| `peer_asn` | int | Remote AS number |
-| `local_ip` | str | Local IP address |
-| `remote_ip` | str | Remote IP address |
-| `password` | str | MD5 authentication password |
-| `ttl` | int | TTL / multihop value |
-| `relationship` | str | Relationship type name |
-| `service_reference` | str | Service ticket reference |
-| `peer_name` | str | PeerASN name (if exists) |
-| `irr_as_set` | str | IRR AS-SET from PeerASN |
-| `ipv4_max_prefixes` | int | Max IPv4 prefixes from PeerASN |
-| `ipv6_max_prefixes` | int | Max IPv6 prefixes from PeerASN |
-| `bfd_profile` | dict | BFD config: `name`, `minimum_interval`, `minimum_rx_interval`, `multiplier`, `hold` |
-| `peer_group` | dict | Peer group: `id`, `name` |
-| `peering_network` | dict | IX network: `id`, `name`, `fabric` |
-| `afi_safis` | list[str] | Address families (e.g., `["ipv4-unicast"]`) |
-| `address_families` | list[dict] | Per-AFI config with `route_map_in`, `route_map_out`, `prefix_list_in`, `prefix_list_out` |
-
-### Custom Jinja2 Filters
-
-The plugin registers custom Jinja2 filters for use in templates:
-
-| Filter | Description |
-|--------|-------------|
-| `as_path_regex` | Convert AS path to regex pattern |
-| `ip_network` | Parse IP network string |
-| `group_by` | Group objects by attribute |
-| `to_community_list` | Format community list entries |
-| `to_prefix_set` | Format prefix set entries |
+- [Configuration templating](https://jsenecal.github.io/netbox-peering-manager/user-guide/configuration-templating/) - context variables and session fields
+- [Jinja2 filters](https://jsenecal.github.io/netbox-peering-manager/reference/jinja2-filters/) - `as_path_regex`, `ip_network`, `group_by`, `to_community_list`, `to_prefix_set`
 
 ### Example Templates
 
