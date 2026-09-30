@@ -5,16 +5,21 @@ on:
     branches: [main]
     paths:
       - "docs/**"
+      - ".github/scripts/check-docs-nav.py"
+      - ".github/workflows/docs.yml"
+  pull_request:
+    paths:
+      - "docs/**"
+      - ".github/scripts/check-docs-nav.py"
       - ".github/workflows/docs.yml"
   workflow_dispatch:
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
 concurrency:
-  group: pages
+  # Per-ref so a pull request build never cancels a deploy from main.
+  group: pages-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -26,14 +31,20 @@ jobs:
         with:
           python-version: "3.14"
       - run: pip install zensical
-      - run: cd docs && zensical build
-      - uses: actions/upload-pages-artifact@v5
+      - run: python .github/scripts/check-docs-nav.py docs/zensical.toml
+      - run: cd docs && zensical build --strict
+      - if: github.event_name != 'pull_request'
+        uses: actions/upload-pages-artifact@v5
         with:
           path: docs/site
 
   deploy:
+    if: github.event_name != 'pull_request'
     needs: build
     runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
