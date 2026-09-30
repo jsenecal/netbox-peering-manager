@@ -141,7 +141,7 @@ PeeringSession.objects.create(
 ## Step 5: render config
 
 Once a session exists, you can feed it through the
-[configuration templating](https://github.com/jsenecal/netbox-peering-manager#configuration-templating) flow.
+[configuration templating](../user-guide/configuration-templating.md) flow.
 The fastest way to verify everything is wired up:
 
 ```bash

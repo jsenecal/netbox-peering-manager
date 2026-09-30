@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Documentation site: Concepts (architecture, models), User Guide
+  (PeeringDB sync, IRR prefix lists, configuration templating),
+  Integrations (PeeringDB, IRR / fastbgpq4, netbox-routing), Reference
+  (REST API, Jinja2 filters, management commands), and a contributing
+  guide.
+
 ### Removed
 
 - NetBox 4.5 support. `min_version` is raised to 4.6.0 and the
