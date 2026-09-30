@@ -37,17 +37,11 @@ relationship taxonomy, and PeeringDB integration.
 
 - [Getting Started](getting-started/installation.md) - install, configure,
   bring up your first fabric and session end to end.
-- [Concepts](concepts/architecture.md) - the model graph, where each piece
-  comes from (this plugin vs. netbox-routing vs. core NetBox), and the
-  reasoning behind it.
-- [User Guide](user-guide/peeringdb-sync.md) - the day-to-day workflows:
-  PeeringDB sync, IRR prefix-list sync, and configuration rendering.
-- [Integrations](integrations/peeringdb.md) - how the plugin talks to
-  PeeringDB, fastbgpq4, and netbox-routing, and what knobs each side exposes.
-- [Reference](reference/rest-api.md) - REST endpoint catalog, Jinja2 filter
-  signatures, management commands.
-- [Development](development/contributing.md) - contributing notes, testing
-  layout, mock patterns.
+
+The model architecture, IRR prefix-list sync, configuration templating,
+and development workflow are covered in the
+[project README](https://github.com/jsenecal/netbox-peering-manager#readme)
+until dedicated pages land here.
 
 ## Quick links
 
