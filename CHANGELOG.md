@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Documentation site: Concepts (architecture, models), User Guide
+  (PeeringDB sync, IRR prefix lists, configuration templating),
+  Integrations (PeeringDB, IRR / fastbgpq4, netbox-routing), Reference
+  (REST API, Jinja2 filters, management commands), and a contributing
+  guide.
+
 ### Removed
 
 - NetBox 4.5 support. `min_version` is raised to 4.6.0 and the
@@ -22,6 +30,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - CI no longer tests against NetBox 4.5; the matrix covers 4.6 and 4.7.
 - The plugin devcontainer is built on NetBox 4.7.1 with netbox-routing
   0.5.0.
+
+### Fixed
+
+- The plugin now identifies itself as "Peering Manager" instead of "BGP".
+  The name appears in the NetBox plugin list, in object type and
+  permission labels, and as the group heading in the Plugins menu when
+  `top_level_menu` is disabled. URLs and API paths are unchanged.
 
 ## [0.3.1] - 2026-09-08
 
