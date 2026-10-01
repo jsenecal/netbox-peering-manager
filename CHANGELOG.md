@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Removed
+
+- NetBox 4.5 support. `min_version` is raised to 4.6.0 and the
+  `netbox-plugin.yaml` compatibility range follows. netbox-routing 0.5.0
+  no longer migrates on NetBox 4.5, so the combination could not be kept
+  working; stay on the 0.3.x releases with netbox-routing 0.4.x if you
+  run NetBox 4.5.
+- The import fallback for strawberry-django releases older than 0.75.1,
+  which only early NetBox 4.5 releases shipped.
+
+### Changed
+
+- CI no longer tests against NetBox 4.5; the matrix covers 4.6 and 4.7.
+- The plugin devcontainer is built on NetBox 4.7.1 with netbox-routing
+  0.5.0.
+
 ## [0.3.1] - 2026-09-08
 
 ### Changed

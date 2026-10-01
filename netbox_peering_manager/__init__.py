@@ -16,7 +16,7 @@ class BGPConfig(PluginConfig):
     author_email = "jonathan.senecal@metrooptic.com"
     base_url = "bgp"
     required_settings = []
-    min_version = "4.5.0"
+    min_version = "4.6.0"
     max_version = "4.7.99"
     required_plugins = ["netbox_routing"]
     default_settings = {
@@ -50,8 +50,8 @@ class BGPConfig(PluginConfig):
 
         NetBox 4.7 added register_jinja_filters(), a supported plugin API that keeps
         plugin filters in the plugin registry, below the instance-level JINJA_FILTERS
-        so an administrator can always override them. Earlier releases offer no such
-        API, so 4.5/4.6 fall back to writing straight into the settings dict that
+        so an administrator can always override them. NetBox 4.6 offers no such
+        API, so it falls back to writing straight into the settings dict that
         render_jinja2() reads -- JINJA_FILTERS where that name exists, and the
         pre-4.7 JINJA2_FILTERS spelling otherwise.
         """

@@ -311,7 +311,7 @@ class JinjaFilterRegistrationTestCase(TestCase):
 
     BGPConfig registers PEERING_FILTERS at ready() time, and the mechanism NetBox
     exposes for that differs per release: 4.7 added the register_jinja_filters()
-    plugin API, while 4.5/4.6 only read a settings dict. This asserts the outcome
+    plugin API, while 4.6 only reads a settings dict. This asserts the outcome
     rather than the branch taken, so it holds on every supported NetBox version.
     """
 
@@ -332,7 +332,7 @@ class JinjaFilterRegistrationFallbackTestCase(TestCase):
 
     On NetBox 4.7 the register_jinja_filters() import succeeds, so the fallback
     branches in BGPConfig._register_jinja_filters() can never execute naturally
-    there. These simulate the API's absence to exercise the 4.5/4.6 paths.
+    there. These simulate the API's absence to exercise the 4.6 paths.
     """
 
     def _run_fallback(self, fake_settings):
