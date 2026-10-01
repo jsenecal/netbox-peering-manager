@@ -311,7 +311,7 @@ class JinjaFilterRegistrationTestCase(TestCase):
 
     BGPConfig registers PEERING_FILTERS at ready() time, and the mechanism NetBox
     exposes for that differs per release: 4.7 added the register_jinja_filters()
-    plugin API, while 4.5/4.6 only read a settings dict. This asserts the outcome
+    plugin API, while 4.6 only reads a settings dict. This asserts the outcome
     rather than the branch taken, so it holds on every supported NetBox version.
     """
 
@@ -328,15 +328,21 @@ class JinjaFilterRegistrationTestCase(TestCase):
 
 
 class JinjaFilterRegistrationFallbackTestCase(TestCase):
-    """Test cases for the pre-4.7 settings-dict registration fallback.
+    """Test cases for the NetBox 4.6 settings-dict registration fallback.
 
     On NetBox 4.7 the register_jinja_filters() import succeeds, so the fallback
-    branches in BGPConfig._register_jinja_filters() can never execute naturally
-    there. These simulate the API's absence to exercise the 4.5/4.6 paths.
+    in BGPConfig._register_jinja_filters() can never execute naturally there.
+    This simulates the API's absence to exercise the 4.6 path.
     """
 
-    def _run_fallback(self, fake_settings):
+    def test_fallback_adds_filters_to_the_existing_settings_dict(self):
+        """With the plugin API absent, filters land in the JINJA2_FILTERS dict NetBox reads."""
         from django.apps import apps
+
+        # NetBox 4.6 always defines JINJA2_FILTERS and render_jinja2() reads that
+        # same dict, so it must be updated in place and keep the operator's filters.
+        configured = {"operator_filter": str.upper}
+        fake_settings = SimpleNamespace(JINJA2_FILTERS=configured)
 
         config = apps.get_app_config("netbox_peering_manager")
         with (
@@ -345,18 +351,6 @@ class JinjaFilterRegistrationFallbackTestCase(TestCase):
         ):
             config._register_jinja_filters()
 
-    def test_fallback_updates_jinja_filters_when_present(self):
-        """With the plugin API absent, an existing JINJA_FILTERS dict is updated."""
-        fake_settings = SimpleNamespace(JINJA_FILTERS={})
-
-        self._run_fallback(fake_settings)
-
-        self.assertIn("to_prefix_set", fake_settings.JINJA_FILTERS)
-
-    def test_fallback_creates_jinja2_filters_when_neither_exists(self):
-        """With no filter setting at all, the pre-4.7 JINJA2_FILTERS dict is created."""
-        fake_settings = SimpleNamespace()
-
-        self._run_fallback(fake_settings)
-
-        self.assertIn("to_prefix_set", fake_settings.JINJA2_FILTERS)
+        self.assertIs(fake_settings.JINJA2_FILTERS, configured)
+        self.assertIn("to_prefix_set", configured)
+        self.assertIn("operator_filter", configured)

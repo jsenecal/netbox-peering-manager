@@ -4,7 +4,7 @@
 
 [![PyPI](https://img.shields.io/pypi/v/netbox-peering-manager.svg)](https://pypi.org/project/netbox-peering-manager/)
 [![Python](https://img.shields.io/pypi/pyversions/netbox-peering-manager.svg)](https://pypi.org/project/netbox-peering-manager/)
-[![NetBox](https://img.shields.io/badge/NetBox-4.5%2B-success.svg)](https://github.com/netbox-community/netbox)
+[![NetBox](https://img.shields.io/badge/NetBox-4.6%2B-success.svg)](https://github.com/netbox-community/netbox)
 [![CI](https://github.com/jsenecal/netbox-peering-manager/actions/workflows/ci.yml/badge.svg)](https://github.com/jsenecal/netbox-peering-manager/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/gh/jsenecal/netbox-peering-manager/branch/main/graph/badge.svg)](https://codecov.io/gh/jsenecal/netbox-peering-manager)
 [![Documentation](https://img.shields.io/badge/docs-jsenecal.github.io-blue)](https://jsenecal.github.io/netbox-peering-manager/)
@@ -16,6 +16,7 @@ Starting with v0.2.0, this plugin builds on top of [netbox-routing](https://gith
 
 | Plugin version | NetBox version | Python    |
 |----------------|----------------|-----------|
+| 0.4.x          | 4.6-4.7        | 3.12-3.14 |
 | 0.3.x          | 4.5-4.7        | 3.12-3.14 |
 | 0.2.x          | 4.5            | 3.12-3.14 |
 
@@ -56,9 +57,9 @@ This plugin provides the following on top of netbox-routing:
 
 | NetBox Version | Plugin Version | netbox-routing Version |
 |----------------|----------------|------------------------|
-| NetBox 4.7.x   | 0.3.x          | 0.4.x+                 |
-| NetBox 4.6.x   | 0.3.x          | 0.4.x+                 |
-| NetBox 4.5.x   | >= 0.2.0       | 0.4.x+                 |
+| NetBox 4.7.x   | >= 0.3.0       | 0.4.x+                 |
+| NetBox 4.6.x   | >= 0.3.0       | 0.4.x+                 |
+| NetBox 4.5.x   | 0.2.x - 0.3.x  | 0.4.x                  |
 | NetBox 4.4.x   | 0.1.x          | N/A (standalone)       |
 
 ## Prerequisites

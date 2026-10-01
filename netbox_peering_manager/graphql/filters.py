@@ -4,12 +4,7 @@ import strawberry
 import strawberry_django
 from netbox.graphql.filters import NetBoxModelFilter
 from strawberry.scalars import ID
-from strawberry_django import FilterLookup
-
-try:
-    from strawberry_django import StrFilterLookup
-except ImportError:
-    StrFilterLookup = FilterLookup[str]
+from strawberry_django import FilterLookup, StrFilterLookup
 from tenancy.graphql.filter_mixins import TenancyFilterMixin
 
 from netbox_peering_manager.graphql.enums import NetBoxBGPPeeringStatusEnum

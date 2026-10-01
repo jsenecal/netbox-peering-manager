@@ -16,7 +16,7 @@ class BGPConfig(PluginConfig):
     author_email = "jonathan.senecal@metrooptic.com"
     base_url = "bgp"
     required_settings = []
-    min_version = "4.5.0"
+    min_version = "4.6.0"
     max_version = "4.7.99"
     required_plugins = ["netbox_routing"]
     default_settings = {
@@ -50,10 +50,9 @@ class BGPConfig(PluginConfig):
 
         NetBox 4.7 added register_jinja_filters(), a supported plugin API that keeps
         plugin filters in the plugin registry, below the instance-level JINJA_FILTERS
-        so an administrator can always override them. Earlier releases offer no such
-        API, so 4.5/4.6 fall back to writing straight into the settings dict that
-        render_jinja2() reads -- JINJA_FILTERS where that name exists, and the
-        pre-4.7 JINJA2_FILTERS spelling otherwise.
+        so an administrator can always override them. NetBox 4.6 offers no such
+        API, so there the filters are written straight into JINJA2_FILTERS, the
+        settings dict its render_jinja2() reads and that NetBox always defines.
         """
         from .jinja2_filters import PEERING_FILTERS
 
@@ -62,11 +61,6 @@ class BGPConfig(PluginConfig):
         except ImportError:
             from django.conf import settings
 
-            if hasattr(settings, "JINJA_FILTERS"):
-                settings.JINJA_FILTERS.update(PEERING_FILTERS)
-                return
-            if not hasattr(settings, "JINJA2_FILTERS"):
-                settings.JINJA2_FILTERS = {}
             settings.JINJA2_FILTERS.update(PEERING_FILTERS)
         else:
             register_jinja_filters(PEERING_FILTERS)
