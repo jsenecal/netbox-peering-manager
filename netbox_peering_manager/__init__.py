@@ -7,7 +7,7 @@ from .version import __version__
 logger = logging.getLogger(__name__)
 
 
-class BGPConfig(PluginConfig):
+class PeeringManagerConfig(PluginConfig):
     name = "netbox_peering_manager"
     verbose_name = "Peering Manager"
     description = "Peering management for NetBox, built on netbox-routing"
@@ -66,4 +66,4 @@ class BGPConfig(PluginConfig):
             register_jinja_filters(PEERING_FILTERS)
 
 
-config = BGPConfig  # noqa
+config = PeeringManagerConfig  # noqa
