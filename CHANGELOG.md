@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-10-02
+
 ### Added
 
 - Documentation site: Concepts (architecture, models), User Guide
@@ -28,7 +30,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - CI no longer tests against NetBox 4.5; the matrix covers 4.6 and 4.7.
-- The plugin devcontainer is built on NetBox 4.7.1 with netbox-routing
+- The plugin devcontainer is built on NetBox 4.7 with netbox-routing
   0.5.0.
 - **Breaking:** UI and REST API paths move from `/plugins/bgp/` and
   `/api/plugins/bgp/` to `/plugins/peering-manager/` and
