@@ -21,7 +21,7 @@ and a few [Jinja2 filters](../reference/jinja2-filters.md).
 3. Render:
 
 ```bash
-curl -X POST https://netbox.example.com/api/plugins/bgp/render-config/ \
+curl -X POST https://netbox.example.com/api/plugins/peering-manager/render-config/ \
   -H "Authorization: Token $NETBOX_TOKEN" \
   -H "Content-Type: application/json" \
   -H "Accept: text/plain" \

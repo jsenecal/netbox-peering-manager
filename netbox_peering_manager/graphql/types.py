@@ -17,19 +17,19 @@ from netbox_peering_manager.models import (
 )
 
 from .filters import (
-    NetBoxBGPIRRPrefixListConfigFilter,
-    NetBoxBGPIRRSourceFilter,
-    NetBoxBGPPeerASNFilter,
-    NetBoxBGPPeeringConnectionFilter,
-    NetBoxBGPPeeringFabricFilter,
-    NetBoxBGPPeeringFabricTypeFilter,
-    NetBoxBGPPeeringNetworkFilter,
-    NetBoxBGPPeeringSessionFilter,
-    NetBoxBGPRelationshipFilter,
+    IRRPrefixListConfigFilter,
+    IRRSourceFilter,
+    PeerASNFilter,
+    PeeringConnectionFilter,
+    PeeringFabricFilter,
+    PeeringFabricTypeFilter,
+    PeeringNetworkFilter,
+    PeeringSessionFilter,
+    RelationshipFilter,
 )
 
 
-@strawberry_django.type(Relationship, fields="__all__", filters=NetBoxBGPRelationshipFilter)
+@strawberry_django.type(Relationship, fields="__all__", filters=RelationshipFilter)
 class RelationshipType(NetBoxObjectType):
     name: str
     slug: str
@@ -38,7 +38,7 @@ class RelationshipType(NetBoxObjectType):
     peering_sessions: list[Annotated["PeeringSessionType", strawberry.lazy("netbox_peering_manager.graphql.types")]]
 
 
-@strawberry_django.type(IRRSource, fields="__all__", filters=NetBoxBGPIRRSourceFilter)
+@strawberry_django.type(IRRSource, fields="__all__", filters=IRRSourceFilter)
 class IRRSourceType(NetBoxObjectType):
     name: str
     slug: str
@@ -53,7 +53,7 @@ class IRRSourceType(NetBoxObjectType):
     ]
 
 
-@strawberry_django.type(IRRPrefixListConfig, fields="__all__", filters=NetBoxBGPIRRPrefixListConfigFilter)
+@strawberry_django.type(IRRPrefixListConfig, fields="__all__", filters=IRRPrefixListConfigFilter)
 class IRRPrefixListConfigType(NetBoxObjectType):
     prefix_list: Annotated["PrefixListType", strawberry.lazy("netbox_routing.graphql.types")]
     irr_source: Annotated["IRRSourceType", strawberry.lazy("netbox_peering_manager.graphql.types")] | None
@@ -61,7 +61,7 @@ class IRRPrefixListConfigType(NetBoxObjectType):
     sync_interval: int
 
 
-@strawberry_django.type(PeerASN, fields="__all__", filters=NetBoxBGPPeerASNFilter)
+@strawberry_django.type(PeerASN, fields="__all__", filters=PeerASNFilter)
 class PeerASNType(NetBoxObjectType):
     asn: Annotated["ASNType", strawberry.lazy("ipam.graphql.types")]
     affiliated: bool
@@ -71,7 +71,7 @@ class PeerASNType(NetBoxObjectType):
     peeringdb_id: int | None
 
 
-@strawberry_django.type(PeeringSession, fields="__all__", filters=NetBoxBGPPeeringSessionFilter)
+@strawberry_django.type(PeeringSession, fields="__all__", filters=PeeringSessionFilter)
 class PeeringSessionType(NetBoxObjectType):
     bgp_peer: Annotated["BGPPeerType", strawberry.lazy("netbox_routing.graphql.types")]
     relationship: Annotated["RelationshipType", strawberry.lazy("netbox_peering_manager.graphql.types")] | None
@@ -86,7 +86,7 @@ class PeeringSessionType(NetBoxObjectType):
 # =============================================================================
 
 
-@strawberry_django.type(PeeringFabricType, fields="__all__", filters=NetBoxBGPPeeringFabricTypeFilter)
+@strawberry_django.type(PeeringFabricType, fields="__all__", filters=PeeringFabricTypeFilter)
 class PeeringFabricTypeType(NetBoxObjectType):
     name: str
     slug: str
@@ -95,7 +95,7 @@ class PeeringFabricTypeType(NetBoxObjectType):
     fabrics: list[Annotated["PeeringFabricGraphQLType", strawberry.lazy("netbox_peering_manager.graphql.types")]]
 
 
-@strawberry_django.type(PeeringFabric, fields="__all__", filters=NetBoxBGPPeeringFabricFilter)
+@strawberry_django.type(PeeringFabric, fields="__all__", filters=PeeringFabricFilter)
 class PeeringFabricGraphQLType(NetBoxObjectType):
     name: str
     slug: str
@@ -107,7 +107,7 @@ class PeeringFabricGraphQLType(NetBoxObjectType):
     networks: list[Annotated["PeeringNetworkGraphQLType", strawberry.lazy("netbox_peering_manager.graphql.types")]]
 
 
-@strawberry_django.type(PeeringNetwork, fields="__all__", filters=NetBoxBGPPeeringNetworkFilter)
+@strawberry_django.type(PeeringNetwork, fields="__all__", filters=PeeringNetworkFilter)
 class PeeringNetworkGraphQLType(NetBoxObjectType):
     name: str
     description: str
@@ -121,7 +121,7 @@ class PeeringNetworkGraphQLType(NetBoxObjectType):
     peering_sessions: list[Annotated["PeeringSessionType", strawberry.lazy("netbox_peering_manager.graphql.types")]]
 
 
-@strawberry_django.type(PeeringConnection, fields="__all__", filters=NetBoxBGPPeeringConnectionFilter)
+@strawberry_django.type(PeeringConnection, fields="__all__", filters=PeeringConnectionFilter)
 class PeeringConnectionGraphQLType(NetBoxObjectType):
     description: str
     status: str

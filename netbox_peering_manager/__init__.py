@@ -14,7 +14,7 @@ class PeeringManagerConfig(PluginConfig):
     version = __version__
     author = "Jonathan Senecal"
     author_email = "jonathan.senecal@metrooptic.com"
-    base_url = "bgp"
+    base_url = "peering-manager"
     required_settings = []
     min_version = "4.6.0"
     max_version = "4.7.99"

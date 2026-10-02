@@ -30,13 +30,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - CI no longer tests against NetBox 4.5; the matrix covers 4.6 and 4.7.
 - The plugin devcontainer is built on NetBox 4.7.1 with netbox-routing
   0.5.0.
+- **Breaking:** UI and REST API paths move from `/plugins/bgp/` and
+  `/api/plugins/bgp/` to `/plugins/peering-manager/` and
+  `/api/plugins/peering-manager/`. There are no redirects: update
+  bookmarks, API clients, and automation that call the old paths.
+- **Breaking:** GraphQL filter input types and the status enum drop the
+  `NetBoxBGP` prefix, for example `NetBoxBGPPeeringSessionFilter` is now
+  `PeeringSessionFilter` and `NetBoxBGPPeeringStatusEnum` is now
+  `PeeringStatusEnum`. Queries that name these types in variable
+  definitions need updating. Query field names are unchanged.
 
 ### Fixed
 
 - The plugin now identifies itself as "Peering Manager" instead of "BGP".
   The name appears in the NetBox plugin list, in object type and
   permission labels, and as the group heading in the Plugins menu when
-  `top_level_menu` is disabled. URLs and API paths are unchanged.
+  `top_level_menu` is disabled.
 
 ## [0.3.1] - 2026-09-08
 

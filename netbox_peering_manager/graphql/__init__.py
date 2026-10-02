@@ -1,3 +1,3 @@
-from .schema import NetBoxBGPQuery
+from .schema import PeeringManagerQuery
 
-schema = [NetBoxBGPQuery]
+schema = [PeeringManagerQuery]

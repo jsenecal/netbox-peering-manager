@@ -15,7 +15,7 @@ from .types import (
 
 
 @strawberry.type(name="Query")
-class NetBoxBGPQuery:
+class PeeringManagerQuery:
     netbox_peering_manager_relationship: RelationshipType = strawberry_django.field()
     netbox_peering_manager_relationship_list: list[RelationshipType] = strawberry_django.field()
 
