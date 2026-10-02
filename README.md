@@ -14,11 +14,15 @@ Starting with v0.2.0, this plugin builds on top of [netbox-routing](https://gith
 
 ## Compatibility
 
-| Plugin version | NetBox version | Python    |
-|----------------|----------------|-----------|
-| 0.4.x          | 4.6-4.7        | 3.12-3.14 |
-| 0.3.x          | 4.5-4.7        | 3.12-3.14 |
-| 0.2.x          | 4.5            | 3.12-3.14 |
+| Plugin version | NetBox version | netbox-routing        | Python    |
+|----------------|----------------|-----------------------|-----------|
+| 0.4.x          | 4.6-4.7        | 0.4.3+                | 3.12-3.14 |
+| 0.3.x          | 4.5-4.7        | 0.4.2+                | 3.12-3.14 |
+| 0.2.x          | 4.5            | 0.4.x                 | 3.12-3.14 |
+| 0.1.x          | 4.4            | not used (standalone) | 3.10+     |
+
+- NetBox 4.7 needs plugin 0.3.1 or later, which in turn needs netbox-routing 0.4.3 or later.
+- On NetBox 4.5, stay on netbox-routing 0.4.x. netbox-routing 0.5 does not migrate there.
 
 ## Features
 
@@ -53,43 +57,15 @@ This plugin provides the following on top of netbox-routing:
 * AS Path Lists
 * BFD Profiles
 
-## Compatibility
-
-| NetBox Version | Plugin Version | netbox-routing Version |
-|----------------|----------------|------------------------|
-| NetBox 4.7.x   | >= 0.3.0       | 0.4.x+                 |
-| NetBox 4.6.x   | >= 0.3.0       | 0.4.x+                 |
-| NetBox 4.5.x   | 0.2.x - 0.3.x  | 0.4.x                  |
-| NetBox 4.4.x   | 0.1.x          | N/A (standalone)       |
-
-## Prerequisites
-
-**netbox-routing** must be installed and enabled before installing netbox-peering-manager. The plugin declares `netbox_routing` as a required plugin and will not load without it.
-
-```bash
-pip install git+https://github.com/DanSheps/netbox-routing.git@14318f1c
-```
-
-Enable it in your NetBox configuration:
-
-```python
-PLUGINS = [
-    'netbox_routing',
-    'netbox_peering_manager',
-]
-```
-
-> **Important:** `netbox_routing` must appear before `netbox_peering_manager` in the `PLUGINS` list.
-
 ## Installation
 
-Install the plugin (this will also pull in netbox-routing as a dependency):
+netbox-peering-manager requires [netbox-routing](https://github.com/DanSheps/netbox-routing) and will not load without it. Installing the plugin from PyPI pulls it in:
 
 ```bash
-pip install git+https://github.com/jsenecal/netbox-peering-manager.git
+pip install netbox-peering-manager
 ```
 
-Enable both plugins in `/opt/netbox/netbox/netbox/configuration.py`:
+Enable both plugins in your NetBox `configuration.py`. `netbox_routing` must come first:
 
 ```python
 PLUGINS = [
@@ -98,16 +74,14 @@ PLUGINS = [
 ]
 ```
 
-Run database migrations:
+Run the migrations and restart NetBox:
 
 ```bash
 cd /opt/netbox/netbox
 python manage.py migrate
 ```
 
-Restart NetBox and add `netbox-peering-manager` to your `local_requirements.txt`.
-
-See [NetBox Documentation](https://docs.netbox.dev/en/stable/plugins/#installing-plugins) for details.
+The [installation guide](https://jsenecal.github.io/netbox-peering-manager/getting-started/installation/) covers the full sequence, including pinning versions and verifying the install.
 
 ## Configuration
 

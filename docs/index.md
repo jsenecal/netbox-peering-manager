@@ -1,6 +1,6 @@
 # NetBox Peering Manager
 
-A [NetBox](https://github.com/netbox-community/netbox) 4.6+ plugin that turns
+A [NetBox](https://github.com/netbox-community/netbox) plugin that turns
 your NetBox install into a source of truth for external BGP peering. It models
 Internet Exchange (IX) infrastructure, peering sessions, peer ASN metadata,
 and Internet Routing Registry (IRR) prefix-list synchronization, and feeds
@@ -58,14 +58,10 @@ relationship taxonomy, and PeeringDB integration.
 - [fastbgpq4 (IRR sync backend)](https://github.com/jsenecal/fastbgpq4)
 - [PeeringDB API documentation](https://docs.peeringdb.com/api_specs/)
 
-## Compatibility at a glance
+## Compatibility
 
-| NetBox    | Plugin   | netbox-routing | Python    |
-|-----------|----------|----------------|-----------|
-| 4.7.x     | 0.3.x+   | 0.4.x+         | 3.12-3.14 |
-| 4.6.x     | 0.3.x+   | 0.4.x+         | 3.12-3.14 |
-| 4.5.x     | 0.2.x - 0.3.x | 0.4.x     | 3.12-3.14 |
-| 4.4.x     | 0.1.x    | n/a            | 3.10+     |
+The NetBox, netbox-routing, and Python versions supported by each plugin
+release are listed in the [compatibility table](https://github.com/jsenecal/netbox-peering-manager#compatibility) of the README.
 
 `netbox_routing` is a required plugin and must appear before
 `netbox_peering_manager` in `PLUGINS`. See the

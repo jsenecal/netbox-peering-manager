@@ -153,5 +153,5 @@ Limitations to be aware of:
 On NetBox 4.7 and later the filters are registered through NetBox's plugin
 filter registry, which ranks below the instance-level `JINJA_FILTERS`
 setting. Defining a filter of the same name there replaces the plugin's
-version. On NetBox 4.5 and 4.6 the plugin writes its filters into the
+version. On NetBox 4.6 the plugin writes its filters into the
 filter setting directly at startup and takes precedence.

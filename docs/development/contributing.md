@@ -59,7 +59,7 @@ Every pull request that touches code runs:
 | Check | Requirement |
 |-------|-------------|
 | Lint | `ruff check` and `ruff format --check` pass. |
-| Tests | The suite passes on Python 3.12, 3.13, and 3.14 against NetBox 4.5, 4.6, and 4.7. |
+| Tests | The suite passes on every Python and NetBox version in the CI matrix. |
 | Migrations | `makemigrations --check` reports no missing migration. |
 | System check | `manage.py check` passes. |
 | Build | The package builds. |
@@ -126,8 +126,7 @@ For job tests, patch `netbox_peering_manager.jobs.IRRClient` and set
 
 `netbox_peering_manager/tests/query_counts.json` records how many database
 queries each list view and API list endpoint issues. NetBox's test case
-classes compare against it on NetBox 4.6 and later, which catches N+1
-regressions.
+classes compare against it, which catches N+1 regressions.
 
 If a change legitimately alters a count, regenerate the file and commit
 it with the change:
