@@ -10,11 +10,8 @@ how, so you know what each side is responsible for.
 - A netbox-routing release the plugin supports. The minimum is declared in
   the package metadata, so `pip` enforces it; the range for each plugin
   release is in the [compatibility table](https://github.com/jsenecal/netbox-peering-manager#compatibility).
-- `netbox_routing` listed **before** `netbox_peering_manager` in `PLUGINS`.
-  NetBox refuses to start otherwise.
-
-Install steps are in
-[Installation](../getting-started/installation.md).
+- Both plugins enabled in `PLUGINS`, in the order given in
+  [Installation](../getting-started/installation.md#install-netbox-peering-manager).
 
 ## Objects referenced
 

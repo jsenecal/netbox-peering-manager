@@ -1,11 +1,9 @@
 # Installation
 
 netbox-peering-manager is a NetBox plugin and follows the standard NetBox
-plugin install flow. The only non-obvious step is that
-[netbox-routing](https://github.com/DanSheps/netbox-routing) must already
-be installed, enabled, and migrated before you enable this plugin: it
-declares `netbox_routing` as a required plugin and will refuse to load
-otherwise.
+plugin install flow, with one extra step:
+[netbox-routing](https://github.com/DanSheps/netbox-routing) is installed
+and migrated first.
 
 ## Requirements
 

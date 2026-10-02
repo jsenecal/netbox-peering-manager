@@ -4,7 +4,7 @@
 
 [![PyPI](https://img.shields.io/pypi/v/netbox-peering-manager.svg)](https://pypi.org/project/netbox-peering-manager/)
 [![Python](https://img.shields.io/pypi/pyversions/netbox-peering-manager.svg)](https://pypi.org/project/netbox-peering-manager/)
-[![NetBox](https://img.shields.io/badge/NetBox-4.6%2B-success.svg)](https://github.com/netbox-community/netbox)
+[![NetBox](https://img.shields.io/badge/NetBox-plugin-success.svg)](https://github.com/jsenecal/netbox-peering-manager#compatibility)
 [![CI](https://github.com/jsenecal/netbox-peering-manager/actions/workflows/ci.yml/badge.svg)](https://github.com/jsenecal/netbox-peering-manager/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/gh/jsenecal/netbox-peering-manager/branch/main/graph/badge.svg)](https://codecov.io/gh/jsenecal/netbox-peering-manager)
 [![Documentation](https://img.shields.io/badge/docs-jsenecal.github.io-blue)](https://jsenecal.github.io/netbox-peering-manager/)

@@ -63,6 +63,5 @@ relationship taxonomy, and PeeringDB integration.
 The NetBox, netbox-routing, and Python versions supported by each plugin
 release are listed in the [compatibility table](https://github.com/jsenecal/netbox-peering-manager#compatibility) of the README.
 
-`netbox_routing` is a required plugin and must appear before
-`netbox_peering_manager` in `PLUGINS`. See the
-[installation guide](getting-started/installation.md) for the full sequence.
+Installing the plugin, including the netbox-routing plugin it requires, is
+covered in the [installation guide](getting-started/installation.md).
