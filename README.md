@@ -137,7 +137,7 @@ Example templates are provided in [`docs/examples/templates/`](docs/examples/tem
 Render configuration via the REST API:
 
 ```
-POST /api/plugins/bgp/render-config/
+POST /api/plugins/peering-manager/render-config/
 ```
 
 ## Development

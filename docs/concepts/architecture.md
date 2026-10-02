@@ -87,8 +87,8 @@ Two execution models are in play:
 
 | Surface | Location |
 |---------|----------|
-| Web UI | `/plugins/bgp/` (menu: **Peering**) |
-| REST API | `/api/plugins/bgp/` - see the [REST API reference](../reference/rest-api.md) |
+| Web UI | `/plugins/peering-manager/` (menu: **Peering**) |
+| REST API | `/api/plugins/peering-manager/` - see the [REST API reference](../reference/rest-api.md) |
 | GraphQL | `netbox_peering_manager_*` query fields on the NetBox GraphQL endpoint |
 | Management commands | `sync_peeringdb`, `load_all_initializer_data` - see [management commands](../reference/management-commands.md) |
 | Jinja2 filters | Registered globally for NetBox template rendering - see [Jinja2 filters](../reference/jinja2-filters.md) |

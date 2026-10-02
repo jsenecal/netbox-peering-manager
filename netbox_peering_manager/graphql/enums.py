@@ -2,6 +2,6 @@ import strawberry
 
 from netbox_peering_manager.choices import PeeringStatusChoices
 
-__all__ = ("NetBoxBGPPeeringStatusEnum",)
+__all__ = ("PeeringStatusEnum",)
 
-NetBoxBGPPeeringStatusEnum = strawberry.enum(PeeringStatusChoices.as_enum(), name="NetBoxBGPPeeringStatusEnum")
+PeeringStatusEnum = strawberry.enum(PeeringStatusChoices.as_enum(), name="PeeringStatusEnum")

@@ -122,7 +122,7 @@ class PeeringConnectionViewSet(NetBoxModelViewSet):
 class RenderConfigView(ConfigTemplateRenderMixin, APIView):
     """
     Render a ConfigTemplate with BGP session context.
-    POST /api/plugins/bgp/render-config/
+    POST /api/plugins/peering-manager/render-config/
     """
 
     renderer_classes = [JSONRenderer, TextRenderer]

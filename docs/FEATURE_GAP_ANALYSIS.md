@@ -211,7 +211,7 @@ PLUGINS_CONFIG = {
 - Uses NetBox's built-in `extras.ConfigTemplate` for template storage
 - Custom Jinja2 filters: `as_path_regex`, `ip_network`, `group_by`, `to_community_list`, `to_prefix_set`
 - `ConfigRenderer` service builds template context with device/session/policy data
-- API endpoint: `POST /api/plugins/bgp/render-config/`
+- API endpoint: `POST /api/plugins/peering-manager/render-config/`
 - Example templates for Junos, IOS-XR, EOS, Nokia SR OS
 
 ### 8. Session State Monitoring (FUTURE)
@@ -320,7 +320,7 @@ PLUGINS_CONFIG = {
 - Uses NetBox's built-in `extras.ConfigTemplate` for template storage
 - Custom Jinja2 filters: `as_path_regex`, `ip_network`, `group_by`, `to_community_list`, `to_prefix_set`
 - `ConfigRenderer` service builds template context with device/session/policy data
-- API endpoint: `POST /api/plugins/bgp/render-config/`
+- API endpoint: `POST /api/plugins/peering-manager/render-config/`
 - Example templates for Junos, IOS-XR, EOS, Nokia SR OS
 
 **Tasks:**

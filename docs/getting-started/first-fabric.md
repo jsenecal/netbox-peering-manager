@@ -18,7 +18,7 @@ from PeeringDB data.
 
 1. Navigate to **Peering &rarr; Fabrics &rarr; Create from PeeringDB**.
 2. Type at least two characters of the IX name in the search box. The
-   AJAX endpoint at `/plugins/bgp/peeringdb/search/` calls
+   AJAX endpoint at `/plugins/peering-manager/peeringdb/search/` calls
    `PeeringDBClient.search_ix` and returns up to 20 matches.
 3. Pick the IX. Submit.
 4. The view calls `PeeringFabric.objects.create()` with the PeeringDB

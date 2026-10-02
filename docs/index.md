@@ -30,7 +30,7 @@ relationship taxonomy, and PeeringDB integration.
 - **Configuration templating** via NetBox `ConfigTemplate` plus a denormalized
   context builder and a small set of vendor-agnostic Jinja2 filters
   (Cisco / Junos out of the box).
-- **REST API** under `/api/plugins/bgp/` for everything the UI exposes,
+- **REST API** under `/api/plugins/peering-manager/` for everything the UI exposes,
   plus a `render-config/` endpoint that returns rendered device configs.
 
 ## How the docs are organized

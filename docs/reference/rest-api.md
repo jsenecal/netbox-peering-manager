@@ -3,7 +3,7 @@
 Everything the UI manages is available under:
 
 ```
-/api/plugins/bgp/
+/api/plugins/peering-manager/
 ```
 
 The endpoints are standard NetBox model endpoints. Authentication,
@@ -53,11 +53,11 @@ repeated to match several values.
 ```bash
 # Sessions on one peering network
 curl -H "Authorization: Token $NETBOX_TOKEN" \
-  "https://netbox.example.com/api/plugins/bgp/peering-session/?peering_network_id=7"
+  "https://netbox.example.com/api/plugins/peering-manager/peering-session/?peering_network_id=7"
 
 # Your routers' attachments on a device
 curl -H "Authorization: Token $NETBOX_TOKEN" \
-  "https://netbox.example.com/api/plugins/bgp/peering-connection/?device_id=42"
+  "https://netbox.example.com/api/plugins/peering-manager/peering-connection/?device_id=42"
 ```
 
 ## Things that differ from the UI
@@ -81,7 +81,7 @@ Related objects are passed by ID. The BGP peer must already exist in
 netbox-routing and must not already have a peering session.
 
 ```bash
-curl -X POST https://netbox.example.com/api/plugins/bgp/peering-session/ \
+curl -X POST https://netbox.example.com/api/plugins/peering-manager/peering-session/ \
   -H "Authorization: Token $NETBOX_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
@@ -97,7 +97,7 @@ curl -X POST https://netbox.example.com/api/plugins/bgp/peering-session/ \
 ## render-config
 
 ```
-POST /api/plugins/bgp/render-config/
+POST /api/plugins/peering-manager/render-config/
 ```
 
 Renders a NetBox Config Template against the peering context of a device

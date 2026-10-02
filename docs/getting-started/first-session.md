@@ -145,7 +145,7 @@ Once a session exists, you can feed it through the
 The fastest way to verify everything is wired up:
 
 ```bash
-curl -X POST http://netbox/api/plugins/bgp/render-config/ \
+curl -X POST http://netbox/api/plugins/peering-manager/render-config/ \
   -H "Authorization: Token $NETBOX_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"template": 7, "device": 42}'
