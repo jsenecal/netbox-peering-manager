@@ -1,18 +1,14 @@
 # Installation
 
 netbox-peering-manager is a NetBox plugin and follows the standard NetBox
-plugin install flow. The only non-obvious step is that
-[netbox-routing](https://github.com/DanSheps/netbox-routing) must already
-be installed, enabled, and migrated before you enable this plugin: it
-declares `netbox_routing` as a required plugin and will refuse to load
-otherwise.
+plugin install flow, with one extra step:
+[netbox-routing](https://github.com/DanSheps/netbox-routing) is installed
+and migrated first.
 
 ## Requirements
 
-- NetBox 4.6.x or 4.7.x (the plugin pins `min_version = "4.6.0"` and
-  `max_version = "4.7.99"`). NetBox 4.5 is supported up to the 0.3.x
-  releases.
-- Python 3.12, 3.13, or 3.14.
+- A NetBox and Python version supported by the plugin release you
+  install. See the [compatibility table](https://github.com/jsenecal/netbox-peering-manager#compatibility).
 - PostgreSQL (whatever NetBox itself supports).
 - A running NetBox RQ worker if you plan to use IRR prefix-list sync jobs
   (`make rqworker` in the dev setup, or your production worker service).
@@ -25,7 +21,7 @@ otherwise.
 
 ```bash
 source /opt/netbox/venv/bin/activate
-pip install 'netbox-routing>=0.4'
+pip install netbox-routing
 ```
 
 Add it to `PLUGINS` in `configuration.py` and run migrations:
@@ -76,11 +72,10 @@ sub-menus for Peering, Fabrics, and IRR.
 ## Pinning for production
 
 Pin both plugins in your `local_requirements.txt` so upgrades are
-deterministic:
+deterministic. Record the versions you just installed and validated:
 
-```
-netbox-routing==0.4.0
-netbox-peering-manager==0.2.2
+```bash
+pip freeze | grep -iE '^netbox[-_](routing|peering[-_]manager)==' >> /opt/netbox/local_requirements.txt
 ```
 
 Re-run `pip install -r local_requirements.txt && python manage.py migrate`
@@ -99,7 +94,7 @@ python manage.py nbshell
 ```python
 from django.apps import apps
 apps.get_app_config("netbox_peering_manager")
-# <BGPConfig: BGP>
+# <PeeringManagerConfig: netbox_peering_manager>
 
 from netbox_peering_manager.jobs import SyncPrefixListJob, SyncAllPrefixListsJob
 SyncPrefixListJob.Meta.name
@@ -121,7 +116,7 @@ python manage.py migrate netbox_peering_manager
 systemctl restart netbox netbox-rq
 ```
 
-If you are migrating from v0.1.x (NetBox 4.4) to v0.2.x (NetBox 4.5), see
+If you are migrating from v0.1.x, see
 the **Upgrading from v0.1.x** section in the project README. That migration
 is destructive: it drops every `netbox_peering_manager_*` table and rebuilds
 them, and assumes you have already migrated your BGP data into

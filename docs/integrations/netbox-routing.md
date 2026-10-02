@@ -7,13 +7,11 @@ how, so you know what each side is responsible for.
 
 ## Requirements
 
-- netbox-routing **0.4.3 or later** (declared in the package metadata, so
-  `pip` enforces it).
-- `netbox_routing` listed **before** `netbox_peering_manager` in `PLUGINS`.
-  NetBox refuses to start otherwise.
-
-Install steps are in
-[Installation](../getting-started/installation.md).
+- A netbox-routing release the plugin supports. The minimum is declared in
+  the package metadata, so `pip` enforces it; the range for each plugin
+  release is in the [compatibility table](https://github.com/jsenecal/netbox-peering-manager#compatibility).
+- Both plugins enabled in `PLUGINS`, in the order given in
+  [Installation](../getting-started/installation.md#install-netbox-peering-manager).
 
 ## Objects referenced
 
@@ -82,8 +80,8 @@ the nested `prefix_list`. When writing, pass the related object's ID.
 ## Upgrading netbox-routing
 
 Because the plugin reads netbox-routing model fields directly, upgrade
-both plugins together and consult the compatibility table on the
-[home page](../index.md#compatibility-at-a-glance) first. The plugin's test
+both plugins together and consult the
+[compatibility table](https://github.com/jsenecal/netbox-peering-manager#compatibility) first. The plugin's test
 suite runs on every supported NetBox version against the newest
 netbox-routing release that satisfies the requirement.
 

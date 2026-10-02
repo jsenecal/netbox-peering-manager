@@ -14,8 +14,8 @@ sit on top of core NetBox objects.
 | netbox-peering-manager | Peering context | `PeeringFabric`, `PeeringNetwork`, `PeeringConnection`, `PeeringSession`, `PeerASN`, `Relationship`, `IRRSource`, `IRRPrefixListConfig` |
 
 The plugin declares `required_plugins = ["netbox_routing"]`, so NetBox
-refuses to load it unless netbox-routing is installed and listed first in
-`PLUGINS`.
+will not load it without netbox-routing. Enabling both is covered in
+[Installation](../getting-started/installation.md#install-netbox-peering-manager).
 
 ## How the layers connect
 
